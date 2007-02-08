@@ -1,10 +1,4 @@
-#summary One-sentence summary of this page.
-
-= Introduction =
-
-Sommaire Exécutif
-
-= Details =
+#summary Sommaire Exécutif
 
 *Nom du produit:*
 
@@ -29,6 +23,8 @@ Notre outil servira directement à la livraison des paquets à domicile. Il perm
 *Avantages du produit:*
 
 Pour l'entreprise de livraison intégrant notre produit, le système PDALE permet à une centrale de modifier rapidement et dynamiquement le parcours suivi par ses camions de livraison. Ces modifications résultent directement en une optimisation et une simplification du travail des livreurs qui n'ont plus qu'à suivre les indications du PDA pour effectuer leurs tâches. En connaissant l'emplacement de chaque camion, la centrale peut également choisir ceux à proximité pour une cueillette. Le coût de l'essence étant un enjeu majeur dans ce marché, l'optimisation des déplacements des camions de la compagnie est un enjeu majeur pour économiser. De plus, en pouvant se fier à la carte et aux parcours affichés sur le PDA, le livreur évitera de se tromper dans le chemin à suivre. Il sera également possible pour la centrale d'informer les livreurs immédiatement de tout bouchon de circulation, de construction ou de traffic dans le parcours à suivre. Bref, une compagnie déployant le système PDALE peut prévoir une réduction du nombre d'effectifs sur la route et des coûts associés au transport de ses colis. Elle va donc rapidement rembourser les coûts associés au système PDALE
+
+
 
 
 
