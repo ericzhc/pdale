@@ -28,7 +28,13 @@ Il faudrait aussi faire un schéma-bloc de notre projet pour la semaine prochain
 
 La distribution va se faire au prochain cours de projet. Il faudrait que quelqu'un apporte un chèque sans fonds de 1000$.
 
+*Choix du protocole*
 
+Choisir un protocole qui sera utilisé pour la transmission cellulaire et justifier le choix.
+
+*Code Barre*
+
+Arrêter le choix sur la sorte de code barre à utiliser (UPC 20/5) et justifier. Trouver un bon logiciel qui nous permettra d'imprimer des codes barres test.
 
 
 
