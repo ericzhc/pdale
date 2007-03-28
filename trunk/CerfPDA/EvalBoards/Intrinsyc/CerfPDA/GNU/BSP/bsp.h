@@ -1,0 +1,39 @@
+/*
+*********************************************************************************************************
+*                                                uC/OS-II
+*                                          The Real-Time Kernel
+*
+*                           (c) Copyright 1992-2003, Jean J. Labrosse, Weston, FL
+*                                           All Rights Reserved
+*
+*                                              LogicPD Zoom
+*                                          Board Support Package
+*
+* File    : bsp.h
+* By      : Jean J. Labrosse
+* Modif by: Jean-Denis Hatier
+*
+*********************************************************************************************************
+*/
+
+/*
+*********************************************************************************************************
+*                                            FUNCTION PROTOTYPES
+*********************************************************************************************************
+*/
+
+void  BSP_Init();
+void request_irq(unsigned int irq, void (*handler) (void));
+void free_irq(unsigned int irq);
+
+/*
+*********************************************************************************************************
+*                                             TICK SERVICES
+*********************************************************************************************************
+*/
+
+void  Tmr_TickInit(void);
+void  Tmr_Init(void);
+void  onTickHookRegistr( void (*callbk)(void));
+void  BSP_IntDisAll (void);
+void  Serial_PortInit(void);

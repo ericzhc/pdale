@@ -1,0 +1,73 @@
+[CONFIGURATIONS]
+config=,Debug
+config=,Release
+[GLOBAL]
+packtype=gnuc
+DebugCallbackName=gdb
+aliasprefix=arm-elf-
+workingdir=.
+version=7.0
+packname=GNU arm-elf C/C++ Wizard
+buildsystem=automakefile
+makefile=Makefile
+MACRO=\n
+[COMPILER.Debug]
+compile(.s)=copts: concur|capture|dialog:_gnuc_options_form:Compile:compile(.s)|savecurrent|nevershow|menu: Compile-Assembler:&Compile-Scmd: arm-elf-as %xup %ir -o $@ $<otheropts: outputext: .o
+compile(.cc .C .cpp .S)=copts: concur|capture|dialog:_gnuc_options_form:Compile:compile(.cc .c .cpp)|savecurrent|nevershow|menu: Compile-C++:&Compile-CCcmd: arm-elf-g++ -c %xup -g -o "%bd%n%oe" %ir "%f"otheropts: outputext: .o
+compile=copts: concur|capture|dialog:_gnuc_options_form:Compile|savecurrent|menu: Compile:&Compilecmd: arm-elf-gcc -c %xup -g -o "%bd%n%oe" %i "%f"otheropts: outputext: .o
+link=copts: concur|capture|clear|dialog:_gnuc_options_form:Link|savecurrent|nevershow|menu: Link:&Linkcmd: arm-elf-gcc %xup -g -o "%bd%o" %f %libs %~otherotheropts: -T ../../BSP/CerfPDA_lnk_ram.lds -nostartfiles
+clean=copts: concur|capture|clear|savenone|menu: Clean:&Cleancmd: make -f "Makefile" CFG=%b  cleanotheropts: 
+make=copts: concur|capture|saveworkspacefiles|menu: Build:&Buildcmd: make -f "Makefile" CFG=%b allotheropts: rebuild: 1
+rebuild=copts: concur|capture|menu: Rebuild:&Rebuildcmd: make -f "Makefile" CFG=%b clean allotheropts: 
+debug=copts: |menu: Debug:&Debugcmd: otheropts: 
+usertool_visualgdb=copts: |nochangedir|menu: Debug with Visual GDB:&Debug with Visual GDBcmd: arm-elf-gdbtk %xup "%bd%o"otheropts: 
+usertool_dash=copts: |savenone|menu: dash:-cmd: otheropts: 
+usertool_gnu_c_options=copts: |readonly|disablecapoutput|savenone|hide|nochangedir|menu: GNU X-Tools Options:GNU X-Tools Options...cmd: gnucoptionsotheropts: 
+execute=copts: |menu: Execute:E&xecutecmd: otheropts: 
+includedirs=.;..\..\BSP\;..\..\HAL\Lib\include\;..\..\..\..\..\..\uC-GUI\Start\GUI\Core\;..\..\..\..\..\..\uC-GUI\Start\GUI\JPEG\;..\..\..\..\..\..\uC-GUI\Start\GUI\MultiLayer\;..\..\..\..\..\..\uC-GUI\Start\GUI\Widget\;..\..\..\..\..\..\uC-GUI\Start\GUI\WM\;..\..\..\..\..\..\uCOS-II\Ports\ARM\CerfPDA\GNU\;..\..\..\..\..\..\uCOS-II\Source\;C:\cygwin\include\
+sysincludedirs=
+reffile=
+libs=../../uC-GUI/Lib/Release/Project.a ../../uCOS-II/Lib/Debug/Project.a ../../HAL/Lib/Debug/Project.a
+outputfile=Project.x
+prebuildcmds=
+postbuildcmds=
+stoponprebuilderrors=0
+stoponpostbuilderrors=0
+[COMPILER.Release]
+compile(.s)=copts: concur|capture|dialog:_gnuc_options_form:Compile:compile(.s)|savecurrent|nevershow|menu: Compile-Assembler:&Compile-Scmd: arm-elf-as %xup %ir -o $@ $<otheropts: outputext: .o
+compile(.cc .C .cpp .S)=copts: concur|capture|dialog:_gnuc_options_form:Compile:compile(.cc .c .cpp)|savecurrent|nevershow|menu: Compile-C++:&Compile-CCcmd: arm-elf-g++ -c %xup -o "%bd%n%oe" %ir "%f"otheropts: outputext: .o
+compile=copts: concur|capture|dialog:_gnuc_options_form:Compile|savecurrent|menu: Compile:&Compilecmd: arm-elf-gcc -c %xup -o "%bd%n%oe" %i "%f"otheropts: outputext: .o
+link=copts: concur|capture|clear|dialog:_gnuc_options_form:Link|savecurrent|nevershow|menu: Link:&Linkcmd: arm-elf-gcc %xup -o "%bd%o" %f %libs %~otherotheropts: -T ../../BSP/CerfPDA_lnk_ram.lds -nostartfiles
+clean=copts: concur|capture|clear|savenone|menu: Clean:&Cleancmd: make -f "Makefile" CFG=%b  cleanotheropts: 
+make=copts: concur|capture|saveworkspacefiles|menu: Build:&Buildcmd: make -f "Makefile" CFG=%b allotheropts: rebuild: 1
+rebuild=copts: concur|capture|menu: Rebuild:&Rebuildcmd: make -f "Makefile" CFG=%b clean allotheropts: 
+debug=copts: |menu: Debug:&Debugcmd: otheropts: 
+usertool_visualgdb=copts: |nochangedir|menu: Debug with Visual GDB:&Debug with Visual GDBcmd: arm-elf-gdbtk %xup "%bd%o"otheropts: 
+usertool_dash=copts: |savenone|menu: dash:-cmd: otheropts: 
+usertool_gnu_c_options=copts: |readonly|disablecapoutput|savenone|hide|nochangedir|menu: GNU X-Tools Options:GNU X-Tools Options...cmd: gnucoptionsotheropts: 
+execute=copts: |menu: Execute:E&xecutecmd: otheropts: 
+includedirs=.;..\..\BSP\;..\..\HAL\Lib\include\;..\..\..\..\..\..\uC-GUI\Start\GUI\Core\;..\..\..\..\..\..\uC-GUI\Start\GUI\JPEG\;..\..\..\..\..\..\uC-GUI\Start\GUI\MultiLayer\;..\..\..\..\..\..\uC-GUI\Start\GUI\Widget\;..\..\..\..\..\..\uC-GUI\Start\GUI\WM\;..\..\..\..\..\..\uCOS-II\Ports\ARM\CerfPDA\GNU\;..\..\..\..\..\..\uCOS-II\Source\;C:\cygwin\include\
+sysincludedirs=
+reffile=
+libs=../../uC-GUI/Lib/Release/Project.a ../../uCOS-II/Lib/Release/Project.a ../../HAL/Lib/Release/Project.a
+outputfile=Project.x
+prebuildcmds=
+postbuildcmds=
+stoponprebuilderrors=0
+stoponpostbuilderrors=0
+[FILES]
+_start_sa.s
+app.c
+GUIConf.h
+GUITouchConf.h
+HouseControl.c
+includes.h
+LCDConf.h
+Makefile
+os_cfg.h
+..\..\BSP\bsp.c
+..\..\BSP\bsp.h
+..\..\BSP\bsp_a.s
+..\..\BSP\CerfPDA_lnk_ram.lds
+..\..\BSP\syscalls.c
+[ASSOCIATION]
