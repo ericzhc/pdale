@@ -22,6 +22,8 @@ TASK_BUFF_PROTECT SerialRxBuffer;
 void GPS_Init(void) 
 {
 	ComInit(SERIAL_BAUD_9600);
+	setRxInterrupt();
+
 	strcpy(GPSPosition.Latitude, "0.000");
 	strcpy(GPSPosition.Longitude, "0.000");
 	strcpy(GPSPosition.Altitude, "0.000");

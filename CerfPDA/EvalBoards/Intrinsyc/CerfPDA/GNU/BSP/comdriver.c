@@ -14,7 +14,7 @@ char RxSerialBuffer[SERIAL_BUFF_SIZE];
 int ptrTxBuffCurr = 0, ptrTxBuffEnd = 0, ptrRxBuffCurr = 0, ptrRxBuffEnd = 0;
 
 // Required variables
-OS_EVENT* TxSem;
+OS_EVENT* TxSerialSem;
 OS_EVENT* RxSerialSem;
 OS_EVENT* TransmitFctSem;
 OS_STK BufferTransmissionTaskStk[TASK_SERIAL_SIZE];
@@ -27,7 +27,7 @@ INT8U err;
 void SerialDriverInit() 
 {
 	// Semaphore to protect multiple entry in transmission
-	TxSem = OSSemCreate(1);
+	TxSerialSem = OSSemCreate(1);
 	RxSerialSem	= OSSemCreate(1);
 	TransmitFctSem = OSSemCreate(1);
 
@@ -64,7 +64,36 @@ void ComInit(u32 baud)
 *******************************************************/
 void ISR_Serial() 
 {
-	OSSemPend(RxSerialSem, 0, &err);
+	int x;
+	switch(GetInterruptStatus())
+	{
+		case TRANSMIT_INTERRUPT:
+			for(x=0; x<TRIGER_LEVEL; x++)
+			{
+				THR = TxSerialBuffer[ptrTxBuffCurr];
+				ptrTxBuffCurr++;
+
+				if(ptrTxBuffCurr == ptrTxBuffEnd)
+					ptrTxBuffCurr = 0;
+			} 
+			break;
+		case RECEIVER_INTERRUPT:
+			OSSemPend(RxSerialSem, 0, &err);
+			for(x=0; x<TRIGER_LEVEL; x++)
+			{
+				ptrRxBuffEnd = ptrRxBuffEnd++ % SERIAL_BUFF_SIZE;
+				
+				if (ptrRxBuffEnd == ptrRxBuffCurr) {
+					break;	
+				}
+
+				RxSerialBuffer[ptrRxBuffEnd] = RHR;
+			}
+			OSSemPost(RxSerialSem);
+			break;
+	
+	}
+	
 	OSSemPost(RxSerialSem);
 }
 
@@ -74,7 +103,7 @@ void ISR_Serial()
 void TransmitBuffer(char *databuff, int length) 
 {
 	OSSemPend(TransmitFctSem, 0, &err); // protects dual entry in this fct
-	OSSemPend(TxSem, 0, &err); // protects the transmission buffer
+	OSSemPend(TxSerialSem, 0, &err); // protects the transmission buffer
 	int i;
 	for (i=0; i<length; i++) {
 		// Increment the buffer's ending pointer
@@ -82,14 +111,14 @@ void TransmitBuffer(char *databuff, int length)
 		
 		// Sleep until there is an empty buffer spot
 		while(ptrTxBuffEnd == ptrTxBuffCurr) {
-			OSSemPost(TxSem);
+			OSSemPost(TxSerialSem);
 			OSTimeDlyHMSM(0,0,0,10);
-			OSSemPend(TxSem, 0, &err);
+			OSSemPend(TxSerialSem, 0, &err);
 		}
 
 		TxSerialBuffer[ptrTxBuffEnd] = (databuff + i)[0];
 	}
-	OSSemPost(TxSem);
+	OSSemPost(TxSerialSem);
 	OSSemPost(TransmitFctSem);
 }
 
@@ -100,12 +129,12 @@ void TransmitBuffer(char *databuff, int length)
 void BufferTransmissionTask() 
 {
 	while (1) {
-		OSSemPend(TxSem, 0, &err);
+		OSSemPend(TxSerialSem, 0, &err);
 		while (ptrTxBuffCurr != ptrTxBuffEnd) {
 			ptrTxBuffCurr = ptrTxBuffCurr++ % SERIAL_BUFF_SIZE;
 			output_byte_serial_front((char)TxSerialBuffer[ptrTxBuffCurr]);
 		}
-		OSSemPost(TxSem);
+		OSSemPost(TxSerialSem);
 		OSTimeDlyHMSM(0,0,0,10);
 	}
 }
