@@ -22,21 +22,6 @@
 
 #include <serial_front.h>
 
-#define	UART_BASE	0x18000000
-
-#define RHR	*(volatile unsigned char*) (UART_BASE + 0x00)
-#define THR	*(volatile unsigned char*) (UART_BASE + 0x00)
-#define IER	*(volatile unsigned char*) (UART_BASE + 0x02)
-#define IIR	*(volatile unsigned char*) (UART_BASE + 0x04)
-#define FCR	*(volatile unsigned char*) (UART_BASE + 0x04)
-#define LCR	*(volatile unsigned char*) (UART_BASE + 0x06)
-#define MCR	*(volatile unsigned char*) (UART_BASE + 0x08)
-#define LSR	*(volatile unsigned char*) (UART_BASE + 0x0A)
-#define MSR	*(volatile unsigned char*) (UART_BASE + 0x0C)
-#define DLL	*(volatile unsigned char*) (UART_BASE + 0x00)
-#define DLH	*(volatile unsigned char*) (UART_BASE + 0x02)
-#define EFR *(volatile unsigned char*) (UART_BASE + 0x04) // Page 30, RTS = bit 6
-
 ////////////////////////////////////////////////////////////////////////////////
 // init_serial
 // PURPOSE: Initializes the front serial port.
@@ -47,31 +32,93 @@ void
 init_serial_front(u32 baud)
 {
 	LCR |= 0x80;	// Select DLL-DLH
-	DLL = 0x90;	// 9600 bauds
+	setBaudRate(baud);
 	DLH = 0x00;
-	LCR = 0x03;	// 8 bit, 1 stop, no parity
 	
-	IER = 0;	// no interrupts
-
 	MCR = 0x08;	// OP output to low to activate the RS-232 buffer
 
-	FCR = 0x04;	// clear Rx and Tx FIFOs
+	initializeFIFO();
+}
+
+void setBaudRate(u32 baud)
+{
+	// To be done
+	DLL = 0x90;	// 9600 bauds
+}
+
+int GetInterruptStatus()
+{
+	if((IIR & 0x01) == 0) {
+		switch((IIR & 0x0e)>>3) {
+			case IIR_INTERRUPT_TRANSMIT:
+				return TRANSMIT_INTERRUPT;
+			case IIR_INTERRUPT_RECEIVER:
+				return RECEIVER_INTERRUPT;
+			default:
+				return NOT_DEFINED_INTERRUPT;
+		}
+	} else {
+		return NO_INTERRUPT;
+	}
+}
+
+void setTxInterrupt()
+{
+	IER |= 2;
+}
+
+void setRxInterrupt()
+{
+	IER |= 1;
+}
+
+void clearInterrupt()
+{
+	IER = 0;	// no interrupts
+}
+void setParity(int parity)
+{
+	switch (parity) {
+		case PARTITY_NONE:	
+			LCR = 0x03;
+			break;
+		case PARTITY_ODD:
+			LCR = 0x0b;
+			break;
+		case PARTITY_EVEN:
+			LCR = 0x1b;
+			break;
+		default:
+			LCR = 0x03;
+			break;
+	}
+}
+
+
+
+void initializeFIFO()
+{
+	FCR = 0x04;	// clear Rx and Tx FIFOs and 8 spaces (page 25)
 	FCR = 0x01;	// activate FIFO
 
 }
 
-void SetRTS () 
+void SetRTS()
 {
 	LCR = 0xbf; 
 	EFR |= 0x40;
 }
 
-void ClearRTS () 
+void ClearRTS()
 {
 	LCR = 0xbf; 
 	EFR &= 0xbf;
 }
 
+void setBufferTriger()
+{
+	TLR = 0x44;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // output_byte_serial_front
