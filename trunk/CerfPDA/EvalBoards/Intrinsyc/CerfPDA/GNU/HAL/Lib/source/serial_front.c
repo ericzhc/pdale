@@ -31,6 +31,7 @@
 void
 init_serial_front(u32 baud)
 {
+	printf("Initializing serial front\n\r");
 	LCR |= 0x80;	// Select DLL-DLH
 	setBaudRate(baud);
 	DLH = 0x00;
@@ -38,6 +39,7 @@ init_serial_front(u32 baud)
 	MCR = 0x08;	// OP output to low to activate the RS-232 buffer
 
 	initializeFIFO();
+	printf("Init done...serial front\n\r");
 }
 
 void setBaudRate(u32 baud)

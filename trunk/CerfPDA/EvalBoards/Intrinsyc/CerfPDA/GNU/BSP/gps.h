@@ -32,5 +32,7 @@ void ReadTime(void);
 void ISR_GPS_Update_C(void);
 void GPS_Disable(void);
 void ReceivedTSIP();
+GPSCoord GetGPSPosition();
+GPSTime GetGPSTime();
 
 #endif

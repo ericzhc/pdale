@@ -23,13 +23,15 @@ void GPS_Init(void)
 {
 	ComInit(SERIAL_BAUD_9600);
 	setRxInterrupt();
+	setParity(PARTITY_ODD);
 
-	strcpy(GPSPosition.Latitude, "0.000");
-	strcpy(GPSPosition.Longitude, "0.000");
-	strcpy(GPSPosition.Altitude, "0.000");
+	strcpy(GPSPosition.Latitude, "1.000");
+	strcpy(GPSPosition.Longitude, "2.000");
+	strcpy(GPSPosition.Altitude, "3.000");
 
 	SerialRxBuffer = GetTaskBuffProtectStruct();
 
+	printf("Starting GPS update task\n\r");
 	OSTaskCreateExt(GPSUpdateTask,
                 NULL,
                 (OS_STK *)&GPSUpdateTaskStk[TASK_GPS_SIZE-1],
@@ -40,6 +42,7 @@ void GPS_Init(void)
                 NULL,
                 OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR
 	);
+	printf("Init done...GPS\n\r");
 }
 
 void GPSUpdateTask() 
@@ -55,12 +58,14 @@ void GPSUpdateTask()
 		OSSemPost(SerialRxBuffer.semaphore);
 		ReceivedTSIP();
 		OSTimeDlyHMSM(0,0,0,10);
+		printf("GPS Update Task\n\r");
 	}
 }
 
 void ReceivedTSIP()
 {
 	while (ptrGPSBuffCurr != ptrGPSBuffEnd) {
+		printf("TSIP Detected\n\r");
 		ptrGPSBuffCurr = ptrGPSBuffCurr++ % SERIAL_BUFF_SIZE;
 		switch (GPSBuffer[ptrGPSBuffCurr]) {
 			case GPS_DLE : // synchronisation DLE
@@ -138,4 +143,14 @@ void GPS_Disable()
 	// Send TSIP packet to stop automatic transmission of GPS data
 	// SendTSIP(0x??);
 	// OSTaskDelete();
+}
+
+GPSTime GetGPSTime() 
+{
+	return GPSTimeValue;
+}
+
+GPSCoord GetGPSPosition() 
+{
+	return GPSPosition;
 }

@@ -45,7 +45,6 @@
 */
 
 static  void  AppStartTask(void *p_arg);
-static  void  GuiTask(void *p_arg);
 
 /*
 *********************************************************************************************************
@@ -61,6 +60,9 @@ int  main (void)
 
     printf("\r\nInitialize uC/OS-II...");
     OSInit();                                   /* Initialize uC/OS-II                                 */
+
+	printf("Initializing GPS\n\r");
+	GPS_Init();                                 /* Initialize GPS                                      */
 
                                                 /* Create start task                                   */
     OSTaskCreateExt(AppStartTask,
@@ -115,39 +117,21 @@ static void  AppStartTask (void *p_arg)
     OSStatInit();                               /* Start stats task                                    */
 #endif
 
-    printf("\r\nStarting uC/GUI demo...\n");
-
-    OSTaskCreateExt(GuiTask,
-                    NULL,
-                    (OS_STK *)&GuiTaskStk[TASK_STK_SIZE-1],
-                    TASK_GUI_PRIO,
-                    TASK_GUI_PRIO,
-                    (OS_STK *)&GuiTaskStk[0],
-                    TASK_GUI_PRIO,
-                    NULL,
-                    OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
-
                                                 /* Give a name to tasks                                */
 #if OS_TASK_NAME_SIZE > 10
     OSTaskNameSet(TASK_GUI_PRIO,        "GUI task",  &err);
 #endif
 
-    MainTask();
+	GPSCoord Position;
+	GPSTime TimeValue;
 
     while (1) {                                 /* Task body, always written as an infinite loop.      */
                                                 /* Delay task execution for 500 ms                     */
-        OSTimeDly(500 * OS_TICKS_PER_SEC / 1000);
-    }
-}
+        Position = GetGPSPosition();
+		TimeValue = GetGPSTime();
 
-static void  GuiTask (void *p_arg)
-{
-    p_arg = p_arg;                              /* Prevent compiler warning                            */
-
-    while (1)
-    {
-        GUI_TOUCH_Exec();
-        GUI_Exec();
-        //GUI_X_ExecIdle();
+		printf("Lat: %s - Long: %s - Alt: %s\n\r", Position.Latitude, Position.Longitude, Position.Altitude);
+		printf("Time : %d:%d:%d\n\r", TimeValue.Hours, TimeValue.Minutes, TimeValue.Seconds);
+		OSTimeDlyHMSM(0,0,0,100);
     }
 }
