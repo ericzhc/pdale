@@ -35,6 +35,7 @@
 #define MSR	*(volatile unsigned char*) (UART_BASE + 0x0C)
 #define DLL	*(volatile unsigned char*) (UART_BASE + 0x00)
 #define DLH	*(volatile unsigned char*) (UART_BASE + 0x02)
+#define EFR *(volatile unsigned char*) (UART_BASE + 0x04) // Page 30, RTS = bit 6
 
 ////////////////////////////////////////////////////////////////////////////////
 // init_serial
@@ -56,7 +57,21 @@ init_serial_front(u32 baud)
 
 	FCR = 0x04;	// clear Rx and Tx FIFOs
 	FCR = 0x01;	// activate FIFO
+
 }
+
+void SetRTS () 
+{
+	LCR = 0xbf; 
+	EFR |= 0x40;
+}
+
+void ClearRTS () 
+{
+	LCR = 0xbf; 
+	EFR &= 0xbf;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // output_byte_serial_front
