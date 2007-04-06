@@ -23,6 +23,7 @@
 #define SERIAL_FRONT_H
 
 #include <types.h>
+#include <serial.h>
 
 #define	UART_BASE	0x18000000
 
@@ -39,11 +40,12 @@
 #define DLH	*(volatile unsigned char*) (UART_BASE + 0x02)
 #define EFR *(volatile unsigned char*) (UART_BASE + 0x04) // Page 30, RTS = bit 6
 #define TLR *(volatile unsigned char*) (UART_BASE + 0x0e)  
+
 #define TRIGER_LEVEL 4
 
-#define PARTITY_NONE 0
-#define PARTITY_ODD 1
-#define PARTITY_EVEN 2
+#define PARITY_NONE 0
+#define PARITY_ODD 1
+#define PARITY_EVEN 2
 
 #define TRANSMIT_INTERRUPT 0
 #define RECEIVER_INTERRUPT 1
