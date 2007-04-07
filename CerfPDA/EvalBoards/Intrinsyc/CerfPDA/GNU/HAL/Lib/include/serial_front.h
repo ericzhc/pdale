@@ -55,6 +55,8 @@
 #define IIR_INTERRUPT_TRANSMIT 0
 #define IIR_INTERRUPT_RECEIVER 1
 
+#define COM_PORT 3
+
 void init_serial_front(u32 baud);
 void output_byte_serial_front(char byte);
 int input_byte_serial_front(char *byte);
@@ -68,5 +70,9 @@ void initializeFIFO();
 void SetRTS();
 void ClearRTS();
 void setBaudRate(u32 baud);
+
+void setInterruptHandle(void (*handler) (void));
+int txFIFOEmpty();
+int rxfifoFull();
 
 #endif //SERIAL_H

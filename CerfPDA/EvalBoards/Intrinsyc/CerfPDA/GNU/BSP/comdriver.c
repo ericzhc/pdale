@@ -49,8 +49,6 @@ void SerialDriverInit()
 *******************************************************/
 void ComInit(u32 baud) 
 {
-	free_irq(COM_PORT);
-	request_irq(COM_PORT, ISR_Serial);
 	init_serial_front(baud);
 	// Clear serial buffers
 	ptrRxBuffCurr = 0;

@@ -32,8 +32,8 @@ void init_serial_front(u32 baud)
 {
 	printf("Initializing serial front\n\r");
 	
-	LCR |= 0x80;	// Select DLL-DLH
 	setBaudRate(baud);
+	LCR = 0;
 	LCR |= 0x03;	// 8 bits configuration
 	LCR &= 0xFB;	// 1 stop bit
 	setParity(PARITY_NONE);
@@ -55,12 +55,16 @@ void init_serial_front(u32 baud)
 */
 void setBaudRate(u32 baud)
 {
+	LCR |= 0x80;	// Select DLL-DLH
+
 	switch(baud) {
 		default:
 			DLL = 0x90;
 			DLH = 0x00;
 			break;
 	}
+
+	LCR &= 0x7f;	// Select DLL-DLH
 }
 
 void setParity(int parity)
@@ -106,7 +110,8 @@ void ClearRTS()
 
 void setBufferTriger()
 {
-	TLR = 0x44;
+	TLR = 0x40;
+	
 }
 
 int GetInterruptStatus()
@@ -135,10 +140,22 @@ void setRxInterrupt()
 	IER |= 1;
 }
 
+
 void clearInterrupt()
 {
 	IER = 0;	// no interrupts
 }
+
+ void setInterruptHandle(void (*handler) (void))
+ {
+	free_irq(COM_PORT);
+	request_irq(COM_PORT, handler);
+ }
+
+ void freeInterruptHandle()
+ {
+	free_irq(COM_PORT);
+ }
 
 ////////////////////////////////////////////////////////////////////////////////
 // output_byte_serial_front
@@ -149,10 +166,21 @@ void clearInterrupt()
 void output_byte_serial_front(char byte)
 {
    //wait for room in the fifo.
-   while((LSR & 0x20) == 0);
+   while((txFIFOEmpty()) == 0);
 
    THR = byte;
 }
+
+int txFIFOEmpty()
+{
+	return ((LSR & 0x20) != 0);
+}
+
+int rxfifoFull()
+{
+	return (LSR & 0x01 == 1);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // input_byte_serial_front
@@ -164,7 +192,7 @@ int input_byte_serial_front(char *byte)
 {
    int error = 0;
 
-   if(LSR & 0x01)
+   if( rxfifoFull())
    {
       error = (LSR & 0x0E); // overrun, parity, framming 
       if(error)
@@ -181,5 +209,4 @@ int input_byte_serial_front(char *byte)
       return 0;
    }
 }
-
 
