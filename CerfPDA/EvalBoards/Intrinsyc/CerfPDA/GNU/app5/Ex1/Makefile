@@ -6,9 +6,9 @@
 # Make command to use for dependencies
 MAKECMD=make
 
-# If no configuration is specified, "Debug" will be used
+# If no configuration is specified, "Release" will be used
 ifndef "CFG"
-CFG=Debug
+CFG=Release
 endif
 
 #
