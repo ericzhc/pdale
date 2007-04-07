@@ -3,7 +3,6 @@
 
 #include <includes.h>
 
-#define COM_PORT 3
 #define SERIAL_BUFF_SIZE 350 // more than twice the worst-case from TSIP doc
 
 #define  TASK_SERIAL_PRIO 7
