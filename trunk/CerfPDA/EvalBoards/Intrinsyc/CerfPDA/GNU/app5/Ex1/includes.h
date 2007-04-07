@@ -20,6 +20,6 @@
 #include  <build_tbl.h>
 #include  <interrupt_sa.h>
 #include  <timer.h>
-#include  <serial.h>
+#include  <serial_front.h>
 #include  <cpld.h>
 
