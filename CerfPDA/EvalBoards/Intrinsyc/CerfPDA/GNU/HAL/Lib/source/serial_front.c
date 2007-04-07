@@ -38,9 +38,13 @@ void init_serial_front(u32 baud)
 	LCR &= 0xFB;	// 1 stop bit
 	setParity(PARITY_NONE);
 
-	MCR |= 0x08;		// OP output to low to activate the RS-232 buffer
-
+	MCR = 0;
+	
 	initializeFIFO();
+	//setBufferTriger();
+	
+	MCR |= 0x01;
+	MCR |= 0x08;		// OP output to low to activate the RS-232 buffer
 	printf("Init done...serial front\n\r");
 }
 
@@ -91,6 +95,7 @@ void initializeFIFO()
 	// (page 25)
 	FCR = 0x0;		// desactivate FIFO before configuration: bit 0
 	FCR |= 0x06;	// clear Rx and Tx FIFOs
+	FCR &= 0xF9;
 	FCR &= 0xF7;	// DMA mode 0, bit 3
 	FCR &= 0x0F;	// set trigger levels to 8 spaces/characters
 	FCR |= 0x01;	// activate FIFO
@@ -108,9 +113,9 @@ void ClearRTS()
 	EFR &= 0xbf;
 }
 
-void setBufferTriger()
+void setBufferTriger() 
 {
-	TLR = 0x40;
+	TLR = 0x44;
 	
 }
 
