@@ -21,9 +21,7 @@ TASK_BUFF_PROTECT SerialRxBuffer;
 
 void GPS_Init(void) 
 {
-	ComInit(SERIAL_BAUD_9600);
-	setRxInterrupt();
-	setParity(PARTITY_ODD);
+	SerialDriverInit(GPS_CONFIG);
 
 	strcpy(GPSPosition.Latitude, "1.000");
 	strcpy(GPSPosition.Longitude, "2.000");
@@ -48,14 +46,12 @@ void GPS_Init(void)
 void GPSUpdateTask() 
 {
 	while (1) {
-		OSSemPend(SerialRxBuffer.semaphore, 0, &err);
-		while (SerialRxBuffer.ptrCurrent != SerialRxBuffer.ptrEnd) {
-			*(SerialRxBuffer.ptrCurrent) = (*(SerialRxBuffer.ptrCurrent))++ % SERIAL_BUFF_SIZE;
-			ptrGPSBuffEnd = ptrGPSBuffEnd++ % TSIP_BUFF_SIZE;
+		while (ptrRxBuffCurr != ptrRxBuffEnd) {
+			ptrRxBuffCurr = (ptrRxBuffCurr+1) % (int)SERIAL_BUFF_SIZE;
+			ptrGPSBuffEnd = (ptrGPSBuffEnd+1) % (int)TSIP_BUFF_SIZE;
 			
-			GPSBuffer[ptrGPSBuffEnd] = SerialRxBuffer.RxBuffer[*(SerialRxBuffer.ptrCurrent)];
+			GPSBuffer[ptrGPSBuffEnd] = RxSerialBuffer[ptrRxBuffCurr];
 		}
-		OSSemPost(SerialRxBuffer.semaphore);
 		ReceivedTSIP();
 		OSTimeDlyHMSM(0,0,0,10);
 		printf("GPS Update Task\n\r");
@@ -66,7 +62,7 @@ void ReceivedTSIP()
 {
 	while (ptrGPSBuffCurr != ptrGPSBuffEnd) {
 		printf("TSIP Detected\n\r");
-		ptrGPSBuffCurr = ptrGPSBuffCurr++ % SERIAL_BUFF_SIZE;
+		ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
 		switch (GPSBuffer[ptrGPSBuffCurr]) {
 			case GPS_DLE : // synchronisation DLE
 				break;
@@ -133,7 +129,7 @@ void ReadTime()
 		seconds -= SECONDS_IN_ONE_DAY * 6;
 	}
 
-	GPSTimeValue.Hours = seconds / (60*60);
+	GPSTimeValue.Hours   = seconds / (60*60);
 	GPSTimeValue.Minutes = (seconds / (24*60)) - (GPSTimeValue.Hours*60);
 	GPSTimeValue.Seconds = (seconds / (24*60*60)) - (GPSTimeValue.Hours*60*60) - (GPSTimeValue.Minutes*60);
 }
@@ -143,14 +139,4 @@ void GPS_Disable()
 	// Send TSIP packet to stop automatic transmission of GPS data
 	// SendTSIP(0x??);
 	// OSTaskDelete();
-}
-
-GPSTime GetGPSTime() 
-{
-	return GPSTimeValue;
-}
-
-GPSCoord GetGPSPosition() 
-{
-	return GPSPosition;
 }
