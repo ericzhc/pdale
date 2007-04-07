@@ -24,7 +24,9 @@
 
 #include <types.h>
 #include <serial.h>
+#include <interrupt_sa.h>
 
+/* TL16C7528 REGISTER */
 #define	UART_BASE	0x18000000
 
 #define RHR	*(volatile unsigned char*) (UART_BASE + 0x00)	// Receiver FIFO buffer
@@ -70,9 +72,10 @@ void initializeFIFO();
 void SetRTS();
 void ClearRTS();
 void setBaudRate(u32 baud);
+void setBufferTriger();
 
 void setInterruptHandle(void (*handler) (void));
 int txFIFOEmpty();
-int rxfifoFull();
+int rxfifoFull(); 
 
 #endif //SERIAL_H
