@@ -20,6 +20,7 @@ Weston, FL
 
 #include <includes.h>
 
+
 /*
 *********************************************************************************************************
 *                                               CONSTANTS
@@ -28,7 +29,7 @@ Weston, FL
 
 #define  TASK_START_APP_PRIO     5
 #define  TASK_GUI_PRIO           6
-#define  TASK_STK_SIZE        1024
+#define  TASK_STK_SIZE        1024 
 
 /*
 *********************************************************************************************************
@@ -36,9 +37,8 @@ Weston, FL
 *********************************************************************************************************
 */
 
-        OS_STK  AppStartTaskStk[TASK_STK_SIZE];
-        OS_STK  GuiTaskStk[TASK_STK_SIZE];
-
+OS_STK  AppStartTaskStk[TASK_STK_SIZE];
+	
 /*
 *********************************************************************************************************
 *                                          FUNCTION PROTOTYPES
@@ -58,12 +58,15 @@ int  main (void)
 {
     INT8U err;
 
-    BSP_Init();                                 /* Initialize BSP            */
+    BSP_Init();                                 /* Initialize BSP            
+                           */
 
     printf("\r\nInitialize uC/OS-II...");
-    OSInit();                                   /* Initialize uC/OS-II       */
+    OSInit();                                   /* Initialize uC/OS-II       
+                           */
 
-                                                /* Create start task         */
+                                                /* Create start task         
+                           */
     OSTaskCreateExt(AppStartTask,
                     NULL,
                     (OS_STK *)&AppStartTaskStk[TASK_STK_SIZE-1],
@@ -74,17 +77,19 @@ int  main (void)
                     NULL,
                     OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
 
-                                                /* Give a name to tasks      */
+                                                /* Give a name to tasks      
+                           */
 #if 0
 #if OS_TASK_NAME_SIZE > 10
-    OSTaskNameSet(OS_IDLE_PRIO,        "Idle task",  &err);
-    OSTaskNameSet(OS_STAT_PRIO,        "Stat task",  &err);
+    OSTaskNameSet(OS_IDLE_PRIO, "Idle task",  &err);
+    OSTaskNameSet(OS_STAT_PRIO, "Stat task",  &err);
     OSTaskNameSet(TASK_START_APP_PRIO, "Start task", &err);
 #endif
 #endif
 
     printf("\r\nStart uC/OS-II...");
-    OSStart();                                  /* Start uC/OS-II            */
+    OSStart();                                  /* Start uC/OS-II            
+                           */
 }
 
 /*$PAGE*/
@@ -92,12 +97,17 @@ int  main (void)
 *********************************************************************************************************
 *                                              STARTUP TASK
 *
-* Description : This is an example of a startup task.  As mentioned in the book's text, you MUST
+* Description : This is an example of a startup task.  As mentioned in the 
+book's text, you MUST
 *               initialize the ticker only once multitasking has started.
-* Arguments   : p_arg is the argument passed to 'AppStartTask()' by 'OSTaskCreate()'.
-* Notes       : 1) The first line of code is used to prevent a compiler warning because 'p_arg' is not
-*                  used.  The compiler should not generate any code for this statement.
-*               2) Interrupts are enabled once the task start because the I-bit of the CCR register was
+* Arguments   : p_arg is the argument passed to 'AppStartTask()' by 
+'OSTaskCreate()'.
+* Notes       : 1) The first line of code is used to prevent a compiler 
+warning because 'p_arg' is not
+*                  used.  The compiler should not generate any code for this 
+statement.
+*               2) Interrupts are enabled once the task start because the 
+I-bit of the CCR register was
 *                  set to 0 by 'OSTaskCreate()'.
 *********************************************************************************************************
 */
@@ -105,26 +115,40 @@ int  main (void)
 static void  AppStartTask (void *p_arg)
 {
     INT8U err;
-    p_arg = p_arg;                              /* Prevent compiler warning  */
+	
+    p_arg = p_arg;                              /* Prevent compiler warning  
+                           */
 
     printf("\r\nStart timer tick...");
-    Tmr_TickInit();                             /* Start timer tick          */
+    Tmr_TickInit();                             /* Start timer tick          
+                           */
 
 #if OS_TASK_STAT_EN > 0
     printf("\r\nStart statistics...");
-    OSStatInit();                               /* Start stats task          */
+    OSStatInit();                               /* Start stats task          
+                           */
 #endif
 	
-	init_serial_front(SERIAL_BAUD_9600);
+	ComDriverInit(DEFAULT_CONFIG);
+	char byte = 'a';
+	
 
-	while (1) {                                 /* Task body, always written as an infinite loop.      */
+	while (1) {                                 /* Task body, always written as 
+an infinite loop.      */
 
+			
 												/* Delay task execution for 500 ms                     */
-			output_byte_serial_front('a');
-			printf("Value send\n\r");
+			
+			output_byte_serial_front(byte);
+			//while(input_byte_serial_front(&byte));	
+			printf("\n\rValue: %c", byte);
+			/*
+			if(ICIP!=0)
+				printf("Value ICIP: %x \n\r", ICIP);
+			if(ICFP!=0)
+				printf("Value ICFP: %x \n\r", ICFP);
+			
+			//OSTimeDlyHMSM(0,0,0,500);*/
 			OSTimeDlyHMSM(0,0,0,500);
 		}
 }
-
-
-

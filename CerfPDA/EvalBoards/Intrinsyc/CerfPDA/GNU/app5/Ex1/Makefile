@@ -29,7 +29,7 @@ CFG_LIB=../../uC-GUI/Lib/Release/Project.a \
 	../../uCOS-II/Lib/Release/Project.a ../../HAL/Lib/Release/Project.a \
 	-lm -lstdc++ 
 CFG_OBJ=
-COMMON_OBJ=$(OUTDIR)/_start_sa.o $(OUTDIR)/app.o $(OUTDIR)/HouseControl.o \
+COMMON_OBJ=$(OUTDIR)/_start_sa.o $(OUTDIR)/app.o $(OUTDIR)/comdriver.o $(OUTDIR)/HouseControl.o \
 	$(OUTDIR)/bsp.o $(OUTDIR)/bsp_a.o \
 	$(OUTDIR)/syscalls.o 
 OBJ=$(COMMON_OBJ) $(CFG_OBJ)
