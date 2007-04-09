@@ -24,4 +24,5 @@
 #include  <serial.h>
 #include  <serial_front.h>
 #include  <gps.h>
+#include  <bcr.h>
 #include  <comdriver.h>

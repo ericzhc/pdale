@@ -29,7 +29,7 @@ CFG_LIB=../../uC-GUI/Lib/Release/Project.a \
 	../../uCOS-II/Lib/Release/Project.a ../../HAL/Lib/Release/Project.a \
 	-lm -lstdc++ 
 CFG_OBJ=
-COMMON_OBJ=$(OUTDIR)/_start_sa.o $(OUTDIR)/app.o $(OUTDIR)/comdriver.o $(OUTDIR)/gps.o $(OUTDIR)/PDAL_GUI.o \
+COMMON_OBJ=$(OUTDIR)/_start_sa.o $(OUTDIR)/app.o $(OUTDIR)/comdriver.o $(OUTDIR)/gps.o $(OUTDIR)/bcr.o $(OUTDIR)/PDAL_GUI.o \
 	 $(OUTDIR)/bsp.o $(OUTDIR)/bsp_a.o \
 	$(OUTDIR)/syscalls.o 
 OBJ=$(COMMON_OBJ) $(CFG_OBJ)
@@ -97,7 +97,7 @@ CFG_LIB=../../uC-GUI/Lib/Release/Project.a \
 	../../uCOS-II/Lib/Debug/Project.a ../../HAL/Lib/Debug/Project.a -lm \
 	-lstdc++ 
 CFG_OBJ=
-COMMON_OBJ=$(OUTDIR)/_start_sa.o $(OUTDIR)/app.o $(OUTDIR)/comdriver.o $(OUTDIR)/gps.o $(OUTDIR)/PDAL_GUI.o \
+COMMON_OBJ=$(OUTDIR)/_start_sa.o $(OUTDIR)/app.o $(OUTDIR)/comdriver.o $(OUTDIR)/gps.o $(OUTDIR)/bcr.o $(OUTDIR)/PDAL_GUI.o \
 	 $(OUTDIR)/bsp.o $(OUTDIR)/bsp_a.o \
 	$(OUTDIR)/syscalls.o 
 OBJ=$(COMMON_OBJ) $(CFG_OBJ)
