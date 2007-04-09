@@ -1,7 +1,7 @@
 /******************************************************
     Includes
 *******************************************************/
-#include  "comdriver.h"
+#include  <includes.h>
 
 /******************************************************
     Local variables
@@ -24,8 +24,11 @@ INT8U err;
  Needs to be called once from the application integrating this
  driver to initialize the required components
 *******************************************************/
-void SerialDriverInit(short config) 
+void ComDriverInit(short config) 
 {
+#if DEBUG
+	printf("Com driver init\n\r");
+#endif
 	// Semaphore to protect multiple entry in transmission
 	TxSerialSem = OSSemCreate(1);
 	TransmitFctSem = OSSemCreate(1);
@@ -49,7 +52,11 @@ void SerialDriverInit(short config)
 	ptrTxBuffCurr = 0;
 	ptrTxBuffEnd = 0;
 
+	// Init serial front
 	init_serial_front(config);
+	setInterruptHandle(ISR_Serial);
+
+	printf("Com driver init...done\n\r");
 }
 
 /*******************************************************
@@ -57,11 +64,14 @@ void SerialDriverInit(short config)
 *******************************************************/
 void ISR_Serial() 
 {
+#if DEBUG
+	printf("Interupt\n\r");
+#endif
 	int x;
 	switch(GetInterruptStatus())
 	{
 		case TRANSMIT_INTERRUPT:
-			for(x=0; x<TRIGER_LEVEL; x++) {
+			while(!txFIFOEmpty()) {
 				if (ptrTxBuffCurr <= ptrTxBuffEnd) {
 					THR = TxSerialBuffer[ptrTxBuffCurr];
 					ptrTxBuffCurr = (ptrTxBuffCurr + 1) % (int)SERIAL_BUFF_SIZE;
@@ -70,7 +80,7 @@ void ISR_Serial()
 			break;
 
 		case RECEIVER_INTERRUPT:
-			for(x=0; x<TRIGER_LEVEL; x++) {
+			while(rxfifoFull()) {
 				// Buffer is not full
 				if (ptrRxBuffCurr != ptrRxBuffEnd) {
 					RxSerialBuffer[ptrRxBuffEnd] = RHR;
@@ -78,8 +88,14 @@ void ISR_Serial()
 				}
 			}
 			break;
-	
+		default:
+			#if DEBUG
+				printf("Unsupported interupt\n\r");
+			#endif
+			break;
 	}
+	
+	ICIP = 0; // clear interrupt ?
 }
 
 /*******************************************************
@@ -92,7 +108,7 @@ void TransmitBuffer(char *databuff, int length)
 	int i;
 	for (i=0; i<length; i++) {
 		// Increment the buffer's ending pointer
-		ptrTxBuffEnd = ptrTxBuffEnd++ % (int)SERIAL_BUFF_SIZE;
+		ptrTxBuffEnd = (ptrTxBuffEnd+1) % (int)SERIAL_BUFF_SIZE;
 		
 		// Sleep until there is an empty buffer spot
 		while(ptrTxBuffEnd == ptrTxBuffCurr) {
@@ -113,13 +129,26 @@ void TransmitBuffer(char *databuff, int length)
 *******************************************************/
 void BufferTransmissionTask() 
 {
+#if DEBUG
+	printf("BufferTransmissionTask started\n\r");
+#endif
 	while (1) {
 		OSSemPend(TxSerialSem, 0, &err);
 		while (ptrTxBuffCurr != ptrTxBuffEnd) {
-			ptrTxBuffCurr = ptrTxBuffCurr++ % SERIAL_BUFF_SIZE;
+			ptrTxBuffCurr = (ptrTxBuffCurr+1) % (int)SERIAL_BUFF_SIZE;
 			output_byte_serial_front((char)TxSerialBuffer[ptrTxBuffCurr]);
 		}
 		OSSemPost(TxSerialSem);
 		OSTimeDlyHMSM(0,0,0,10);
 	}
+}
+
+COM_BUFF_INFO GetTaskRxComBuff() 
+{
+	COM_BUFF_INFO buffprot;
+	buffprot.Buffer = RxSerialBuffer;
+	buffprot.ptrCurrent = &ptrRxBuffCurr;
+	buffprot.ptrEnd = &ptrRxBuffEnd;
+	
+	return buffprot;
 }
