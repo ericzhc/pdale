@@ -9,6 +9,10 @@ namespace TCPServerReceiver
 {
     class Program
     {
+        static string[] messagesReceived = new string[100];
+        static string[] messagesToSend = new string[100];
+
+
         private static int SendData(Socket s, byte[] data)
         {
             int total = 0;
@@ -49,16 +53,20 @@ namespace TCPServerReceiver
         public static void Main()
         {
             Thread SenderPdaThread = new Thread(new ThreadStart(TCPSenderPDA));
-
             Thread ReceiverPdaThread = new Thread(new ThreadStart(TCPReceiverPDA));
+            Thread WebThread = new Thread(new ThreadStart(TCPWeb));
 
             SenderPdaThread.Start();
             ReceiverPdaThread.Start();
+            WebThread.Start();
 
-        
+            messagesReceived[0] = "Salut marc voici le premier message";
+            messagesReceived[0] = "Salut marc voici le deuxieme message";
+            messagesReceived[0] = "Salut marc voici le troisieme message";
+            messagesReceived[0] = "Salut marc voici le quatrieme message";
+            messagesReceived[0] = "Salut marc voici le sixieme message (mais non cetait le cinqueieme hihihihi)";
 
 
-           
 
         }
         static private void TCPSenderPDA()
@@ -104,7 +112,7 @@ namespace TCPServerReceiver
 
 
             byte[] data = new byte[1024];
-             while (true)
+            while (true)
             {
                 client.Receive(data);
                 string strData = Encoding.ASCII.GetString(data);
@@ -112,6 +120,47 @@ namespace TCPServerReceiver
                 Console.WriteLine("Message received: " + strData + "\n");
                 data = new byte[1024];
             }
+        }
+
+        static private void TCPWeb()
+        {
+
+            IPEndPoint ipep = new IPEndPoint(IPAddress.Any, 2160);
+
+            Socket newsock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+            newsock.Bind(ipep);
+            newsock.Listen(10);
+
+            Console.WriteLine("Waiting for a connexion on port 2160");
+
+            Socket client = newsock.Accept();
+            IPEndPoint newclient = (IPEndPoint)client.RemoteEndPoint;
+            Console.WriteLine("Connected with {0} at port {1}", newclient.Address, newclient.Port);
+            byte[] data = new byte[1024];
+            while (true)
+            {
+                client.Receive(data);
+                string strData = Encoding.ASCII.GetString(data);
+                strData = strData.Remove(strData.IndexOf("\0"));
+                Console.WriteLine("Message received: " + strData + "\n");
+                if (strData == "update")
+                {
+
+                    int i = 0;
+                    data = new byte[1024];
+                    while (messagesReceived[i] != "")
+                    {
+
+                        data = Encoding.ASCII.GetBytes(messagesReceived[i]);
+                        client.Send(data);
+                        messagesReceived[i] = "";
+                        i++;
+                        data = new byte[1024];
+                    }
+                }
+            }
+
         }
     }
 }
