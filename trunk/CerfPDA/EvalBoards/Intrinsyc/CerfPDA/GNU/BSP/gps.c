@@ -16,7 +16,6 @@ GPSCoord GPSPosition;
 GPSTime GPSTimeValue;
 // Required
 OS_STK GPSUpdateTaskStk[TASK_GPS_SIZE];
-COM_BUFF_INFO RxBuff;
 INT8U err;
 
 void GPS_Init(void) 
@@ -27,9 +26,9 @@ void GPS_Init(void)
 	strcpy(GPSPosition.Longitude, "2.000");
 	strcpy(GPSPosition.Altitude, "3.000");
 
-	RxBuff = GetTaskRxComBuff();
-
-	printf("Starting GPS update task\n\r");
+	#if DEBUG
+		printf("Starting GPS update task\n\r");
+	#endif
 	OSTaskCreateExt(GPSUpdateTask,
                 NULL,
                 (OS_STK *)&GPSUpdateTaskStk[TASK_GPS_SIZE-1],
@@ -40,11 +39,14 @@ void GPS_Init(void)
                 NULL,
                 OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR
 	);
-	printf("\n\rInit done...GPS");
+	#if DEBUG
+		printf("Init done...GPS\n\r");
+	#endif
 }
 
 void GPSUpdateTask() 
 {
+	COM_BUFF_INFO RxBuff = GetTaskRxComBuff();
 	while (1) {
 		while (RxBuff.ptrCurrent != RxBuff.ptrEnd) {
 			*(RxBuff.ptrCurrent) = (*(RxBuff.ptrCurrent)+1) % (int)SERIAL_BUFF_SIZE;
@@ -139,6 +141,7 @@ void GPS_Enable()
 	// Send TSIP packet to start automatic transmission of GPS data
 	char trame[] = {0x35, 0x02, 0x01}; // page 89
 	SendTSIP(trame);
+	OSTaskResume(TASK_GPS_PRIO);
 }
 
 void GPS_Disable()
@@ -146,4 +149,5 @@ void GPS_Disable()
 	// Send TSIP packet to stop automatic transmission of GPS data
 	char trame[] = {0x35, 0x00, 0x00}; // page 89
 	SendTSIP(trame);
+	OSTaskSuspend(TASK_GPS_PRIO);
 }
