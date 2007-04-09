@@ -29,7 +29,6 @@ void GPS_Init(void);
 void GPSUpdateTask();
 void ReadPosition(void);
 void ReadTime(void);
-void ISR_GPS_Update_C(void);
 void GPS_Disable(void);
 void ReceivedTSIP();
 

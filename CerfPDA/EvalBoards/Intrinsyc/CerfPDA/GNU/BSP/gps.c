@@ -16,18 +16,18 @@ GPSCoord GPSPosition;
 GPSTime GPSTimeValue;
 // Required
 OS_STK GPSUpdateTaskStk[TASK_GPS_SIZE];
+COM_BUFF_INFO RxBuff;
 INT8U err;
-TASK_BUFF_PROTECT SerialRxBuffer;
 
 void GPS_Init(void) 
 {
-	SerialDriverInit(GPS_CONFIG);
+	ComDriverInit(GPS_CONFIG);
 
 	strcpy(GPSPosition.Latitude, "1.000");
 	strcpy(GPSPosition.Longitude, "2.000");
 	strcpy(GPSPosition.Altitude, "3.000");
 
-	SerialRxBuffer = GetTaskBuffProtectStruct();
+	RxBuff = GetTaskRxComBuff();
 
 	printf("Starting GPS update task\n\r");
 	OSTaskCreateExt(GPSUpdateTask,
@@ -40,17 +40,17 @@ void GPS_Init(void)
                 NULL,
                 OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR
 	);
-	printf("Init done...GPS\n\r");
+	printf("\n\rInit done...GPS");
 }
 
 void GPSUpdateTask() 
 {
 	while (1) {
-		while (ptrRxBuffCurr != ptrRxBuffEnd) {
-			ptrRxBuffCurr = (ptrRxBuffCurr+1) % (int)SERIAL_BUFF_SIZE;
+		while (RxBuff.ptrCurrent != RxBuff.ptrEnd) {
+			*(RxBuff.ptrCurrent) = (*(RxBuff.ptrCurrent)+1) % (int)SERIAL_BUFF_SIZE;
 			ptrGPSBuffEnd = (ptrGPSBuffEnd+1) % (int)TSIP_BUFF_SIZE;
 			
-			GPSBuffer[ptrGPSBuffEnd] = RxSerialBuffer[ptrRxBuffCurr];
+			GPSBuffer[ptrGPSBuffEnd] = RxBuff.Buffer[*(RxBuff.ptrCurrent)];
 		}
 		ReceivedTSIP();
 		OSTimeDlyHMSM(0,0,0,10);
@@ -75,7 +75,7 @@ void ReceivedTSIP()
 			case GPS_ETX : // synchronisation ETX
 				break;
 			default : // unsupported packet, skip it (until DLE is met)
-				while (GPSBuffer[ptrGPSBuffCurr] != 0x10) {
+				while ((GPSBuffer[ptrGPSBuffCurr] != 0x10) || (ptrGPSBuffCurr != ptrGPSBuffEnd)) {
 					ptrGPSBuffCurr++;
 				}
 				break;
@@ -96,19 +96,19 @@ void ReadPosition()
 */
 	// Documentation Page 109 for TSIP structure of a LLA packet
 	GPSPosition.Latitude[0] = GPSBuffer[ptrGPSBuffCurr];
-	GPSPosition.Latitude[2] = GPSBuffer[ptrGPSBuffCurr++];
-	GPSPosition.Latitude[3] = GPSBuffer[ptrGPSBuffCurr++];
-	GPSPosition.Latitude[4] = GPSBuffer[ptrGPSBuffCurr++];
+	GPSPosition.Latitude[2] = GPSBuffer[++ptrGPSBuffCurr];
+	GPSPosition.Latitude[3] = GPSBuffer[++ptrGPSBuffCurr];
+	GPSPosition.Latitude[4] = GPSBuffer[++ptrGPSBuffCurr];
 
-	GPSPosition.Longitude[0] = GPSBuffer[ptrGPSBuffCurr++];
-	GPSPosition.Longitude[2] = GPSBuffer[ptrGPSBuffCurr++];
-	GPSPosition.Longitude[3] = GPSBuffer[ptrGPSBuffCurr++];
-	GPSPosition.Longitude[4] = GPSBuffer[ptrGPSBuffCurr++];
+	GPSPosition.Longitude[0] = GPSBuffer[++ptrGPSBuffCurr];
+	GPSPosition.Longitude[2] = GPSBuffer[++ptrGPSBuffCurr];
+	GPSPosition.Longitude[3] = GPSBuffer[++ptrGPSBuffCurr];
+	GPSPosition.Longitude[4] = GPSBuffer[++ptrGPSBuffCurr];
 
-	GPSPosition.Altitude[0] = GPSBuffer[ptrGPSBuffCurr++];
-	GPSPosition.Altitude[2] = GPSBuffer[ptrGPSBuffCurr++];
-	GPSPosition.Altitude[3] = GPSBuffer[ptrGPSBuffCurr++];
-	GPSPosition.Altitude[4] = GPSBuffer[ptrGPSBuffCurr++];
+	GPSPosition.Altitude[0] = GPSBuffer[++ptrGPSBuffCurr];
+	GPSPosition.Altitude[2] = GPSBuffer[++ptrGPSBuffCurr];
+	GPSPosition.Altitude[3] = GPSBuffer[++ptrGPSBuffCurr];
+	GPSPosition.Altitude[4] = GPSBuffer[++ptrGPSBuffCurr];
 }
 
 void ReadTime() 
