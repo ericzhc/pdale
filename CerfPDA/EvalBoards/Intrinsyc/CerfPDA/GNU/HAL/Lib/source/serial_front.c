@@ -57,9 +57,16 @@ void init_serial_front(short config)
 	}
 
 	MCR |= 0x08;		// OP output to low to activate the RS-232 buffer
+
 	initializeFIFO();
+	//setBufferTriger();
+	setRxInterrupt();
+
+
+	
+	
 	#if DEBUG
-		printf("Serial front driver init...done\n\r");
+		printf("Ser ial front driver init...done\n\r");
 	#endif
 }
 
@@ -82,19 +89,13 @@ void ConfigBCR()
 	LCR |= 0x03;	// 8 bits configuration
 	LCR &= 0xFB;	// 1 stop bit
 	setParity(PARITY_NONE);
-<<<<<<< .mine
 	SetCTS();		// Enable Auto-CTS
-=======
 
 	MCR = 0;
-	
-	initializeFIFO();
-	//setBufferTriger();
 	
 	MCR |= 0x01;
 	MCR |= 0x08;		// OP output to low to activate the RS-232 buffer
 	printf("Init done...serial front\n\r");
->>>>>>> .r70
 }
 
 /*
@@ -142,16 +143,23 @@ void setParity(int parity)
 void initializeFIFO()
 {
 	// (page 25)
+	int temp1;
+	
+	temp1 = LCR;
+	LCR = 0xBF;
+	EFR |= 0x10;
+
 	FCR = 0x0;		// desactivate FIFO before configuration (bit 0)
 	FCR |= 0x06;	// clear Rx and Tx FIFOs
-<<<<<<< .mine
-	FCR &= 0xF7;	// DMA mode 0 (bit 3)
-=======
+	
 	FCR &= 0xF9;
 	FCR &= 0xF7;	// DMA mode 0, bit 3
->>>>>>> .r70
+
 	FCR &= 0x0F;	// set trigger levels to 8 spaces/characters
 	FCR |= 0x01;	// activate FIFO
+
+	EFR &= 0xBF;
+	LCR = temp1;
 }
 
 void SetCTS()
@@ -180,13 +188,22 @@ void ClearRTS()
 
 void setBufferTriger() 
 {
-	TLR = 0x44;
+	int temp1;
+	
+	temp1 = LCR;
+	LCR = 0xBF;
+	EFR |= 0x10;
+	MCR |= 0x40;
+	TLR = 0x11;
+	MCR &= 0xbf;
+	EFR &= 0xBF;
+	LCR = temp1;
 }
 
-int GetInterruptStatus() // TODO: Fix interrupt masks, switch case is bad
+int GetInterruptStatus() // TODO: Fix interrupt masks
 {
 	if((IIR & 0x01) == 0) {
-		switch((IIR & 0x0e)>>3) {
+		switch((IIR & 0x0e)>>1) {
 			case IIR_INTERRUPT_TRANSMIT:
 				return TRANSMIT_INTERRUPT;
 			case IIR_INTERRUPT_RECEIVER:
@@ -219,6 +236,7 @@ void clearInterrupt()
  {
 	free_irq(COM_PORT);
 	request_irq(COM_PORT, handler);
+	 
  }
 
  void freeInterruptHandle()

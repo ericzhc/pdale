@@ -207,3 +207,61 @@ output_string_serial_rf(char const *string)
       output_byte_serial_rf(*string++);
    }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// enable receiver
+// PURPOSE: Enable receiver and it's interrupt
+// PARAMS:  Nothing.
+// RETURNS: Nothing.
+////////////////////////////////////////////////////////////////////////////////
+
+void enable_receiver_rf()
+{
+	SERIAL_UTCR3  |= 0x09;  // RXE and RIE goes high (p.333 SA1110 datasheet)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// enable transceiver
+// PURPOSE: Enable transceiver and it's interrupt
+// PARAMS:  Nothing.
+// RETURNS: Nothing.
+////////////////////////////////////////////////////////////////////////////////
+
+void enable_transceiver_rf()
+{
+	SERIAL_UTCR3  |= 0x12; // TXE and TIE goes high (p.333 SA1110 datasheet)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// txFIFOEmpty()
+// PURPOSE: Enable transceiver and it's interrupt
+// PARAMS:  Nothing.
+// RETURNS: Nothing.
+////////////////////////////////////////////////////////////////////////////////
+
+int txFIFOEmpty_rf()
+{
+	return ((SERIAL_UTSR1 & 0x04) != 0);
+}
+
+int rxfifoFull_rf()
+{
+	return ((SERIAL_UTSR1 & 0x02) == 0);
+}
+
+int GetInterruptStatus_rf() // TODO: Fix interrupt masks
+{
+	if((SERIAL_UTSR0 & 0x01)== 0x01)
+		return SA110_RF_INTERRUPT_TRANSMIT;
+	else if((SERIAL_UTSR0 & 0x02) == 0x02)
+		return SA110_RF_INTERRUPT_RECEIVER;
+
+}
+
+ void setInterruptHandle_rf(void (*handler) (void))
+ {
+	free_irq(COM_PORT_RF);
+	request_irq(COM_PORT_RF, handler);
+	 
+ }
+

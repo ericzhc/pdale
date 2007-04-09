@@ -1,6 +1,6 @@
 setbyte 0xC0000000 0xff 0x100000
 
-download tftp:132.210.78.69 Project.bin 0xc0000000
+download tftp:132.210.78.71 Project.bin 0xc0000000
 
 flash 0xc0000 0xc0000000 0x100000
 
