@@ -86,7 +86,7 @@ void ReceivedTSIP()
 // Sends the TSIP packets for GPS configuration
 void SendTSIP(char *data) 
 {
-	TransmitBuffer(data);
+	TransmitBuffer(data, sizeof(data));
 }
 
 void ReadPosition() 
@@ -134,9 +134,16 @@ void ReadTime()
 	GPSTimeValue.Seconds = (seconds / (24*60*60)) - (GPSTimeValue.Hours*60*60) - (GPSTimeValue.Minutes*60);
 }
 
+void GPS_Enable()
+{
+	// Send TSIP packet to start automatic transmission of GPS data
+	char trame[] = {0x35, 0x02, 0x01}; // page 89
+	SendTSIP(trame);
+}
+
 void GPS_Disable()
 {
 	// Send TSIP packet to stop automatic transmission of GPS data
-	// SendTSIP(0x??);
-	// OSTaskDelete();
+	char trame[] = {0x35, 0x00, 0x00}; // page 89
+	SendTSIP(trame);
 }
