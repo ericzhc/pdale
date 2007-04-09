@@ -25,11 +25,12 @@ typedef struct {
 	int Seconds;
 } GPSTime;
 
-void GPS_Init(void);
+void GPS_Init();
 void GPSUpdateTask();
-void ReadPosition(void);
-void ReadTime(void);
-void GPS_Disable(void);
+void ReadPosition();
+void ReadTime();
+void GPS_Disable();
+void GPS_Enable();
 void ReceivedTSIP();
 
 #endif
