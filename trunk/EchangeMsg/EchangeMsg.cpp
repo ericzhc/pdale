@@ -33,6 +33,7 @@ int main()
     char buffer[50];//Pour stocker les packets à envoyer
     int sockinSize = sizeof(sockin);
 
+    //On attend l'arrivee d'un message et on envoit une confirmation de la reception
     while(1)
     {
         connSock = accept(sock, (SOCKADDR *)&sockin, &sockinSize);
