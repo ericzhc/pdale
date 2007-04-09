@@ -55,6 +55,7 @@ void ComDriverInit(short config)
 	// Init serial front
 	init_serial_front(config);
 	setInterruptHandle(ISR_Serial);
+	
 
 	printf("Com driver init...done\n\r");
 }
@@ -64,12 +65,16 @@ void ComDriverInit(short config)
 *******************************************************/
 void ISR_Serial() 
 {
-#if DEBUG
-	printf("Interupt\n\r");
-#endif
+
+	#if DEBUG
+		printf("Interupt\n\r");
+	#endif
+
 	int x;
+	
 	switch(GetInterruptStatus())
 	{
+		/*
 		case TRANSMIT_INTERRUPT:
 			while(!txFIFOEmpty()) {
 				if (ptrTxBuffCurr <= ptrTxBuffEnd) {
@@ -77,23 +82,27 @@ void ISR_Serial()
 					ptrTxBuffCurr = (ptrTxBuffCurr + 1) % (int)SERIAL_BUFF_SIZE;
 				}
 			}
-			break;
+			break;*/
 
-		case RECEIVER_INTERRUPT:
+		/*case RECEIVER_INTERRUPT: 
 			while(rxfifoFull()) {
 				// Buffer is not full
 				if (ptrRxBuffCurr != ptrRxBuffEnd) {
 					RxSerialBuffer[ptrRxBuffEnd] = RHR;
+					
+				#if DEBUG
+						printf("Received car %c \n\r",RxSerialBuffer[ptrRxBuffEnd]);
+				#endif
 					ptrRxBuffEnd = (ptrRxBuffEnd + 1) % (int)SERIAL_BUFF_SIZE;
-				}
+				} 
 			}
 			break;
 		default:
 			#if DEBUG
 				printf("Unsupported interupt\n\r");
 			#endif
-			break;
-	}
+			break;*/
+	} 
 	
 	ICIP = 0; // clear interrupt ?
 }

@@ -33,6 +33,10 @@
 #define SERIAL_BAUD_115200 (0x00000001)
 #endif
 
+#define SA110_RF_INTERRUPT_TRANSMIT 0
+#define SA110_RF_INTERRUPT_RECEIVER 1
+
+
 void init_serial_rf(u32 baud);
 void output_byte_serial_rf(char byte);
 int input_byte_serial_rf(char *byte);
@@ -40,4 +44,5 @@ void set_data_rf(void);
 void set_cmd_rf(void);
 void output_string_serial_rf(char const *string);
 
+#define COM_PORT_RF 17
 #endif //SERIAL_RF_H

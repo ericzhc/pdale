@@ -116,7 +116,12 @@ static void  AppStartTask (void *p_arg)
 
 		printf("Lat: %s - Long: %s - Alt: %s\n\r", Position.Latitude, Position.Longitude, Position.Altitude);
 		printf("Time : %d:%d:%d\n\r", TimeValue.Hours, TimeValue.Minutes, TimeValue.Seconds);*/
-		TransmitBuffer("testing 123\n\r", 13);
+		TransmitBuffer("testing 123\n\r", 13); 
+		//output_byte_serial('a');
+		//output_byte_serial('t');
+		//output_byte_serial('a');
+
+
 		OSTimeDly(1000);
     }
 }

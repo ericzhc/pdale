@@ -74,6 +74,7 @@ void setRxInterrupt();
 void clearInterrupt();
 void setParity(int parity);
 void initializeFIFO();
+void setBufferTriger();
 
 void SetCTS();
 void ClearCTS();

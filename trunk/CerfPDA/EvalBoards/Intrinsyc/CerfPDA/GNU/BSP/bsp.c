@@ -255,9 +255,11 @@ void request_irq(unsigned int irq, void (*handler) (void))
 
     OS_ENTER_CRITICAL();
     if(handler && irq < 32){                                /* validate the arguments               */
-        irq_dev_handler_Tab[irq] = handler;                 /* set the handler pointer              */
+        
+		irq_dev_handler_Tab[irq] = handler;                 /* set the handler pointer              */
         ICMR |= 1<<irq;                                     /* set the mask register                */
         ICLR &= ~(1<<irq);                                  /* interrupt routed to IRQ              */
+	
     }
     OS_EXIT_CRITICAL();
 }
