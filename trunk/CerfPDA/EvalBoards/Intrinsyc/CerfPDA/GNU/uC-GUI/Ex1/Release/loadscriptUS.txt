@@ -1,6 +1,6 @@
 ping 132.210.77.251
 
-download tftp:132.210.78.67 Project.bin 0xc0000000
+download tftp:132.210.78.69 Project.bin 0xc0000000
 
 jump 0xc0000000
 
