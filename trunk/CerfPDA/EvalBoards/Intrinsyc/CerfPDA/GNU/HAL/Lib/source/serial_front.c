@@ -28,15 +28,63 @@
 // PARAMS:  None.
 // RETURNS: Nothing
 ////////////////////////////////////////////////////////////////////////////////
-void init_serial_front(u32 baud)
+void init_serial_front(short config)
 {
-	printf("Initializing serial front\n\r");
-	
-	setBaudRate(baud);
+	switch (config) {
+		case GPS_CONFIG:
+			#if DEBUG
+				printf("Using GPS config\n\r");
+			#endif
+			ConfigGPS();
+			break;
+		case BCREADER_CONFIG:
+			#if DEBUG
+				printf("Using barcode reader config\n\r");
+			#endif
+			ConfigBCR();
+			break;
+		default:
+			#if DEBUG
+				printf("Using default config\n\r");
+			#endif
+			// 9600, no parity, 1 stop bit, 8 bit config, FIFO enabled
+			setBaudRate(SF_9600_BAUDS);
+			LCR = 0;
+			LCR |= 0x03;	// 8 bits configuration
+			LCR &= 0xFB;	// 1 stop bit
+			setParity(PARITY_NONE);
+			break;
+	}
+
+	MCR |= 0x08;		// OP output to low to activate the RS-232 buffer
+	initializeFIFO();
+	#if DEBUG
+		printf("Serial front driver init...done\n\r");
+	#endif
+}
+
+void ConfigGPS() 
+{
+	// TSIP: 9600, odd parity, 1 stop bit, 8 bit config, FIFO enabled
+	// page 40 - Lassen IQ Reference
+	setBaudRate(SF_9600_BAUDS);
+	LCR = 0;
+	LCR |= 0x03;	// 8 bits configuration
+	LCR &= 0xFB;	// 1 stop bit
+	setParity(PARITY_ODD);
+}
+
+void ConfigBCR()
+{
+	// 9600, odd parity, 1 stop bit, 8 bit config, FIFO enabled
+	setBaudRate(SF_9600_BAUDS);
 	LCR = 0;
 	LCR |= 0x03;	// 8 bits configuration
 	LCR &= 0xFB;	// 1 stop bit
 	setParity(PARITY_NONE);
+<<<<<<< .mine
+	SetCTS();		// Enable Auto-CTS
+=======
 
 	MCR = 0;
 	
@@ -46,6 +94,7 @@ void init_serial_front(u32 baud)
 	MCR |= 0x01;
 	MCR |= 0x08;		// OP output to low to activate the RS-232 buffer
 	printf("Init done...serial front\n\r");
+>>>>>>> .r70
 }
 
 /*
@@ -68,7 +117,7 @@ void setBaudRate(u32 baud)
 			break;
 	}
 
-	LCR &= 0x7f;	// Select DLL-DLH
+	LCR &= 0x7f;	// Deselect DLL-DLH
 }
 
 void setParity(int parity)
@@ -93,33 +142,48 @@ void setParity(int parity)
 void initializeFIFO()
 {
 	// (page 25)
-	FCR = 0x0;		// desactivate FIFO before configuration: bit 0
+	FCR = 0x0;		// desactivate FIFO before configuration (bit 0)
 	FCR |= 0x06;	// clear Rx and Tx FIFOs
+<<<<<<< .mine
+	FCR &= 0xF7;	// DMA mode 0 (bit 3)
+=======
 	FCR &= 0xF9;
 	FCR &= 0xF7;	// DMA mode 0, bit 3
+>>>>>>> .r70
 	FCR &= 0x0F;	// set trigger levels to 8 spaces/characters
 	FCR |= 0x01;	// activate FIFO
 }
 
+void SetCTS()
+{
+	LCR |= 0x80; // activate EFR 
+	EFR |= 0x80; // Auto-CTS enabled
+}
+
+void ClearCTS()
+{
+	LCR &= 0x7f;  // desactivate EFR
+	EFR &= 0x7f;  // Auto-CTS disabled
+}
+
 void SetRTS()
 {
-	LCR = 0xbf; 
+	LCR |= 0x80; 
 	EFR |= 0x40;
 }
 
 void ClearRTS()
 {
-	LCR = 0xbf; 
-	EFR &= 0xbf;
+	LCR &= 0x7f; // desactivate EFR
+	EFR &= 0xbf; // Auto-RTS off
 }
 
 void setBufferTriger() 
 {
 	TLR = 0x44;
-	
 }
 
-int GetInterruptStatus()
+int GetInterruptStatus() // TODO: Fix interrupt masks, switch case is bad
 {
 	if((IIR & 0x01) == 0) {
 		switch((IIR & 0x0e)>>3) {
