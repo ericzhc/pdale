@@ -14,6 +14,7 @@ typedef struct {
 
 void ComDriverInit(short);
 void ISR_Serial();
+void TransmitBuffer(char*, int);
 void BufferTransmissionTask();
 COM_BUFF_INFO GetTaskRxComBuff();
 
