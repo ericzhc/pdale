@@ -22,11 +22,10 @@
 #ifndef SERIAL_FRONT_H
 #define SERIAL_FRONT_H
 
-#include <types.h>
-#include <serial.h>
-#include <interrupt_sa.h>
+#define DEBUG 1
 
-/* TL16C7528 REGISTER */
+#include <types.h>
+
 #define	UART_BASE	0x18000000
 
 #define RHR	*(volatile unsigned char*) (UART_BASE + 0x00)	// Receiver FIFO buffer
@@ -45,6 +44,12 @@
 
 #define TRIGER_LEVEL 4
 
+#define DEFAULT_CONFIG 0
+#define GPS_CONFIG 1
+#define BCREADER_CONFIG 2
+
+#define SF_9600_BAUDS 0x90
+
 #define PARITY_NONE 0
 #define PARITY_ODD 1
 #define PARITY_EVEN 2
@@ -59,7 +64,7 @@
 
 #define COM_PORT 3
 
-void init_serial_front(u32 baud);
+void init_serial_front(short configType);
 void output_byte_serial_front(char byte);
 int input_byte_serial_front(char *byte);
 
@@ -69,13 +74,18 @@ void setRxInterrupt();
 void clearInterrupt();
 void setParity(int parity);
 void initializeFIFO();
+
+void SetCTS();
+void ClearCTS();
 void SetRTS();
 void ClearRTS();
+
 void setBaudRate(u32 baud);
-void setBufferTriger();
+void ConfigGPS();
+void ConfigBCR();
 
 void setInterruptHandle(void (*handler) (void));
 int txFIFOEmpty();
-int rxfifoFull(); 
+int rxfifoFull();
 
 #endif //SERIAL_H
