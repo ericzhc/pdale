@@ -6,9 +6,9 @@
 # Make command to use for dependencies
 MAKECMD=make
 
-# If no configuration is specified, "Debug" will be used
+# If no configuration is specified, "Release" will be used
 ifndef "CFG"
-CFG=Debug
+CFG=Release
 endif
 
 #
@@ -29,12 +29,8 @@ CFG_LIB=../../uC-GUI/Lib/Release/Project.a \
 	../../uCOS-II/Lib/Release/Project.a ../../HAL/Lib/Release/Project.a \
 	-lm -lstdc++ 
 CFG_OBJ=
-COMMON_OBJ=$(OUTDIR)/_start_sa.o \
-	$(OUTDIR)/app.o \
-	$(OUTDIR)/comdriver.o \
-	$(OUTDIR)/gps.o \
-	$(OUTDIR)/PDAL_GUI.o \	
-	$(OUTDIR)/bsp.o $(OUTDIR)/bsp_a.o \
+COMMON_OBJ=$(OUTDIR)/_start_sa.o $(OUTDIR)/app.o $(OUTDIR)/comdriver.o $(OUTDIR)/gps.o $(OUTDIR)/PDAL_GUI.o \
+	 $(OUTDIR)/bsp.o $(OUTDIR)/bsp_a.o \
 	$(OUTDIR)/syscalls.o 
 OBJ=$(COMMON_OBJ) $(CFG_OBJ)
 

@@ -26,7 +26,6 @@
 */
 
 #define  TASK_START_APP_PRIO     5
-#define  TASK_GUI_PRIO           6
 #define  TASK_STK_SIZE        1024
 
 /*
@@ -36,7 +35,6 @@
 */
 
         OS_STK  AppStartTaskStk[TASK_STK_SIZE];
-        OS_STK  GuiTaskStk[TASK_STK_SIZE];
 
 /*
 *********************************************************************************************************
@@ -55,15 +53,9 @@ static  void  AppStartTask(void *p_arg);
 int  main (void)
 {
     INT8U err;
-
     BSP_Init();                                 /* Initialize BSP                                      */
-
-    printf("\r\nInitialize uC/OS-II...");
+    printf("Initialize uC/OS-II...\n\r");
     OSInit();                                   /* Initialize uC/OS-II                                 */
-
-	printf("Initializing GPS\n\r");
-	GPS_Init();                                 /* Initialize GPS                                      */
-
                                                 /* Create start task                                   */
     OSTaskCreateExt(AppStartTask,
                     NULL,
@@ -74,7 +66,6 @@ int  main (void)
                     TASK_STK_SIZE,
                     NULL,
                     OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
-
                                                 /* Give a name to tasks                                */
 #if 0                                                
 #if OS_TASK_NAME_SIZE > 10
@@ -83,8 +74,7 @@ int  main (void)
     OSTaskNameSet(TASK_START_APP_PRIO, "Start task", &err);
 #endif
 #endif
-
-    printf("\r\nStart uC/OS-II...");
+    printf("Start uC/OS-II...\n\r");
     OSStart();                                  /* Start uC/OS-II                                      */
 }
 
@@ -106,32 +96,27 @@ int  main (void)
 static void  AppStartTask (void *p_arg)
 {
     INT8U err;
-
     p_arg = p_arg;                              /* Prevent compiler warning                            */
-
-    printf("\r\nStart timer tick...");
+    printf("Start timer tick...\n\r");
     Tmr_TickInit();                             /* Start timer tick                                    */
-
 #if OS_TASK_STAT_EN > 0
-    printf("\r\nStart statistics...");
+    printf("Start statistics...\n\r");
     OSStatInit();                               /* Start stats task                                    */
-#endif
-
-                                                /* Give a name to tasks                                */
-#if OS_TASK_NAME_SIZE > 10
-    OSTaskNameSet(TASK_GUI_PRIO,        "GUI task",  &err);
 #endif
 
 	GPSCoord Position;
 	GPSTime TimeValue;
+	
+	ComDriverInit(DEFAULT_CONFIG);
 
     while (1) {                                 /* Task body, always written as an infinite loop.      */
                                                 /* Delay task execution for 500 ms                     */
-        Position = GetGPSPosition();
+        /*Position = GetGPSPosition();
 		TimeValue = GetGPSTime();
 
 		printf("Lat: %s - Long: %s - Alt: %s\n\r", Position.Latitude, Position.Longitude, Position.Altitude);
-		printf("Time : %d:%d:%d\n\r", TimeValue.Hours, TimeValue.Minutes, TimeValue.Seconds);
-		OSTimeDlyHMSM(0,0,0,100);
+		printf("Time : %d:%d:%d\n\r", TimeValue.Hours, TimeValue.Minutes, TimeValue.Seconds);*/
+		TransmitBuffer("testing 123\n\r", 13);
+		OSTimeDly(1000);
     }
 }
