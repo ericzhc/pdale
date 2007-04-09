@@ -1,5 +1,8 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true"  CodeFile="Default.aspx.cs" Inherits="_Default" %>
 
+<%@ Register Assembly="System.Web.Extensions, Version=1.0.61025.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"
+    Namespace="System.Web.UI" TagPrefix="asp" %>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml" >
@@ -17,14 +20,15 @@
 
 </head>
 <body text="white">
-
     <table border="0" bgcolor="black">
         <tr>
             <td colspan="4" align="CENTER" style="height: 150px; width: 1016px" bgcolor="DarkRed"><asp:Label ID="Label1" runat="server" Font-Size="42"
-                    ForeColor="Yellow" Height="150px" Text="PDA LIVRAISON EXPRESS" Width="800px"></asp:Label></td></tr>
+                    ForeColor="Yellow" Height="150px" Text="PDA Livraison Express" Width="800px"></asp:Label></td></tr>
     </table>   
-    
+
     <form id="formAjout" runat="server">
+    <asp:ScriptManager ID="ScriptManager1" runat="server">
+    </asp:ScriptManager>
         
         <div id="divMenu" runat="server">
             <table border="0" bgcolor="black">           
@@ -91,27 +95,34 @@
             </table>
         </div>
         
-        <div id="divMsg" runat="server">
-            <table border="0" bgcolor="black" width="1022">        
-                <tr><td style="width: 70px"><font size="5">Messages</font></td></tr>
-                <tr><td style="width: 70px"><font size="4">Messages reçus</font></td></tr>
-                <tr><td style="width: 70px; height: 100px" bgcolor="DarkRed"><asp:TextBox ID="LabelMsgRecus" Wrap="true" ReadOnly="true" TextMode="multiline" 
-                                                                                  BorderStyle="None" BorderWidth="0" BackColor="DarkRed" Width="1000px" Height="100px"
-                                                                                  ForeColor="White" runat="server"></asp:TextBox></td></tr>
-                                                                                  
-                <tr><td style="width: 70px"><asp:Button ID="cmdResetMsgRecus" runat="server" BackColor="#FF8000" BorderColor="Black"
-                                                    Font-Bold="True" OnClick="cmdResetMsgRecus_Click" Text="Effacer" Width="200px" /></td></tr>
-                
-                <tr><td style="width: 70px"><font size="4">Envoi d'un message</font></td></tr>
-                <tr><td style="width: 70px"><asp:TextBox ID="TextEnvoiMsg" Width="1000px" Height="100px" TextMode="MultiLine" runat="server"></asp:TextBox></td></tr>
-                <tr><td>
-                    <table>
-                        <tr><td><font size="4">Destinataire : </font></td><td style="width: 70px"><asp:DropDownList ID="dropCamion" width="200px" runat="server"></asp:DropDownList></td></tr>
-                    </table></td></tr>
-                <tr><td style="width: 70px"><asp:Button ID="cmdEnvoyerMsg" runat="server" BackColor="#FF8000" BorderColor="Black"
-                                                    Font-Bold="True" OnClick="cmdEnvoyerMsg_Click" Text="Envoyer" Width="200px" /></td><td></td></tr>
-            </table>
-        </div>
+        <asp:Timer ID="Timer1" Interval="5000" Enabled="true" OnTick="Timer1_Tick" runat="server" />
+        <asp:UpdatePanel ID="UpdatePanel1" UpdateMode="Conditional" runat="server">
+        <Triggers><asp:AsyncPostBackTrigger ControlID="Timer1" EventName="Tick" /></Triggers>        
+            <ContentTemplate>
+                <div id="divMsg" runat="server">
+                    <table border="0" bgcolor="black" width="1022">        
+                        <tr><td style="width: 70px"><font size="5">Messages</font></td></tr>
+                        <tr><td style="width: 70px"><font size="4">Messages reçus</font></td></tr>
+                        <tr><td style="width: 70px; height: 100px" bgcolor="DarkRed"><asp:TextBox ID="LabelMsgRecus" Wrap="true" ReadOnly="true" TextMode="multiline" 
+                                                                                          BorderStyle="None" BorderWidth="0" BackColor="DarkRed" Width="1000px" Height="100px"
+                                                                                          ForeColor="White" runat="server"></asp:TextBox></td></tr>
+                                                                                          
+                        <tr><td style="width: 70px"><asp:Button ID="cmdResetMsgRecus" runat="server" BackColor="#FF8000" BorderColor="Black"
+                                                            Font-Bold="True" OnClick="cmdResetMsgRecus_Click" Text="Effacer" Width="200px" /></td></tr>
+                        
+                        <tr><td style="width: 70px"><font size="4">Envoi d'un message</font></td></tr>
+                        <tr><td style="width: 70px"><asp:TextBox ID="TextEnvoiMsg" Width="1000px" Height="100px" TextMode="MultiLine" runat="server"></asp:TextBox></td></tr>
+                        <tr><td>
+                            <table>
+                                <tr><td><font size="4">Destinataire : </font></td><td style="width: 70px"><asp:DropDownList ID="dropCamion" width="200px" runat="server"></asp:DropDownList></td></tr>
+                            </table></td></tr>
+                        <tr><td style="width: 70px"><asp:Button ID="cmdEnvoyerMsg" runat="server" BackColor="#FF8000" BorderColor="Black"
+                                                            Font-Bold="True" OnClick="cmdEnvoyerMsg_Click" Text="Envoyer" Width="200px" /></td><td></td></tr>
+                    </table>
+                </div>
+            </ContentTemplate>
+            
+        </asp:UpdatePanel>
         
         <div id="divCamion" runat="server">
             <table border="0" bgcolor="black" width="1022">

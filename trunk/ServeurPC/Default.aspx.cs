@@ -50,7 +50,9 @@ public partial class _Default : System.Web.UI.Page
 
             // Lancement du thread
             recvMsg.Start();
-        }        
+        }
+        
+
     }
     
     protected void cmd_Ajout_Click(object sender, EventArgs e)
@@ -291,7 +293,7 @@ public partial class _Default : System.Web.UI.Page
         //Envoi du message par socket TCP
         /////////////////////////////////////////////////
         
-        Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        /*Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
         const int remotePort = 12000;
         IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
@@ -301,9 +303,10 @@ public partial class _Default : System.Web.UI.Page
         buf = System.Text.Encoding.ASCII.GetBytes(TextEnvoiMsg.Text + "\0");
         int bufferUsed = buf.Length;
         sendSocket.Send(buf);
-        sendSocket.Close();
+        sendSocket.Close();*/
 
-        bufferLabelMsgRecus = LabelMsgRecus.Text + "\n" + hour.ToString() + "h" + minStr + " : " + dropCamion.Text + " : " + TextEnvoiMsg.Text;
+        //bufferLabelMsgRecus = LabelMsgRecus.Text + "\n" + hour.ToString() + "h" + minStr + " : " + dropCamion.Text + " : " + TextEnvoiMsg.Text;
+        LabelMsgRecus.Text = "";
         divMsg.Visible = true;
     }
 
@@ -337,7 +340,7 @@ public partial class _Default : System.Web.UI.Page
 
     protected void attenteMsg()
     {
-        /////////////////////////////////////////////////
+        /*/////////////////////////////////////////////////
         //Reception du message par socket TCP
         /////////////////////////////////////////////////
 
@@ -368,7 +371,14 @@ public partial class _Default : System.Web.UI.Page
                 
                 //bufferLabelMsgRecus = "hhhhhhhhhh\n";//buf.ToString();                          
             }
-        }
+        }*/
+    }
+
+    protected void Timer1_Tick(object sender, EventArgs e)
+    {
+        LabelMsgRecus.Text = "Panel refreshed at: " +
+          DateTime.Now.ToLongTimeString();
+        divMsg.Visible = true;
     }
 
 }
