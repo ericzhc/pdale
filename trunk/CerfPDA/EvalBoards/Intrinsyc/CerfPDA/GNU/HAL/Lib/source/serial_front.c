@@ -48,17 +48,41 @@ void init_serial_front(short config)
 				printf("Using default config\n\r");
 			#endif
 			// 9600, no parity, 1 stop bit, 8 bit config, FIFO enabled
+			IER = 0;
+			
+			int temp1;
+	
+			temp1 = LCR;
+			LCR = 0xBF;		// 
+			EFR |= 0x10;
+
+			FCR = 0x0;		// desactivate FIFO before configuration (bit 0)
+			FCR |= 0x06;	// clear Rx and Tx FIFOs
+			
+			FCR &= 0xF9;
+			//FCR &= 0xF7;	// DMA mode 0, bit 3
+			FCR |= 0x04;	// DMA mode 0, bit 3
+			
+			FCR &= 0x0F;	// set trigger levels to 8 spaces/characters
+			FCR |= 0x01;	// activate FIFO
+
+			EFR &= 0xBF;
+			LCR = temp1;
+
 			setBaudRate(SF_9600_BAUDS);
-			LCR = 0;
-			LCR |= 0x03;	// 8 bits configuration
-			LCR &= 0xFB;	// 1 stop bit
+			LCR = 0x03;		// 8 bits configuration
+							// 1 stop bit
+				
 			setParity(PARITY_NONE);
 			break;
 	}
 
-	MCR |= 0x08;		// OP output to low to activate the RS-232 buffer
+	MCR = 0;
+	MCR |= 0x0F;	// OP output to low to activate the RS-232 buffer
 
-	initializeFIFO();
+	GPDR_SF &= 0xf7;
+	GAFR_SF &= 0xf7;
+	
 	//setBufferTriger();
 	setRxInterrupt();
 
@@ -153,8 +177,9 @@ void initializeFIFO()
 	FCR |= 0x06;	// clear Rx and Tx FIFOs
 	
 	FCR &= 0xF9;
-	FCR &= 0xF7;	// DMA mode 0, bit 3
-
+	//FCR &= 0xF7;	// DMA mode 0, bit 3
+	FCR |= 0x04;	// DMA mode 0, bit 3
+	
 	FCR &= 0x0F;	// set trigger levels to 8 spaces/characters
 	FCR |= 0x01;	// activate FIFO
 

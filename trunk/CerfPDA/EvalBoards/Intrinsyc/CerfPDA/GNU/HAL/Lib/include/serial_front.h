@@ -26,6 +26,7 @@
 
 #include <types.h>
 
+
 #define	UART_BASE	0x18000000
 
 #define RHR	*(volatile unsigned char*) (UART_BASE + 0x00)	// Receiver FIFO buffer
@@ -41,6 +42,10 @@
 #define DLH	*(volatile unsigned char*) (UART_BASE + 0x02)
 #define EFR *(volatile unsigned char*) (UART_BASE + 0x04) // Page 30, RTS = bit 6
 #define TLR *(volatile unsigned char*) (UART_BASE + 0x0e)  
+
+#define GPLR_SF *(volatile unsigned char*) (0x90040000)
+#define GPDR_SF *(volatile unsigned char*) (0x90040000 + 0x04)
+#define GAFR_SF *(volatile unsigned char*) (0x90040000 + 0x1C)
 
 #define TRIGER_LEVEL 4
 
