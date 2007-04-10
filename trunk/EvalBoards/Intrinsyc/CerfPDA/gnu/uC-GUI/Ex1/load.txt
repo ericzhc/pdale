@@ -1,0 +1,4 @@
+ping 132.210.77.251
+exec tftp:132.210.78.67 loadscriptFlashUS.txt
+
+

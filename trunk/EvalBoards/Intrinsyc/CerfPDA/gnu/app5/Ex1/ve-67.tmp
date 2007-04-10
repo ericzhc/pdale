@@ -1,0 +1,180 @@
+/*
+*********************************************************************************************************
+*                                                uC/OS-II
+*                                          The Real-Time Kernel
+*
+*                            (c) Copyright 2003, 2004, Micrium, Inc., Weston, FL
+*                                           All Rights Reserved
+*
+*                                              LogicPD Zoom
+*                                               Sample code
+*
+* File    : app.c
+* By      : Jean J. Labrosse
+* Modif by: Christian Legare
+* Modif by: Jean-Denis Hatier
+*
+*********************************************************************************************************
+*/
+
+#include <includes.h>
+
+/*
+*********************************************************************************************************
+*                                               CONSTANTS
+*********************************************************************************************************
+*/
+
+#define  TASK_START_APP_PRIO     5
+#define  TASK_GUI_PRIO           6
+#define  TASK_STK_SIZE        1024
+
+/* Keypad keys structure
+f1 f2 a b c d e pwr
+e f g h i j k 
+l m n o p q r 
+s t u v w x y 
+z shit caps/ctrl space num/cur \ enter
+*/
+
+#define KEY_F1	0x10;
+#define KEY_F2	0x11;
+#define KEY_PWR 0x12;
+#define KEY_SHIFT 0x13;
+#define KEY_CAPS 0x14;
+#define KEY_NUM 0x15;
+#define KEY_SPACE ' ';
+#define KEY_BACKSLASH = '\';
+#define KEY_ENTER '\n';
+#define KEY_A 'a';
+#define KEY_B 'b';
+#define KEY_C 'c';
+#define KEY_D 'd';
+#define KEY_E 'e';
+#define KEY_F 'f';
+#define KEY_G 'g';
+#define KEY_H 'h';
+#define KEY_I 'i';
+#define KEY_J 'j';
+#define KEY_K 'k';
+#define KEY_L 'l';
+#define KEY_M 'm';
+#define KEY_N 'n';
+#define KEY_O 'o';
+#define KEY_P 'p';
+#define KEY_Q 'q';
+#define KEY_R 'r';
+#define KEY_S 's';
+#define KEY_T 't';
+#define KEY_U 'u';
+#define KEY_V 'v';
+#define KEY_W 'w';
+#define KEY_X 'x';
+#define KEY_Y 'y';
+#define KEY_Z 'z';
+
+char KEYPAD_MASK[][] = {KEY_F1, KEY_F2, KEY_A, KEY_B, KEY_C, KEY_D, KEY_PWR;
+						KEY_E, KEY_F, KEY_G, KEY_H, KEY_I, KEY_J, KEY_K; 
+						KEY_L, KEY_M, KEY_N, KEY_O, KEY_P, KEY_Q, KEY_R;
+						KEY_S, KEY_T, KEY_U, KEY_V, KEY_W, KEY_X, KEY_Y;
+						KEY_Z, KEY_SHIFT, KEY_CAPS, KEY_SPACE, KEY_NUM, KEY_BACKSLASH, KEY_ENTER;}
+						
+};
+
+char KEYPAD_CAPS_MASK[][] = {KEY_F1, KEY_F2, caps(KEY_A), caps(KEY_B), caps(KEY_C), caps(KEY_D), KEY_PWR;
+						caps(KEY_E), caps(KEY_F), caps(KEY_G), caps(KEY_H), caps(KEY_I), KEY_J), caps(KEY_K); 
+						caps(KEY_L), caps(KEY_M), caps(KEY_N), caps(KEY_O), caps(KEY_P), KEY_Q), caps(KEY_R);
+						caps(KEY_S), caps(KEY_T), caps(KEY_U), caps(KEY_V), caps(KEY_W), KEY_X), caps(KEY_Y);
+						caps(KEY_Z), caps(KEY_SHIFT, KEY_CAPS, KEY_SPACE, KEY_NUM, KEY_BACKSLASH, KEY_ENTER;}
+						
+};
+
+char caps(char* ascii) {
+	return (char) ascii - 32;
+}
+
+bool capslock = false;
+
+/*
+*********************************************************************************************************
+*                                               VARIABLES
+*********************************************************************************************************
+*/
+
+        OS_STK  AppStartTaskStk[TASK_STK_SIZE];
+        OS_STK  GuiTaskStk[TASK_STK_SIZE];
+
+/*
+*********************************************************************************************************
+*                                          FUNCTION PROTOTYPES
+*********************************************************************************************************
+*/
+
+static  void  AppStartTask(void *p_arg);
+
+
+/*
+*********************************************************************************************************
+*                                             C ENTRY POINT
+*********************************************************************************************************
+*/
+
+int  main (void)
+{
+    INT8U err;
+
+    BSP_Init();                                 /* Initialize BSP                                      */
+
+    printf("\r\nInitialize uC/OS-II...");
+    OSInit();                                   /* Initialize uC/OS-II                                 */
+
+                                                /* Create start task                                   */
+    OSTaskCreateExt(AppStartTask,
+                    NULL,
+                    (OS_STK *)&AppStartTaskStk[TASK_STK_SIZE-1],
+                    TASK_START_APP_PRIO,
+                    TASK_START_APP_PRIO,
+                    (OS_STK *)&AppStartTaskStk[0],
+                    TASK_STK_SIZE,
+                    NULL,
+                    OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
+
+                                                /* Give a name to tasks                                */
+#if 0                                                
+#if OS_TASK_NAME_SIZE > 10
+    OSTaskNameSet(OS_IDLE_PRIO,        "Idle task",  &err);
+    OSTaskNameSet(OS_STAT_PRIO,        "Stat task",  &err);
+    OSTaskNameSet(TASK_START_APP_PRIO, "Start task", &err);
+#endif
+#endif
+
+    printf("\r\nStart uC/OS-II...");
+    OSStart();                                  /* Start uC/OS-II                                      */
+}
+
+/*$PAGE*/
+/*
+*********************************************************************************************************
+*                                              STARTUP TASK
+*
+* Description : This is an example of a startup task.  As mentioned in the book's text, you MUST
+*               initialize the ticker only once multitasking has started.
+* Arguments   : p_arg is the argument passed to 'AppStartTask()' by 'OSTaskCreate()'.
+* Notes       : 1) The first line of code is used to prevent a compiler warning because 'p_arg' is not
+*                  used.  The compiler should not generate any code for this statement.
+*               2) Interrupts are enabled once the task start because the I-bit of the CCR register was
+*                  set to 0 by 'OSTaskCreate()'.
+*********************************************************************************************************
+*/
+
+static void  AppStartTask (void *p_arg)
+{
+    INT8U err;
+
+    p_arg = p_arg;                              /* Prevent compiler warning                            */
+
+    printf("\r\nStart timer tick...");
+    Tmr_TickInit();                             /* Start timer tick                                    */
+
+#if OS_TASK_STAT_EN > 0
+    print
