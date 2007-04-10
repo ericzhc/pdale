@@ -1,0 +1,235 @@
+using System;
+using System.Data;
+using System.Drawing;
+using System.Configuration;
+using MySql.Data.MySqlClient;
+using System.Web;
+using System.Web.Security;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Web.UI.HtmlControls;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading;
+
+public partial class _Default : System.Web.UI.Page 
+{
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        divMsg.Visible = false;
+        divCamion.Visible = false;
+
+        if (!IsPostBack)
+        {
+            dropAssign.Items.Add("Camion Alabama");
+            dropAssign.Items.Add("Camion Boston");
+            dropAssign.Items.Add("Camion Chicago");
+            dropAssign.Items.Add("Camion New-York");
+            dropAssign.Items.Add("Non assigné");
+
+            dropCamion.Items.Add("Camion Alabama");
+            dropCamion.Items.Add("Camion Boston");
+            dropCamion.Items.Add("Camion Chicago");
+            dropCamion.Items.Add("Camion New-York");
+
+            dropRetirer.Items.Add("Camion Alabama");
+            dropRetirer.Items.Add("Camion Boston");
+            dropRetirer.Items.Add("Camion Chicago");
+            dropRetirer.Items.Add("Camion New-York");
+
+            Thread recvMsg;
+
+            // Instanciation du thread, on spécifie dans le 
+            // délégué ThreadStart le nom de la méthode qui
+            // sera exécutée lorsque l'on appele la méthode
+            // Start() de notre thread.
+            recvMsg = new Thread(new ThreadStart(attenteMsg));
+
+            // Lancement du thread
+            recvMsg.Start();
+        }
+    }
+    protected void cmd_Ajout_Click(object sender, EventArgs e)
+    {
+        cmd_Ajout.BackColor = Color.DarkOrange;
+        cmd_Carte.BackColor = Color.Yellow;
+        cmd_ListeColis.BackColor = Color.Yellow;
+        cmd_Msg.BackColor = Color.Yellow;
+        cmd_Camion.BackColor = Color.Yellow;
+        divAjout.Visible = true;
+        divMsg.Visible = false;
+    }
+    protected void cmd_Carte_Click(object sender, EventArgs e)
+    {
+        cmd_Ajout.BackColor = Color.Yellow;
+        cmd_Carte.BackColor = Color.DarkOrange;
+        cmd_ListeColis.BackColor = Color.Yellow;
+        cmd_Msg.BackColor = Color.Yellow;
+        cmd_Camion.BackColor = Color.Yellow;
+        divAjout.Visible = false;
+    }
+    protected void cmd_ListeColis_Click(object sender, EventArgs e)
+    {
+        cmd_Ajout.BackColor = Color.Yellow;
+        cmd_Carte.BackColor = Color.Yellow;
+        cmd_ListeColis.BackColor = Color.DarkOrange;
+        cmd_Msg.BackColor = Color.Yellow;
+        cmd_Camion.BackColor = Color.Yellow;
+        divAjout.Visible = false;
+    }
+    protected void cmd_Msg_Click(object sender, EventArgs e)
+    {
+        cmd_Ajout.BackColor = Color.Yellow;
+        cmd_Carte.BackColor = Color.Yellow;
+        cmd_ListeColis.BackColor = Color.Yellow;
+        cmd_Msg.BackColor = Color.DarkOrange;
+        cmd_Camion.BackColor = Color.Yellow;
+        divAjout.Visible = false;
+        divMsg.Visible = true;
+        divCamion.Visible = false;
+    }
+    protected void cmd_Camion_Click(object sender, EventArgs e)
+    {
+        cmd_Ajout.BackColor = Color.Yellow;
+        cmd_Carte.BackColor = Color.Yellow;
+        cmd_ListeColis.BackColor = Color.Yellow;
+        cmd_Msg.BackColor = Color.Yellow;
+        cmd_Camion.BackColor = Color.DarkOrange;
+        divAjout.Visible = false;
+        divMsg.Visible = false;
+        divCamion.Visible = true;
+    }
+    protected void cmdValiderAjout_Click(object sender, EventArgs e)
+    {
+        try
+        {
+            string str_Sql = "";
+            int int_EtatColis = 0;
+
+            string connectionString =
+                "Server=69.16.250.95;" +
+                "Database=pdale;" +
+                "User ID=pdale;" +
+                "Password=projets5;";
+
+
+            MySqlCommand comm = new MySqlCommand("insert into colis (col_nomcli, col_adrcli, col_datedebutcli, col_datefincli) VALUES (%nom, %adr, %datedebut, %)");
+            comm.Parameters.Add("%date", MySqlDbType.Datetime);
+
+            MySqlParameter MyParameters = new MySqlParameter();
+
+            MySqlConnection MyConnection = new MySqlConnection(connectionString);
+            MyConnection.Open();
+
+            if (rdb_Etat1.Checked == true)
+            {
+                int_EtatColis = 0;
+            }
+            else
+            {
+                int_EtatColis = 1;
+            }
+
+            str_Sql = "INSERT INTO colis (col_nomcli, col_adrcli, col_datedebutcli, col_datefincli, ";
+            str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest, col_datedebutdest, col_datefindest, ";
+            str_Sql += "col_remarquedest, col_camion) VALUES ('" + txt_NomClient.Text + "', '" + txt_AdresseClient1.Text;
+            str_Sql += " " + txt_AdresseClient2.Text + "', '" + txt_PlageClient1.Text + "', '" + txt_PlageClient2.Text + "', '";
+            str_Sql += txt_RemarquesClient1.Text + "', '" + int_EtatColis.ToString() + "', '" + txt_NomDest.Text + "', '";
+            str_Sql += txt_AdresseDest1.Text + " " + txt_AdresseDest2.Text + "', '" + txt_PlageDest1.Text + "', '" + txt_PlageDest2.Text;
+            str_Sql += "', '" + txt_RemarquesDest1.Text + "', '')";
+
+            MySqlCommand MyCommand = new MySqlCommand(str_Sql, MyConnection);
+
+            MyCommand.ExecuteNonQuery();
+
+        }
+        catch (MySqlException myEx)
+        {
+            Response.Write("<script language=javascript>alert('" + myEx.Message.ToString().Replace("'", "\'").Replace("\n", " ") + "');</script>\n");
+        }
+    }
+
+    protected void cmdEnvoyerMsg_Click(object sender, EventArgs e)
+    {
+        int hour = DateTime.Now.Hour;
+        int min = DateTime.Now.Minute;
+        string minStr;
+
+        if (min < 10)
+            minStr = "0" + min.ToString();
+        else
+            minStr = min.ToString();
+
+        const int portEnvoi = 12000;
+        Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+        IPAddress sendTo = IPAddress.Parse("127.0.0.1");
+        EndPoint sendEndPoint = new IPEndPoint(sendTo, portEnvoi);
+        byte[] buf = new byte[200];
+        buf = System.Text.Encoding.ASCII.GetBytes(TextEnvoiMsg.Text + "\0");
+        int bufferUsed = buf.Length;
+        sendSocket.SendTo(buf, bufferUsed, SocketFlags.None, sendEndPoint);
+
+        divMsg.Visible = true;
+        LabelMsgRecus.Text = LabelMsgRecus.Text + "\n" + hour.ToString() + "h" + minStr + " : " + dropCamion.Text + " : " + TextEnvoiMsg.Text;
+        TextEnvoiMsg.Text = "";
+        
+    }
+
+    protected void cmdResetMsgRecus_Click(object sender, EventArgs e)
+    {
+        divMsg.Visible = true;
+        LabelMsgRecus.Text = "";
+    }
+
+    protected void cmdAjouterCamion_Click(object sender, EventArgs e)
+    {
+        dropAssign.Items.Add(txt_AjoutCamion.Text);
+        dropCamion.Items.Add(txt_AjoutCamion.Text);
+        dropRetirer.Items.Add(txt_AjoutCamion.Text);
+
+        divCamion.Visible = true;
+
+        //TODO: classer les trucs en ordre alphabetique
+        
+    }
+
+    protected void cmdRetirerCamion_Click(object sender, EventArgs e)
+    {
+        dropAssign.Items.Remove(dropRetirer.SelectedValue);
+        dropCamion.Items.Remove(dropRetirer.SelectedValue);
+        dropRetirer.Items.Remove(dropRetirer.SelectedValue);
+
+        divCamion.Visible = true;       
+
+    }
+
+    public static void attenteMsg()
+    {
+        /*const int portReception = 12000;
+        //Socket recvSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+        //IPAddress recvFrom = IPAddress.Parse("127.0.0.1");
+        //IPEndPoint recvEndPoint = new IPEndPoint(recvFrom, portReception);
+        byte[] buf = new byte[200];
+
+        UdpClient udpClient = new UdpClient(portReception, AddressFamily.InterNetwork);
+
+        // Tant que le thread n'est pas tué, on travaille
+        while (Thread.CurrentThread.IsAlive)
+        {
+            // Attente de 500 ms
+            Thread.Sleep(500);
+
+            // Affichage dans la console
+            
+            
+            //int bufferLength = buf.Length;
+            //buf = udpClient.Receive(ref recvEndPoint); 
+
+            //divMsg.Visible = true;
+            //LabelMsgRecus.Text = LabelMsgRecus.Text + "\n" + hour.ToString() + "h" + minStr + " : " + dropCamion.Text + " : " + TextEnvoiMsg.Text;
+            //TextEnvoiMsg.Text = "";
+        }*/
+    }
+
+}
