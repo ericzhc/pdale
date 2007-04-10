@@ -46,6 +46,10 @@
 #define GPLR_SF *(volatile unsigned char*) (0x90040000)
 #define GPDR_SF *(volatile unsigned char*) (0x90040000 + 0x04)
 #define GAFR_SF *(volatile unsigned char*) (0x90040000 + 0x1C)
+#define GFER_SF *(volatile unsigned char*) (0x90040000 + 0x14)
+#define GRER_SF *(volatile unsigned char*) (0x90040000 + 0x10)
+#define GEDR_SF *(volatile unsigned char*) (0x90040000 + 0x18)
+#define GPCR_SF *(volatile unsigned char*) (0x90040000 + 0x0C)
 
 #define TRIGER_LEVEL 4
 
@@ -65,7 +69,8 @@
 #define NOT_DEFINED_INTERRUPT 2
 
 #define IIR_INTERRUPT_TRANSMIT 0
-#define IIR_INTERRUPT_RECEIVER 1
+#define IIR_INTERRUPT_RECEIVER 4
+#define IIR_INTERRUPT_RECEIVER_TIMEOUT 0x0C
 
 #define COM_PORT 3
 
