@@ -1,3 +1,0 @@
-rem exec tftp:132.210.78.90 loadscriptclrosUS.txt
-
-
