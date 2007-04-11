@@ -6,7 +6,6 @@
 #define STATE_UNDELIVERED 2
 #define STATE_DELIVERED 3
 
-int GetNombreCamions();
 void GetNomsCamions(char*); // Fills parameter pointer
 short IsValidColis(char*);
 void GetPacketInfos(char*); // Define sequence order (seperate each field with ;)
