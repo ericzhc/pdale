@@ -66,6 +66,7 @@
 #define GPDR	(*(volatile u32 *)	(0x90040004))
 #define	GPSR	(*(volatile u32 *)	(0x90040008))
 #define	GPCR	(*(volatile u32 *)	(0x9004000C))
+#define	GAFR	(*(volatile u32 *)	(0x9004001C))
 
 #define GPIO_14	(0x00004000)
 #define GPIO_15 (0x00008000)
@@ -82,34 +83,20 @@ void
 init_serial_rf(u32 baud)
 {
 
-	GPCLKR0 |= 0x01;	// UART mode selected
-	PPAR &= 0x00001000;	// no reassignment
+	while(SERIAL_RF_UTSR1 & UTSR1_TX_BSY);
 
-	GPDR |= GPIO_14;	// GPIO14 output
+	                                                            /* Turn everything off                            */
+	SERIAL_RF_UTCR3 = 0;
+	SERIAL_RF_UTCR0 = 0xFF;
 
-   //wait for the fifo to clear
-   while(SERIAL_UTSR1 & UTSR1_TX_BSY);
+	SERIAL_RF_UTCR0 = (UTCR0_1_SBIT | UTCR0_8_DBIT);
 
-   //turn everything off
-   SERIAL_UTCR3 = 0;
-   SERIAL_UTCR0 = 0xFF;
+	                                                            /* Set the speed we want                          */
+	SERIAL_RF_UTCR1 = 0;
+	SERIAL_RF_UTCR2 = baud;
 
-   SERIAL_UTCR0 = (UTCR0_1_SBIT | UTCR0_8_DBIT);
-
-   //set the speed we want
-   SERIAL_UTCR1 = 0;
-   SERIAL_UTCR2 = baud;
-
-   //Turn everything back on
-   SERIAL_UTCR3 = (UTCR3_RX_ON | UTCR3_TX_ON);
-
-#ifdef	AEROCOMM
-	GPCR = GPIO_14;
-	udelay(50);
-	GPSR = GPIO_14;
-	udelay(50);
-	GPCR = GPIO_14;
-#endif
+	                                                            /* Turn everything back on (interrupt on)         */
+	SERIAL_RF_UTCR3 = (UTCR3_RX_ON | UTCR3_TX_ON | UTCR3_RIE_ON);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -217,7 +204,7 @@ output_string_serial_rf(char const *string)
 
 void enable_receiver_rf()
 {
-	SERIAL_UTCR3  |= 0x09;  // RXE and RIE goes high (p.333 SA1110 datasheet)
+	
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -229,7 +216,7 @@ void enable_receiver_rf()
 
 void enable_transceiver_rf()
 {
-	SERIAL_UTCR3  |= 0x12; // TXE and TIE goes high (p.333 SA1110 datasheet)
+	
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -265,3 +252,7 @@ int GetInterruptStatus_rf() // TODO: Fix interrupt masks
 	 
  }
 
+void  Serial1_irqHandler(void)
+{
+	
+}
