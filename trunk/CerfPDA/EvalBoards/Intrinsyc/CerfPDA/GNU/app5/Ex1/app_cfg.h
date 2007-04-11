@@ -37,10 +37,14 @@
 *********************************************************************************************************
 */
 
-#define  MALLOCMUTEX_PIP                          6
+#define  MALLOCMUTEX_PIP                           6
 //#define  MALLOCMUTEX_PIP                          8
-#define  RTPJITBUFMUTEX_PIP                       7
-#define  MEDIASTREAMMNG_TASK_PRIO                 9
+#define  RTPJITBUFMUTEX_PIP                        7
+#define  MEDIASTREAMMNG_TASK_PRIO                  9
+
+#define TASK_SERIAL_PRIO						   7
+
+
 #define  MSTREAMRX_TASK_PRIO                      11
 #define  SIPEVNT_PIP                              12
 #define  SIPTRANSACT_PIO                          14
@@ -87,6 +91,8 @@
 
 #define  NET_OS_CFG_TMR_TASK_STK_SIZE           1024
 #define  NET_OS_CFG_IF_RX_TASK_STK_SIZE         1024
+
+#define TASK_SERIAL_SIZE						1024
 
 /*
 *********************************************************************************************************

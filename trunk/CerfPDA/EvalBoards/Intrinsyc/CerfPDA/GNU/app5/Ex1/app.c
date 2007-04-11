@@ -38,6 +38,7 @@ Weston, FL
 */
 
 OS_STK  AppStartTaskStk[TASK_STK_SIZE];
+OS_FLAG_GRP* comFlag;
 	
 /*
 *********************************************************************************************************
@@ -76,6 +77,9 @@ int  main (void)
                     TASK_STK_SIZE,
                     NULL,
                     OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
+
+	/* Initialisation du flag de communication */
+	comFlag = OSFlagCreate(0x00, &err);
 
                                                 /* Give a name to tasks      
                            */
