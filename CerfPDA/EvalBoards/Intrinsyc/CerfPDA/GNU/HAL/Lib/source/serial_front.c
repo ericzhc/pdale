@@ -75,7 +75,7 @@ void init_serial_front(short config)
 	GFER_SF &= 0xfffffff7;			// GFER.3 = 0 (disable falling edge on pin 3)
 	GRER_SF |= 0x08;				// GRER.3 = 1 (enable rising edge on pin 3)
 	GEDR_SF = 0x08;					// clear GEDR.3 
-	GPCR_SF |= 0x08;	
+	
 	
 	//setBufferTriger();
 	setRxInterrupt();
