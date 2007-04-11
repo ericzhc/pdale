@@ -67,7 +67,7 @@ void ComDriverInit(short config)
 void ISR_Serial() 
 {
 	#if DEBUG
-	printf("Interupt IIR: %2.2x \n\r",IIR);
+		printf("Interupt IIR: %2.2x \n\r",IIR);
 	#endif
 
 	int x;
