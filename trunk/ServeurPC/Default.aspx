@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true"  CodeFile="Default.aspx.cs" Inherits="_Default" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" EnableEventValidation="false" CodeFile="Default.aspx.cs" Inherits="_Default" %>
 
 <%@ Register Assembly="System.Web.Extensions, Version=1.0.61025.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"
     Namespace="System.Web.UI" TagPrefix="asp" %>
@@ -51,7 +51,9 @@
         <div id="divAjout" runat="server">
             <table border="0" bgcolor="Black" width="1022">        
                 <tr><td style="width: 70px"><font size="5">Ajouter un colis</font></td></tr><tr></tr>
-                <tr><td style="width: 70px" bgcolor="#AA0"><font size="4">Client</font></td><td></td><td bgcolor="#AA0" style="width: 200px"><font size="4">Destinataire</font></td></tr>
+                <tr><td style="width: 70px" bgcolor="#AA0"><font size="4">Client</font></td><td>
+                    <asp:Label ID="lblError" runat="server" ForeColor="Yellow" Text="Le colis existe déjà!"
+                        Visible="False" Width="205px"></asp:Label></td><td bgcolor="#AA0" style="width: 200px"><font size="4">Destinataire</font></td></tr>
                 <tr><td style="width: 70px" bgcolor="#800">No. d'identification</td><td>
                     <asp:TextBox ID="txt_Ident" Width="200px" runat="server"></asp:TextBox></td><td></td><td></td></tr>
                 <tr><td style="width: 70px" bgcolor="#800">Nom</td><td>
@@ -130,7 +132,9 @@
                 <tr><td style="width: 70px"><font size="4">Ajouter un camion</font></td></tr>
                 <tr><td>
                     <table border="0" bgcolor="black" width="1016">
-                        <tr><td><asp:TextBox ID="txt_AjoutCamion" Width="196px" runat="server"></asp:TextBox></td>
+                        <tr><td><asp:TextBox ID="txt_AjoutCamion" Width="196px" runat="server"></asp:TextBox>
+                            <asp:Label ID="lblErrorCam" runat="server" ForeColor="Yellow" Text="  Le camion existe déjà!"
+                                Visible="False" Width="205px"></asp:Label></td>
                             <td><asp:Button ID="cmdAjouterCamion" runat="server" BackColor="#FF8000" BorderColor="Black"
                                                     Font-Bold="True" OnClick="cmdAjouterCamion_Click" Text="Ajouter ce camion" Width="200px" /></td>
                         </tr>

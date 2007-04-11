@@ -22,24 +22,37 @@ public partial class _Default : System.Web.UI.Page
     {
         divMsg.Visible = false;
         divCamion.Visible = false;
+        lblError.Visible = false;
+        lblErrorCam.Visible = false;
 
         if (!IsPostBack)
-        {
-            dropAssign.Items.Add("Camion Alabama");
-            dropAssign.Items.Add("Camion Boston");
-            dropAssign.Items.Add("Camion Chicago");
-            dropAssign.Items.Add("Camion New-York");
-            dropAssign.Items.Add("Non assigné");
+        {            
+            try
+            {
+                string str_Sql = "";
+                MySqlConnection MyConnection = null;
+                MySqlCommand MyCommand = null;
+                MySqlDataReader MyReader = null;
 
-            dropCamion.Items.Add("Camion Alabama");
-            dropCamion.Items.Add("Camion Boston");
-            dropCamion.Items.Add("Camion Chicago");
-            dropCamion.Items.Add("Camion New-York");
+                str_Sql = "SELECT cam_nom FROM camion";
 
-            dropRetirer.Items.Add("Camion Alabama");
-            dropRetirer.Items.Add("Camion Boston");
-            dropRetirer.Items.Add("Camion Chicago");
-            dropRetirer.Items.Add("Camion New-York");
+                MyConnection = new MySqlConnection(str_ConnString);
+                MyConnection.Open();
+
+                MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                MyReader = MyCommand.ExecuteReader();
+
+                int i = 0;
+                while (MyReader.Read())
+                {
+                    dropAssign.Items.Add(MyReader[0].ToString());
+                    dropCamion.Items.Add(MyReader[0].ToString());
+                    dropRetirer.Items.Add(MyReader[0].ToString());
+                }
+            }
+            catch (MySqlException myEx)
+            {
+            }
 
             onMsgDiv = false;
         }
@@ -124,36 +137,53 @@ public partial class _Default : System.Web.UI.Page
             string str_EtatColis = "0";
             MySqlConnection MyConnection = null;
             MySqlCommand MyCommand = null;
+            MySqlDataReader MyReader = null;
 
-            if (rdb_Etat1.Checked == true)
-            {
-                str_EtatColis = "0";
-            }
-            else
-            {
-                str_EtatColis = "1";
-            }
-
-            str_PlageDebutCli = txt_PlageClient1.Text + ":00";
-            str_PlageFinCli = txt_PlageClient2.Text + ":00";
-            str_PlageDebutDest = txt_PlageDest1.Text + ":00";
-            str_PlageFinDest = txt_PlageDest2.Text + ":00";
-
-            //TODO : checker que le numero de colis est pas deja dans la BD
-            str_Sql = "INSERT INTO colis (col_noident, col_nomcli, col_adrcli, col_hrdebutcli, col_hrfincli, ";
-            str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest, col_hrdebutdest, col_hrfindest, ";
-            str_Sql += "col_remarquedest, col_camion) VALUES ('" + txt_Ident.Text + "', '" + txt_NomClient.Text + "', '" + txt_AdresseClient1.Text;
-            str_Sql += " " + txt_AdresseClient2.Text + "', '" + str_PlageDebutCli + "', '" + str_PlageFinCli + "', '";
-            str_Sql += txt_RemarquesClient1.Text + "', '" + str_EtatColis + "', '" + txt_NomDest.Text + "', '";
-            str_Sql += txt_AdresseDest1.Text + " " + txt_AdresseDest2.Text + "', '" + str_PlageDebutDest + "', '" + str_PlageFinDest;
-            str_Sql += "', '" + txt_RemarquesDest1.Text + "', '')";
+            // Verification de la presence d'un numero de colis dans la BD
+            str_Sql = "SELECT * FROM colis WHERE col_noident='" + txt_Ident.Text + "'";
 
             MyConnection = new MySqlConnection(str_ConnString);
             MyConnection.Open();
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
-            MyCommand.ExecuteNonQuery();
+            MyReader = MyCommand.ExecuteReader();
 
+            if (MyReader.Read())
+            {
+                //Response.Write("<script language=javascript>alert('Le numéro d'identification de ce colis existe déjà');</script>\n");
+                lblError.Visible = true;
+            }
+            else
+            {
+                if (rdb_Etat1.Checked == true)
+                {
+                    str_EtatColis = "0";
+                }
+                else
+                {
+                    str_EtatColis = "1";
+                }
+
+                str_PlageDebutCli = txt_PlageClient1.Text + ":00";
+                str_PlageFinCli = txt_PlageClient2.Text + ":00";
+                str_PlageDebutDest = txt_PlageDest1.Text + ":00";
+                str_PlageFinDest = txt_PlageDest2.Text + ":00";
+
+                //TODO : checker que le numero de colis est pas deja dans la BD
+                str_Sql = "INSERT INTO colis (col_noident, col_nomcli, col_adrcli1, col_adrcli2, col_hrdebutcli, col_hrfincli, ";
+                str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest1, col_adrdest2, col_hrdebutdest, col_hrfindest, ";
+                str_Sql += "col_remarquedest, cam_nom) VALUES ('" + txt_Ident.Text + "', '" + txt_NomClient.Text + "', '" + txt_AdresseClient1.Text;
+                str_Sql += "', '" + txt_AdresseClient2.Text + "', '" + str_PlageDebutCli + "', '" + str_PlageFinCli + "', '";
+                str_Sql += txt_RemarquesClient1.Text + "', '" + str_EtatColis + "', '" + txt_NomDest.Text + "', '";
+                str_Sql += txt_AdresseDest1.Text + "', '" + txt_AdresseDest2.Text + "', '" + str_PlageDebutDest + "', '" + str_PlageFinDest;
+                str_Sql += "', '" + txt_RemarquesDest1.Text + "', '" + dropAssign.SelectedValue.ToString() + "')";
+
+                MyConnection = new MySqlConnection(str_ConnString);
+                MyConnection.Open();
+
+                MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                MyCommand.ExecuteNonQuery();
+            }
         }
         catch (MySqlException myEx)
         {
@@ -182,51 +212,30 @@ public partial class _Default : System.Web.UI.Page
             {
                 txt_Ident.Text = MyReader[1].ToString();
                 txt_NomClient.Text = MyReader[2].ToString();
+                txt_AdresseClient1.Text = MyReader[3].ToString();
+                txt_AdresseClient2.Text = MyReader[4].ToString();
+                txt_PlageClient1.Text = MyReader[5].ToString().Substring(0, 5);
+                txt_PlageClient2.Text = MyReader[6].ToString().Substring(0, 5);
+                txt_RemarquesClient1.Text = MyReader[7].ToString();
 
-                if (MyReader[3].ToString().Length < 100)
-                {
-                    txt_AdresseClient1.Text = MyReader[3].ToString();
-                    txt_AdresseClient2.Text = "";
-                }
-                else
-                {
-                    str_Temp = MyReader[3].ToString();
-                    txt_AdresseClient1.Text = str_Temp.Substring(0, 99);
-                    txt_AdresseClient2.Text = str_Temp.Substring(99, str_Temp.Length - 99);
-                }
-
-                txt_PlageClient1.Text = MyReader[4].ToString().Substring(0, 5);
-                txt_PlageClient2.Text = MyReader[5].ToString().Substring(0, 5);
-                txt_RemarquesClient1.Text = MyReader[6].ToString();
-
-                if (MyReader[7].ToString() == "0")
+                if (MyReader[8].ToString() == "0")
                 {
                     rdb_Etat1.Checked = true;
                     rdb_Etat2.Checked = false;
                 }
-                else if (MyReader[7].ToString() == "1")
+                else if (MyReader[8].ToString() == "1")
                 {
                     rdb_Etat1.Checked = false;
                     rdb_Etat2.Checked = true;
                 }
 
-                txt_NomDest.Text = MyReader[8].ToString();
-
-                if (MyReader[9].ToString().Length < 100)
-                {
-                    txt_AdresseDest1.Text = MyReader[9].ToString();
-                    txt_AdresseDest2.Text = "";
-                }
-                else
-                {
-                    str_Temp = MyReader[9].ToString();
-                    txt_AdresseDest1.Text = str_Temp.Substring(0, 99);
-                    txt_AdresseDest2.Text = str_Temp.Substring(99, str_Temp.Length - 99);
-                }
-
-                txt_PlageDest1.Text = MyReader[10].ToString().Substring(0, 5);
-                txt_PlageDest2.Text = MyReader[11].ToString().Substring(0, 5);
-                txt_RemarquesDest1.Text = MyReader[12].ToString();
+                txt_NomDest.Text = MyReader[9].ToString();
+                txt_AdresseDest1.Text = MyReader[10].ToString();
+                txt_AdresseDest2.Text = MyReader[11].ToString();
+                txt_PlageDest1.Text = MyReader[12].ToString().Substring(0, 5);
+                txt_PlageDest2.Text = MyReader[13].ToString().Substring(0, 5);
+                txt_RemarquesDest1.Text = MyReader[14].ToString();
+                dropAssign.SelectedValue = MyReader[15].ToString();
             }
         }
         catch (MySqlException myEx)
@@ -262,12 +271,12 @@ public partial class _Default : System.Web.UI.Page
             str_PlageFinDest = txt_PlageDest2.Text + ":00";
 
             str_Sql = "UPDATE colis SET col_noident = '" + txt_Ident.Text + "', col_nomcli = '" + txt_NomClient.Text;
-            str_Sql += "', col_adrcli = '" + txt_AdresseClient1.Text + " " + txt_AdresseClient2.Text + "', col_hrdebutcli = '";
+            str_Sql += "', col_adrcli1 = '" + txt_AdresseClient1.Text + "', col_adrcli2 = '" + txt_AdresseClient2.Text + "', col_hrdebutcli = '";
             str_Sql += str_PlageDebutCli + "', col_hrfincli = '" + str_PlageFinCli + "', col_remarquecli = '" + txt_RemarquesClient1.Text;
-            str_Sql += "', col_etat = '" + str_EtatColis + "', col_nomdest = '" + txt_NomDest.Text + "', col_adrdest = '";
-            str_Sql += txt_AdresseDest1.Text + " " + txt_AdresseDest2.Text + "', col_hrdebutdest = '" + str_PlageDebutDest;
+            str_Sql += "', col_etat = '" + str_EtatColis + "', col_nomdest = '" + txt_NomDest.Text + "', col_adrdest1 = '";
+            str_Sql += txt_AdresseDest1.Text + "', col_adrdest2 = '" + txt_AdresseDest2.Text + "', col_hrdebutdest = '" + str_PlageDebutDest;
             str_Sql += "', col_hrfindest = '" + str_PlageFinDest + "', col_remarquedest ='" + txt_RemarquesDest1.Text;
-            str_Sql += "', col_camion = ' ' WHERE col_noident = '" + txt_Ident.Text + "'";
+            str_Sql += "', cam_nom = '" + dropAssign.SelectedValue.ToString() + "' WHERE col_noident = '" + txt_Ident.Text + "'";
 
             MyConnection = new MySqlConnection(str_ConnString);
             MyConnection.Open();
@@ -320,23 +329,78 @@ public partial class _Default : System.Web.UI.Page
 
     protected void cmdAjouterCamion_Click(object sender, EventArgs e)
     {
-        dropAssign.Items.Add(txt_AjoutCamion.Text);
-        dropCamion.Items.Add(txt_AjoutCamion.Text);
-        dropRetirer.Items.Add(txt_AjoutCamion.Text);
-
         divCamion.Visible = true;
 
         //TODO: classer les trucs en ordre alphabetique
-        
+
+        try
+        {
+            string str_Sql = "";
+            MySqlConnection MyConnection = null;
+            MySqlCommand MyCommand = null;
+            MySqlDataReader MyReader = null;
+
+            // Verification de la presence d'un numero de colis dans la BD
+            str_Sql = "SELECT * FROM camion WHERE cam_nom='" + txt_AjoutCamion.Text + "'";
+
+            MyConnection = new MySqlConnection(str_ConnString);
+            MyConnection.Open();
+
+            MyCommand = new MySqlCommand(str_Sql, MyConnection);
+            MyReader = MyCommand.ExecuteReader();
+
+            if (MyReader.Read())
+            {
+                //Response.Write("<script language=javascript>alert('Le numéro d'identification de ce colis existe déjà');</script>\n");
+                lblErrorCam.Visible = true;
+            }
+            else
+            {
+                str_Sql = "INSERT INTO camion (cam_nom) VALUES ('" + txt_AjoutCamion.Text + "')";
+
+                MyConnection = new MySqlConnection(str_ConnString);
+                MyConnection.Open();
+
+                MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                MyCommand.ExecuteNonQuery();
+
+                dropAssign.Items.Add(txt_AjoutCamion.Text);
+                dropCamion.Items.Add(txt_AjoutCamion.Text);
+                dropRetirer.Items.Add(txt_AjoutCamion.Text);
+
+                txt_AjoutCamion.Text = "";
+            }
+        }
+        catch (MySqlException myEx)
+        {
+        }       
     }
 
     protected void cmdRetirerCamion_Click(object sender, EventArgs e)
     {
-        dropAssign.Items.Remove(dropRetirer.SelectedValue);
-        dropCamion.Items.Remove(dropRetirer.SelectedValue);
-        dropRetirer.Items.Remove(dropRetirer.SelectedValue);
-
         divCamion.Visible = true;
+
+        try
+        {
+            string str_Sql = "";
+            MySqlConnection MyConnection = null;
+            MySqlCommand MyCommand = null;
+     
+            str_Sql = "DELETE FROM camion WHERE cam_nom='" + dropRetirer.SelectedValue + "'";
+
+            MyConnection = new MySqlConnection(str_ConnString);
+            MyConnection.Open();
+
+            MyCommand = new MySqlCommand(str_Sql, MyConnection);
+            MyCommand.ExecuteNonQuery();
+
+            dropAssign.Items.Remove(dropRetirer.SelectedValue);
+            dropCamion.Items.Remove(dropRetirer.SelectedValue);
+            dropRetirer.Items.Remove(dropRetirer.SelectedValue);
+        }
+        catch (MySqlException myEx)
+        {
+        }  
 
     }
 

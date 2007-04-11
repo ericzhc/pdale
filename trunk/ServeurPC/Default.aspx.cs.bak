@@ -114,10 +114,10 @@ public partial class _Default : System.Web.UI.Page
                 "Password=projets5;";
 
 
-            MySqlCommand comm = new MySqlCommand("insert into colis (col_nomcli, col_adrcli, col_datedebutcli, col_datefincli) VALUES (%nom, %adr, %datedebut, %)");
-            comm.Parameters.Add("%date", MySqlDbType.Datetime);
+            //MySqlCommand comm = new MySqlCommand("insert into colis (col_nomcli, col_adrcli, col_datedebutcli, col_datefincli) VALUES (%nom, %adr, %datedebut, %)");
+            //comm.Parameters.Add("%date", MySqlDbType.Datetime);
 
-            MySqlParameter MyParameters = new MySqlParameter();
+            //MySqlParameter MyParameters = new MySqlParameter();
 
             MySqlConnection MyConnection = new MySqlConnection(connectionString);
             MyConnection.Open();
@@ -131,12 +131,12 @@ public partial class _Default : System.Web.UI.Page
                 int_EtatColis = 1;
             }
 
-            str_Sql = "INSERT INTO colis (col_nomcli, col_adrcli, col_datedebutcli, col_datefincli, ";
-            str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest, col_datedebutdest, col_datefindest, ";
+            str_Sql = "INSERT INTO colis (col_nomcli, col_adrcli1, col_adrcli2, col_datedebutcli, col_datefincli, ";
+            str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest1, col_adrdest2, col_datedebutdest, col_datefindest, ";
             str_Sql += "col_remarquedest, col_camion) VALUES ('" + txt_NomClient.Text + "', '" + txt_AdresseClient1.Text;
-            str_Sql += " " + txt_AdresseClient2.Text + "', '" + txt_PlageClient1.Text + "', '" + txt_PlageClient2.Text + "', '";
+            str_Sql += "', '" + txt_AdresseClient2.Text + "', '" + txt_PlageClient1.Text + "', '" + txt_PlageClient2.Text + "', '";
             str_Sql += txt_RemarquesClient1.Text + "', '" + int_EtatColis.ToString() + "', '" + txt_NomDest.Text + "', '";
-            str_Sql += txt_AdresseDest1.Text + " " + txt_AdresseDest2.Text + "', '" + txt_PlageDest1.Text + "', '" + txt_PlageDest2.Text;
+            str_Sql += txt_AdresseDest1.Text + "', '" + txt_AdresseDest2.Text + "', '" + txt_PlageDest1.Text + "', '" + txt_PlageDest2.Text;
             str_Sql += "', '" + txt_RemarquesDest1.Text + "', '')";
 
             MySqlCommand MyCommand = new MySqlCommand(str_Sql, MyConnection);
