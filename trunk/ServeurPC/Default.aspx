@@ -51,7 +51,7 @@
             <table border="0" bgcolor="Black" width="1022">        
                 <tr><td style="width: 70px"><font size="5">Ajouter un colis</font></td></tr><tr></tr>
                 <tr><td style="width: 70px" bgcolor="#AA0"><font size="4">Client</font></td><td>
-                    <asp:Label ID="lblError" runat="server" ForeColor="Yellow" Text="Le colis existe déjà!"
+                    <asp:Label ID="lblError" runat="server" ForeColor="Yellow"
                         Visible="False" Width="205px"></asp:Label></td><td bgcolor="#AA0" style="width: 200px"><font size="4">Destinataire</font></td></tr>
                 <tr><td style="width: 70px" bgcolor="#800">No. d'identification</td><td>
                     <asp:TextBox ID="txt_Ident" Width="200px" runat="server"></asp:TextBox></td><td></td><td></td></tr>
@@ -128,7 +128,9 @@
                         <td><asp:Button ID="cmdValiderModif" runat="server" BackColor="#FF8000" BorderColor="Black"
                         Font-Bold="True" OnClick="cmdValiderModif_Click" Text="Modifier ce colis" Width="200px" /></td>
                         <td><asp:Button ID="cmdValiderRecherche" runat="server" BackColor="#FF8000" BorderColor="Black"
-                        Font-Bold="True" OnClick="cmdValiderRecherche_Click" Text="Rechercher ce colis" Width="200px" /></td></tr>                                                           
+                        Font-Bold="True" OnClick="cmdValiderRecherche_Click" Text="Rechercher ce colis" Width="200px" /></td>
+                        <td><asp:Button ID="cmdEffacerChamps" runat="server" BackColor="#FF8000" BorderColor="Black"
+                        Font-Bold="True" OnClick="cmdEffacerChamps_Click" Text="Effacer les champs" Width="200px" /></td></tr>                                                           
             </table>
         </div>
         
