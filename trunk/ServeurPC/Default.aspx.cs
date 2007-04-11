@@ -172,9 +172,17 @@ public partial class _Default : System.Web.UI.Page
                 {
                     str_EtatColis = "0";
                 }
-                else
+                else if (rdb_Etat2.Checked == true)
                 {
                     str_EtatColis = "1";
+                }
+                else if (rdb_Etat3.Checked == true)
+                {
+                    str_EtatColis = "2";
+                }
+                else if (rdb_Etat5.Checked == true)
+                {
+                    str_EtatColis = "4";
                 }
 
                 str_PlageDebutCli = txt_PlageClient1.Text + ":00";
@@ -269,9 +277,17 @@ public partial class _Default : System.Web.UI.Page
             {
                 str_EtatColis = "0";
             }
-            else
+            else if (rdb_Etat2.Checked == true)
             {
                 str_EtatColis = "1";
+            }
+            else if (rdb_Etat3.Checked == true)
+            {
+                str_EtatColis = "2";
+            }
+            else if (rdb_Etat5.Checked == true)
+            {
+                str_EtatColis = "4";
             }
 
             str_PlageDebutCli = txt_PlageClient1.Text + ":00";
