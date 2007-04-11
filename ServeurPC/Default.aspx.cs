@@ -15,8 +15,10 @@ using System.Threading;
 
 public partial class _Default : System.Web.UI.Page 
 {
-    string str_ConnString = ConfigurationSettings.AppSettings["ConnectionString"];
+    private string str_ConnString = ConfigurationSettings.AppSettings["ConnectionString"];
+    private MySqlConnection m_SqlConnection;
     static bool onMsgDiv;
+    static bool onListeDiv;
     
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -59,7 +61,13 @@ public partial class _Default : System.Web.UI.Page
         
 
     }
-    
+
+    protected override void OnUnload(EventArgs e)
+    {
+        GetConnection().Close();
+        base.OnUnload(e);
+    }
+
     protected void cmd_Ajout_Click(object sender, EventArgs e)
     {
         cmd_Ajout.BackColor = Color.DarkOrange;
@@ -71,6 +79,7 @@ public partial class _Default : System.Web.UI.Page
         divMsg.Visible = false;
 
         onMsgDiv = false;
+        onListeDiv = false;
     }
     
     protected void cmd_Carte_Click(object sender, EventArgs e)
@@ -83,6 +92,7 @@ public partial class _Default : System.Web.UI.Page
         divAjout.Visible = false;
 
         onMsgDiv = false;
+        onListeDiv = false;
     }
     
     protected void cmd_ListeColis_Click(object sender, EventArgs e)
@@ -93,8 +103,14 @@ public partial class _Default : System.Web.UI.Page
         cmd_Msg.BackColor = Color.Yellow;
         cmd_Camion.BackColor = Color.Yellow;
         divAjout.Visible = false;
+        divListe.Visible = true;
+        divCamion.Visible = false;
+        divMsg.Visible = false;
 
         onMsgDiv = false;
+        onListeDiv = true;
+
+        
     }
     
     protected void cmd_Msg_Click(object sender, EventArgs e)
@@ -109,10 +125,12 @@ public partial class _Default : System.Web.UI.Page
         divCamion.Visible = false;
 
         onMsgDiv = true;
+        onListeDiv = false;
     }
     
     protected void cmd_Camion_Click(object sender, EventArgs e)
     {
+
         cmd_Ajout.BackColor = Color.Yellow;
         cmd_Carte.BackColor = Color.Yellow;
         cmd_ListeColis.BackColor = Color.Yellow;
@@ -135,7 +153,7 @@ public partial class _Default : System.Web.UI.Page
             string str_PlageDebutDest = "";
             string str_PlageFinDest = "";
             string str_EtatColis = "0";
-            MySqlConnection MyConnection = null;
+            MySqlConnection MyConnection = GetConnection();
             MySqlCommand MyCommand = null;
             MySqlDataReader MyReader = null;
 
@@ -178,9 +196,6 @@ public partial class _Default : System.Web.UI.Page
                 str_Sql += txt_AdresseDest1.Text + "', '" + txt_AdresseDest2.Text + "', '" + str_PlageDebutDest + "', '" + str_PlageFinDest;
                 str_Sql += "', '" + txt_RemarquesDest1.Text + "', '" + dropAssign.SelectedValue.ToString() + "')";
 
-                MyConnection = new MySqlConnection(str_ConnString);
-                MyConnection.Open();
-
                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
                 MyCommand.ExecuteNonQuery();
             }
@@ -196,14 +211,11 @@ public partial class _Default : System.Web.UI.Page
         {
             string str_Sql = "";
             string str_Temp = "";
-            MySqlConnection MyConnection = null;
+            MySqlConnection MyConnection = GetConnection();
             MySqlCommand MyCommand = null;
             MySqlDataReader MyReader = null;
 
             str_Sql = "SELECT * FROM colis WHERE col_noident='" + txt_Ident.Text + "'";
-
-            MyConnection = new MySqlConnection(str_ConnString);
-            MyConnection.Open();
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyReader = MyCommand.ExecuteReader();
@@ -253,7 +265,7 @@ public partial class _Default : System.Web.UI.Page
             string str_PlageDebutDest = "";
             string str_PlageFinDest = "";
             string str_EtatColis = "0";
-            MySqlConnection MyConnection = null;
+            MySqlConnection MyConnection = GetConnection();
             MySqlCommand MyCommand = null;
 
             if (rdb_Etat1.Checked == true)
@@ -277,9 +289,6 @@ public partial class _Default : System.Web.UI.Page
             str_Sql += txt_AdresseDest1.Text + "', col_adrdest2 = '" + txt_AdresseDest2.Text + "', col_hrdebutdest = '" + str_PlageDebutDest;
             str_Sql += "', col_hrfindest = '" + str_PlageFinDest + "', col_remarquedest ='" + txt_RemarquesDest1.Text;
             str_Sql += "', cam_nom = '" + dropAssign.SelectedValue.ToString() + "' WHERE col_noident = '" + txt_Ident.Text + "'";
-
-            MyConnection = new MySqlConnection(str_ConnString);
-            MyConnection.Open();
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyCommand.ExecuteNonQuery();
@@ -464,6 +473,56 @@ public partial class _Default : System.Web.UI.Page
 
         if(onMsgDiv)
             divMsg.Visible = true;
+    }
+
+    protected void Timer2_Tick(object sender, EventArgs e)
+    {
+        string str_Sql = "";
+        MySqlConnection MyConnection = GetConnection();
+        MySqlCommand MyCommand = null;
+        MySqlDataReader MyReader = null;
+
+        str_Sql = "SELECT * FROM colis";
+
+        MyCommand = new MySqlCommand(str_Sql, MyConnection);
+        MyReader = MyCommand.ExecuteReader();
+
+        Table tableListe = new Table();
+
+        while (MyReader.Read())
+        {
+            TableRow row = new TableRow();
+            for (int i = 0; i < MyReader.FieldCount; i++)
+            {
+                TableCell cell = new TableCell();
+                Label label = new Label();
+                label.Text = MyReader[i].ToString();
+                cell.Controls.Add(label);
+                row.Cells.Add(cell);
+            }
+            tableListe.Rows.Add(row);
+        }
+        MyConnection.Close();
+
+        divListe.Controls.Add(tableListe);
+
+        if (onListeDiv)
+            divListe.Visible = true;
+
+
+    }
+
+    public MySqlConnection GetConnection()
+    { 
+        if (m_SqlConnection == null) {
+            m_SqlConnection = new MySqlConnection();
+        }
+        if (m_SqlConnection.State == ConnectionState.Closed) {
+            m_SqlConnection.ConnectionString = str_ConnString;
+            m_SqlConnection.Open();
+        }
+
+        return m_SqlConnection;
     }
 
 }
