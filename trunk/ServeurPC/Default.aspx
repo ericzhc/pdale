@@ -158,8 +158,8 @@
         <asp:Timer ID="Timer2" Interval="5000" Enabled="true" OnTick="Timer2_Tick" runat="server"></asp:Timer>
         <asp:UpdatePanel ID="UpdatePanel2" runat="server">
             <ContentTemplate>
-                <div id="divListe" runat="server">
-                    
+                <div id="divListe" visible="true" runat="server">
+                    <asp:Table ID="TBLListeColis" runat="server"></asp:Table>
                 </div>
             </ContentTemplate>
             <Triggers><asp:AsyncPostBackTrigger ControlID="Timer2" EventName="Tick" /></Triggers>
