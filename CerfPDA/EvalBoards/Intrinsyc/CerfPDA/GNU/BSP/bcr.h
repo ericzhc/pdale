@@ -4,7 +4,7 @@
 #define TASK_BCR_PRIO 9
 #define TASK_BCR_SIZE 1024
 
-#define MAX_BARCODE_LENGTH 10
+#define MAX_CODEBARRE_LENGTH 11
 
 void BCR_Init();
 void BCRUpdateTask();
