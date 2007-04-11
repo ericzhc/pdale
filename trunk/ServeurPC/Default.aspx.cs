@@ -16,6 +16,7 @@ using System.Threading;
 public partial class _Default : System.Web.UI.Page 
 {
     string str_ConnString = ConfigurationSettings.AppSettings["ConnectionString"];
+    static bool onMsgDiv;
     
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -40,16 +41,7 @@ public partial class _Default : System.Web.UI.Page
             dropRetirer.Items.Add("Camion Chicago");
             dropRetirer.Items.Add("Camion New-York");
 
-            Thread recvMsg;
-
-            // Instanciation du thread, on spécifie dans le 
-            // délégué ThreadStart le nom de la méthode qui
-            // sera exécutée lorsque l'on appele la méthode
-            // Start() de notre thread.
-            recvMsg = new Thread(new ThreadStart(attenteMsg));
-
-            // Lancement du thread
-            recvMsg.Start();
+            onMsgDiv = false;
         }
         
 
@@ -64,6 +56,8 @@ public partial class _Default : System.Web.UI.Page
         cmd_Camion.BackColor = Color.Yellow;
         divAjout.Visible = true;
         divMsg.Visible = false;
+
+        onMsgDiv = false;
     }
     
     protected void cmd_Carte_Click(object sender, EventArgs e)
@@ -74,6 +68,8 @@ public partial class _Default : System.Web.UI.Page
         cmd_Msg.BackColor = Color.Yellow;
         cmd_Camion.BackColor = Color.Yellow;
         divAjout.Visible = false;
+
+        onMsgDiv = false;
     }
     
     protected void cmd_ListeColis_Click(object sender, EventArgs e)
@@ -84,6 +80,8 @@ public partial class _Default : System.Web.UI.Page
         cmd_Msg.BackColor = Color.Yellow;
         cmd_Camion.BackColor = Color.Yellow;
         divAjout.Visible = false;
+
+        onMsgDiv = false;
     }
     
     protected void cmd_Msg_Click(object sender, EventArgs e)
@@ -96,6 +94,8 @@ public partial class _Default : System.Web.UI.Page
         divAjout.Visible = false;
         divMsg.Visible = true;
         divCamion.Visible = false;
+
+        onMsgDiv = true;
     }
     
     protected void cmd_Camion_Click(object sender, EventArgs e)
@@ -108,6 +108,8 @@ public partial class _Default : System.Web.UI.Page
         divAjout.Visible = false;
         divMsg.Visible = false;
         divCamion.Visible = true;
+
+        onMsgDiv = false;
     }
 
     protected void cmdValiderAjout_Click(object sender, EventArgs e)
@@ -293,9 +295,9 @@ public partial class _Default : System.Web.UI.Page
         //Envoi du message par socket TCP
         /////////////////////////////////////////////////
         
-        /*Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
-        const int remotePort = 12000;
+        const int remotePort = 216999;
         IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
         
         sendSocket.Connect(connectTo);
@@ -303,7 +305,7 @@ public partial class _Default : System.Web.UI.Page
         buf = System.Text.Encoding.ASCII.GetBytes(TextEnvoiMsg.Text + "\0");
         int bufferUsed = buf.Length;
         sendSocket.Send(buf);
-        sendSocket.Close();*/
+        sendSocket.Close();
 
         //bufferLabelMsgRecus = LabelMsgRecus.Text + "\n" + hour.ToString() + "h" + minStr + " : " + dropCamion.Text + " : " + TextEnvoiMsg.Text;
         LabelMsgRecus.Text = "";
@@ -338,47 +340,66 @@ public partial class _Default : System.Web.UI.Page
 
     }
 
-    protected void attenteMsg()
-    {
-        /*/////////////////////////////////////////////////
-        //Reception du message par socket TCP
-        /////////////////////////////////////////////////
-
-        Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        
-        IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
-        const int remotePort = 12001;
-        IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
-
-        sendSocket.Bind(connectTo);
-
-        sendSocket.Listen(0);
-
-        Socket connSocket;
-
-        byte[] buf = new byte[200];
-
-        string bufferMsgRecus;
-
-        while (true)
-        {
-            connSocket = sendSocket.Accept();
-            if (connSocket != null)
-            {
-                connSocket.Receive(buf);
-
-                
-                
-                //bufferLabelMsgRecus = "hhhhhhhhhh\n";//buf.ToString();                          
-            }
-        }*/
-    }
-
     protected void Timer1_Tick(object sender, EventArgs e)
     {
-        LabelMsgRecus.Text = "Panel refreshed at: " +
-          DateTime.Now.ToLongTimeString();
-        divMsg.Visible = true;
+        Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
+        const int remotePort = 2160;
+        IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
+
+        sendSocket.Connect(connectTo);
+        byte[] bufSignal = new byte[7];
+        bufSignal = System.Text.Encoding.ASCII.GetBytes("update\0");
+        sendSocket.Send(bufSignal);
+        
+        byte[] bufMsg = new byte[1000];
+        string[] receivedMsg = new string[5];
+        int bufMsgLength = 1;
+        
+        
+        string myCurrentStr = "";
+        
+        bool transfertTermine = false;
+        while (bufMsgLength > 0)
+        {
+            bufMsgLength = sendSocket.Receive(bufMsg);
+            if (bufMsgLength > 0)
+                myCurrentStr += System.Text.Encoding.ASCII.GetString(bufMsg, 0, bufMsgLength + 1);
+        }
+
+        int i = 0;
+
+        while (myCurrentStr != "") {
+            if (myCurrentStr.IndexOf(';') != -1)
+            {
+                receivedMsg[i] = myCurrentStr.Substring(0, myCurrentStr.IndexOf(';'));
+
+                try
+                {
+                    myCurrentStr = myCurrentStr.Substring(myCurrentStr.IndexOf(';') + 2, ((int)myCurrentStr.Length - (myCurrentStr.IndexOf(';') + 2)));
+                }
+                catch
+                {
+                    break;
+                }
+            }
+            else {
+                myCurrentStr = "";
+            }
+            i++;
+        }
+
+
+            for (int j = 0; j < i; j++)
+            {
+                LabelMsgRecus.Text = receivedMsg[j] + "\n" + LabelMsgRecus.Text;
+            }
+            
+        
+        sendSocket.Close();
+
+        if(onMsgDiv)
+            divMsg.Visible = true;
     }
 
 }
