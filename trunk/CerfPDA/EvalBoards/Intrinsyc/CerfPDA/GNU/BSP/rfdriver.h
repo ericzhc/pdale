@@ -6,10 +6,11 @@
 #define TASK_RFSERIAL_PRIO 10
 #define TASK_RFSERIAL_SIZE 11
 
-void RFDriverInit(short);
+void RFDriverInit();
 void ISR_Serial_RF();
 void TransmitRfBuffer(char*, int);
 void BufferRfTransmissionTask();
 COM_BUFF_INFO GetTaskRxRfBuff();
+void open_socket(char* port,char* ipaddress);
 
 #endif
