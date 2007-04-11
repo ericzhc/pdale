@@ -27,9 +27,8 @@
     </table>   
 
     <form id="formAjout" runat="server">
-    <asp:ScriptManager ID="ScriptManager1" runat="server">
-    </asp:ScriptManager>
-        
+        <asp:ScriptManager ID="ScriptManager1" runat="server">
+        </asp:ScriptManager>        
         <div id="divMenu" runat="server">
             <table border="0" bgcolor="black">           
                 <tr>
@@ -102,6 +101,7 @@
         <Triggers><asp:AsyncPostBackTrigger ControlID="Timer1" EventName="Tick" /></Triggers>        
             <ContentTemplate>
                 <div id="divMsg" runat="server">
+                
                     <table border="0" bgcolor="black" width="1022">        
                         <tr><td style="width: 70px"><font size="5">Messages</font></td></tr>
                         <tr><td style="width: 70px"><font size="4">Messages reçus</font></td></tr>
@@ -155,9 +155,15 @@
             </table>    
         </div>
         
-        <div id="divListe" runat="server">
-            
-        </div>
+        <asp:Timer ID="Timer2" Interval="5000" Enabled="true" OnTick="Timer2_Tick" runat="server"></asp:Timer>
+        <asp:UpdatePanel ID="UpdatePanel2" runat="server">
+            <ContentTemplate>
+                <div id="divListe" runat="server">
+                    
+                </div>
+            </ContentTemplate>
+            <Triggers><asp:AsyncPostBackTrigger ControlID="Timer2" EventName="Tick" /></Triggers>
+        </asp:UpdatePanel>
         
     </form>              
 </body>
