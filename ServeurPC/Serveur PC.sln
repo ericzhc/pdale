@@ -1,15 +1,32 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "D:\...\Serveur PC\", "Serveur PC.sln", "{3CDA8570-F2B6-4321-9AE2-0FB0779344C5}"
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "F:\...\ServeurPC\", ".", "{2482EB82-3B64-4CF5-AAC0-1067082D6F21}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.VirtualPath = "/ServeurPC"
+		Debug.AspNetCompiler.PhysicalPath = "..\..\..\..\Projects\ProjetS5\ServeurPC\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\ServeurPC\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/ServeurPC"
+		Release.AspNetCompiler.PhysicalPath = "..\..\..\..\Projects\ProjetS5\ServeurPC\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\ServeurPC\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "2860"
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|.NET = Debug|.NET
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3CDA8570-F2B6-4321-9AE2-0FB0779344C5}.Debug|.NET.ActiveCfg = Debug|.NET
-		{3CDA8570-F2B6-4321-9AE2-0FB0779344C5}.Debug|.NET.Build.0 = Debug|.NET
+		{2482EB82-3B64-4CF5-AAC0-1067082D6F21}.Debug|.NET.ActiveCfg = Debug|.NET
+		{2482EB82-3B64-4CF5-AAC0-1067082D6F21}.Debug|.NET.Build.0 = Debug|.NET
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
