@@ -15,8 +15,8 @@ using System.Threading;
 
 public partial class _Default : System.Web.UI.Page 
 {
-    private static string str_ConnString = ConfigurationSettings.AppSettings["ConnectionString"];
-    private static MySqlConnection m_SqlConnection;
+    private string str_ConnString = ConfigurationSettings.AppSettings["ConnectionString"];
+    private MySqlConnection m_SqlConnection;
     static bool onMsgDiv;
     static bool onListeDiv;
     
@@ -26,20 +26,20 @@ public partial class _Default : System.Web.UI.Page
         divCamion.Visible = false;
         lblError.Visible = false;
         lblErrorCam.Visible = false;
+        divListe.Visible = false;
+
+        Timer2_Tick(null, null);
 
         if (!IsPostBack)
-        {            
+        {
             try
             {
                 string str_Sql = "";
-                MySqlConnection MyConnection = null;
+                MySqlConnection MyConnection = GetConnection();
                 MySqlCommand MyCommand = null;
                 MySqlDataReader MyReader = null;
 
                 str_Sql = "SELECT cam_nom FROM camion";
-
-                MyConnection = new MySqlConnection(str_ConnString);
-                MyConnection.Open();
 
                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
                 MyReader = MyCommand.ExecuteReader();
@@ -51,8 +51,8 @@ public partial class _Default : System.Web.UI.Page
                     dropCamion.Items.Add(MyReader[0].ToString());
                     dropRetirer.Items.Add(MyReader[0].ToString());
                 }
+
                 MyReader.Close();
-                MyConnection.Close();
             }
             catch (MySqlException myEx)
             {
@@ -60,8 +60,12 @@ public partial class _Default : System.Web.UI.Page
 
             onMsgDiv = false;
         }
-        
+    }
 
+    protected override void OnUnload(EventArgs e)
+    {
+        CloseConnection();
+        base.OnUnload(e);
     }
 
     protected void cmd_Ajout_Click(object sender, EventArgs e)
@@ -105,8 +109,6 @@ public partial class _Default : System.Web.UI.Page
 
         onMsgDiv = false;
         onListeDiv = true;
-
-        
     }
     
     protected void cmd_Msg_Click(object sender, EventArgs e)
@@ -196,7 +198,6 @@ public partial class _Default : System.Web.UI.Page
                 MyCommand.ExecuteNonQuery();
             }
             MyReader.Close();
-            MyConnection.Close();
         }
         catch (MySqlException myEx)
         {
@@ -248,7 +249,6 @@ public partial class _Default : System.Web.UI.Page
                 dropAssign.SelectedValue = MyReader[15].ToString();
             }
             MyReader.Close();
-            MyConnection.Close();
         }
         catch (MySqlException myEx)
         {
@@ -292,8 +292,6 @@ public partial class _Default : System.Web.UI.Page
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyCommand.ExecuteNonQuery();
-
-            MyConnection.Close();
         }
         catch (MySqlException myEx)
         {
@@ -382,7 +380,6 @@ public partial class _Default : System.Web.UI.Page
                 txt_AjoutCamion.Text = "";
             }
             MyReader.Close();
-            MyConnection.Close();
         }
         catch (MySqlException myEx)
         {
@@ -407,8 +404,6 @@ public partial class _Default : System.Web.UI.Page
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyCommand.ExecuteNonQuery();
 
-            MyConnection.Close();
-
             dropAssign.Items.Remove(dropRetirer.SelectedValue);
             dropCamion.Items.Remove(dropRetirer.SelectedValue);
             dropRetirer.Items.Remove(dropRetirer.SelectedValue);
@@ -421,64 +416,61 @@ public partial class _Default : System.Web.UI.Page
 
     protected void Timer1_Tick(object sender, EventArgs e)
     {
-        Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
-        const int remotePort = 2160;
-        IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
-
-        sendSocket.Connect(connectTo);
-        byte[] bufSignal = new byte[7];
-        bufSignal = System.Text.Encoding.ASCII.GetBytes("update\0");
-        sendSocket.Send(bufSignal);
-        
         byte[] bufMsg = new byte[1000];
         string[] receivedMsg = new string[5];
         int bufMsgLength = 1;
-        
-        
-        string myCurrentStr = "";
-        
-        bool transfertTermine = false;
-        while (bufMsgLength > 0)
-        {
-            bufMsgLength = sendSocket.Receive(bufMsg);
-            if (bufMsgLength > 0)
-                myCurrentStr += System.Text.Encoding.ASCII.GetString(bufMsg, 0, bufMsgLength + 1);
-        }
 
-        int i = 0;
+        try {
+            Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
+            const int remotePort = 2160;
+            IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
 
-        while (myCurrentStr != "") {
-            if (myCurrentStr.IndexOf(';') != -1)
-            {
-                receivedMsg[i] = myCurrentStr.Substring(0, myCurrentStr.IndexOf(';'));
+            sendSocket.Connect(connectTo);
+            byte[] bufSignal = new byte[7];
+            bufSignal = System.Text.Encoding.ASCII.GetBytes("update\0");
+            sendSocket.Send(bufSignal);
 
-                try
-                {
-                    myCurrentStr = myCurrentStr.Substring(myCurrentStr.IndexOf(';') + 2, ((int)myCurrentStr.Length - (myCurrentStr.IndexOf(';') + 2)));
-                }
-                catch
-                {
-                    break;
-                }
+            string myCurrentStr = "";
+
+            bool transfertTermine = false;
+            while (bufMsgLength > 0) {
+                bufMsgLength = sendSocket.Receive(bufMsg);
+                if (bufMsgLength > 0)
+                    myCurrentStr += System.Text.Encoding.ASCII.GetString(bufMsg, 0, bufMsgLength + 1);
             }
-            else {
-                myCurrentStr = "";
+
+            int i = 0;
+
+            while (myCurrentStr != "") {
+                if (myCurrentStr.IndexOf(';') != -1) {
+                    receivedMsg[i] = myCurrentStr.Substring(0, myCurrentStr.IndexOf(';'));
+
+                    try {
+                        myCurrentStr = myCurrentStr.Substring(myCurrentStr.IndexOf(';') + 2, ((int)myCurrentStr.Length - (myCurrentStr.IndexOf(';') + 2)));
+                    } catch {
+                        break;
+                    }
+                } else {
+                    myCurrentStr = "";
+                }
+                i++;
             }
-            i++;
-        }
 
 
-            for (int j = 0; j < i; j++)
-            {
+            for (int j = 0; j < i; j++) {
                 LabelMsgRecus.Text = receivedMsg[j] + "\n" + LabelMsgRecus.Text;
             }
-            
-        
-        sendSocket.Close();
 
-        if(onMsgDiv)
-            divMsg.Visible = true;
+
+            sendSocket.Close();
+
+            if (onMsgDiv)
+                divMsg.Visible = true;
+
+        } catch (SocketException exp) {
+            receivedMsg[0] = "Could not connect to message server" + exp.Message;
+        }
     }
 
     protected void Timer2_Tick(object sender, EventArgs e)
@@ -493,11 +485,10 @@ public partial class _Default : System.Web.UI.Page
         MyCommand = new MySqlCommand(str_Sql, MyConnection);
         MyReader = MyCommand.ExecuteReader();
 
-        Table tableListe = new Table();
-
         while (MyReader.Read())
         {
             TableRow row = new TableRow();
+            row.BackColor = Color.Black;
             for (int i = 0; i < MyReader.FieldCount; i++)
             {
                 TableCell cell = new TableCell();
@@ -506,19 +497,21 @@ public partial class _Default : System.Web.UI.Page
                 cell.Controls.Add(label);
                 row.Cells.Add(cell);
             }
-            tableListe.Rows.Add(row);
+            TBLListeColis.Rows.Clear();
+            TBLListeColis.Rows.Add(row);
         }
-        MyConnection.Close();
+        MyReader.Close();
 
-        divListe.Controls.Add(tableListe);
+        // Close connection if this update comes from a tick
+        if (sender != null) {
+            MyConnection.Close();
+        }
 
         if (onListeDiv)
             divListe.Visible = true;
-
-
     }
 
-    public static MySqlConnection GetConnection()
+    public MySqlConnection GetConnection()
     { 
         if (m_SqlConnection == null) {
             m_SqlConnection = new MySqlConnection();
@@ -531,4 +524,10 @@ public partial class _Default : System.Web.UI.Page
         return m_SqlConnection;
     }
 
+    private void CloseConnection() 
+    {
+        if (m_SqlConnection != null && m_SqlConnection.State == ConnectionState.Open) {
+            m_SqlConnection.Close();
+        }
+    }
 }
