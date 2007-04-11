@@ -15,8 +15,8 @@ using System.Threading;
 
 public partial class _Default : System.Web.UI.Page 
 {
-    private string str_ConnString = ConfigurationSettings.AppSettings["ConnectionString"];
-    private MySqlConnection m_SqlConnection;
+    private static string str_ConnString = ConfigurationSettings.AppSettings["ConnectionString"];
+    private static MySqlConnection m_SqlConnection;
     static bool onMsgDiv;
     static bool onListeDiv;
     
@@ -51,6 +51,8 @@ public partial class _Default : System.Web.UI.Page
                     dropCamion.Items.Add(MyReader[0].ToString());
                     dropRetirer.Items.Add(MyReader[0].ToString());
                 }
+                MyReader.Close();
+                MyConnection.Close();
             }
             catch (MySqlException myEx)
             {
@@ -60,12 +62,6 @@ public partial class _Default : System.Web.UI.Page
         }
         
 
-    }
-
-    protected override void OnUnload(EventArgs e)
-    {
-        GetConnection().Close();
-        base.OnUnload(e);
     }
 
     protected void cmd_Ajout_Click(object sender, EventArgs e)
@@ -199,6 +195,8 @@ public partial class _Default : System.Web.UI.Page
                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
                 MyCommand.ExecuteNonQuery();
             }
+            MyReader.Close();
+            MyConnection.Close();
         }
         catch (MySqlException myEx)
         {
@@ -249,6 +247,8 @@ public partial class _Default : System.Web.UI.Page
                 txt_RemarquesDest1.Text = MyReader[14].ToString();
                 dropAssign.SelectedValue = MyReader[15].ToString();
             }
+            MyReader.Close();
+            MyConnection.Close();
         }
         catch (MySqlException myEx)
         {
@@ -292,6 +292,8 @@ public partial class _Default : System.Web.UI.Page
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyCommand.ExecuteNonQuery();
+
+            MyConnection.Close();
         }
         catch (MySqlException myEx)
         {
@@ -379,6 +381,8 @@ public partial class _Default : System.Web.UI.Page
 
                 txt_AjoutCamion.Text = "";
             }
+            MyReader.Close();
+            MyConnection.Close();
         }
         catch (MySqlException myEx)
         {
@@ -402,6 +406,8 @@ public partial class _Default : System.Web.UI.Page
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyCommand.ExecuteNonQuery();
+
+            MyConnection.Close();
 
             dropAssign.Items.Remove(dropRetirer.SelectedValue);
             dropCamion.Items.Remove(dropRetirer.SelectedValue);
@@ -512,7 +518,7 @@ public partial class _Default : System.Web.UI.Page
 
     }
 
-    public MySqlConnection GetConnection()
+    public static MySqlConnection GetConnection()
     { 
         if (m_SqlConnection == null) {
             m_SqlConnection = new MySqlConnection();
