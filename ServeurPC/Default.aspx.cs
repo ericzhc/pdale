@@ -511,7 +511,6 @@ public partial class _Default : System.Web.UI.Page
 
         return m_SqlConnection;
     }
-
     private void CloseConnection() 
     {
         if (m_SqlConnection != null && m_SqlConnection.State == ConnectionState.Open) {

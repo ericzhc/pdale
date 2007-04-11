@@ -1,3 +1,4 @@
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,6 +13,12 @@ namespace TCPServerReceiver
         static string[] messagesReceived = new string[5];
         static string[] messagesToSend = new string[100];
 
+        private static MySqlConnection m_SqlConnection;
+        private string connectionString =
+                "Server=69.16.250.95;" +
+                "Database=pdale;" +
+                "User ID=pdale;" +
+                "Password=projets5;";
 
         private static int SendData(Socket s, byte[] data)
         {
@@ -136,12 +143,12 @@ namespace TCPServerReceiver
 
             Socket client;
             IPEndPoint newclient;
-            
+
             byte[] data = new byte[1024];
             while (true)
             {
                 client = newsock.Accept();
-                if(client != null)
+                if (client != null)
                 {
                     newclient = (IPEndPoint)client.RemoteEndPoint;
                     Console.WriteLine("Connected with {0} at port {1}", newclient.Address, newclient.Port);
@@ -166,7 +173,178 @@ namespace TCPServerReceiver
                 }
                 client.Close();
             }
+        }
 
+        // Retourne les champs d'un colis séparés par un \0 dans un string
+        public string GetColis(string str_ColIdent)
+        {
+            try
+            {
+                string str_Sql = "";
+                string str_DonneesColis = "";
+                MySqlConnection MyConnection = GetConnection();
+                MySqlCommand MyCommand = null;
+                MySqlDataReader MyReader = null;
+
+                str_Sql = "SELECT * FROM colis WHERE col_noident='" + str_ColIdent + "'";
+
+                MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                MyReader = MyCommand.ExecuteReader();
+
+                while (MyReader.Read())
+                {
+                    str_DonneesColis = MyReader[1].ToString() + "\0";
+                    str_DonneesColis += MyReader[2].ToString() + "\0";
+                    str_DonneesColis += MyReader[3].ToString() + "\0";
+                    str_DonneesColis += MyReader[4].ToString() + "\0";
+                    str_DonneesColis += MyReader[5].ToString() + "\0";
+                    str_DonneesColis += MyReader[6].ToString() + "\0";
+                    str_DonneesColis += MyReader[7].ToString() + "\0";
+                    str_DonneesColis += MyReader[8].ToString() + "\0";
+                    str_DonneesColis += MyReader[9].ToString() + "\0";
+                    str_DonneesColis += MyReader[9].ToString() + "\0";
+                    str_DonneesColis += MyReader[10].ToString() + "\0";
+                    str_DonneesColis += MyReader[11].ToString() + "\0";
+                    str_DonneesColis += MyReader[12].ToString() + "\0";
+                    str_DonneesColis += MyReader[13].ToString() + "\0";
+                    str_DonneesColis += MyReader[14].ToString() + "\0";
+                    str_DonneesColis += MyReader[15].ToString();
+                }
+                MyReader.Close();
+                return str_DonneesColis;
+            }
+            catch (MySqlException myEx)
+            {
+                return "";
+            }
+        }
+
+        // Retourne le nombre de camion
+        public string GetNbrCamion()
+        {
+            try
+            {
+                string str_Sql = "";
+                string str_nbrCamion = "";
+                MySqlConnection MyConnection = GetConnection();
+                MySqlCommand MyCommand = null;
+                MySqlDataReader MyReader = null;
+
+                str_Sql = "SELECT COUNT(*) FROM camion";
+
+                MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                MyReader = MyCommand.ExecuteReader();
+
+                if (MyReader.Read())
+                {
+                    str_nbrCamion = MyReader[0].ToString();
+                }
+                MyReader.Close();
+                return str_nbrCamion;
+            }
+            catch (MySqlException myEx)
+            {
+                return "";
+            }
+        }
+
+        // Retourne le nom du camion correspondant à l'index dans la bd
+        public string GetNomFromIndex(string str_IdCamion)
+        {
+            try
+            {
+                string str_Sql = "";
+                string str_NomCamion = "";
+                int compteur = 0;
+                MySqlConnection MyConnection = GetConnection();
+                MySqlCommand MyCommand = null;
+                MySqlDataReader MyReader = null;
+
+                str_Sql = "SELECT cam_nom FROM camion";
+
+                MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                MyReader = MyCommand.ExecuteReader();
+
+                while (MyReader.Read())
+                {
+                    compteur++;
+                    if (compteur.ToString() == str_IdCamion)
+                    {
+                        str_NomCamion = MyReader[0].ToString();
+                    }
+                }
+                MyReader.Close();
+                return str_NomCamion;
+            }
+            catch (MySqlException myEx)
+            {
+                return "";
+            }
+        }
+
+        // Modifie l'etat d'un colis dans la BD
+        public void SaveEtatColis(string str_IdColis, string str_EtatColis)
+        {
+            try
+            {
+                string str_Sql = "";
+                MySqlConnection MyConnection = GetConnection();
+                MySqlCommand MyCommand = null;
+
+                str_Sql = "UPDATE colis SET col_etat = '" + str_EtatColis + "' WHERE str_IdColis = '" + str_IdColis + "'";
+
+                MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                MyCommand.EndExecuteNonQuery();
+            }
+            catch (MySqlException myEx)
+            {
+            }
+        }
+
+        // Retourne la liste de colis et de leur etat pour un camion donné
+        public string GetColisList(string str_NomCamion)
+        {
+            try
+            {
+                string str_Sql = "";
+                string str_ColisList = "";
+                int compteur = 0;
+                MySqlConnection MyConnection = GetConnection();
+                MySqlCommand MyCommand = null;
+                MySqlDataReader MyReader = null;
+
+                str_Sql = "SELECT col_noident, col_etat FROM colis WHERE cam_nom='" + strNomCamion + "'";
+
+                MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                MyReader = MyCommand.ExecuteReader();
+
+                while (MyReader.Read())
+                {
+                    str_ColisList += MyReader[0].ToString() + "\0";
+                    str_ColisList += MyReader[1].ToString() + "\0";
+                }
+                MyReader.Close();
+                return str_ColisList;
+            }
+            catch (MySqlException myEx)
+            {
+                return "";
+            }
+        }
+
+        public static MySqlConnection GetConnection()
+        {
+            if (m_SqlConnection == null)
+            {
+                m_SqlConnection = new MySqlConnection();
+            }
+            if (m_SqlConnection.State == ConnectionState.Closed)
+            {
+                m_SqlConnection.ConnectionString = str_ConnString;
+                m_SqlConnection.Open();
+            }
+
+            return m_SqlConnection;
         }
     }
 }
