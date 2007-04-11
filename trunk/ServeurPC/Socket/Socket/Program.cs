@@ -175,7 +175,7 @@ namespace TCPServerReceiver
             }
         }
 
-        // Retourne les champs d'un colis séparés par un \0 dans un string
+        // Retourne les champs d'un colis séparés par un ; dans un string
         public string GetColis(string str_ColIdent)
         {
             try
@@ -193,22 +193,22 @@ namespace TCPServerReceiver
 
                 while (MyReader.Read())
                 {
-                    str_DonneesColis = MyReader[1].ToString() + "\0";
-                    str_DonneesColis += MyReader[2].ToString() + "\0";
-                    str_DonneesColis += MyReader[3].ToString() + "\0";
-                    str_DonneesColis += MyReader[4].ToString() + "\0";
-                    str_DonneesColis += MyReader[5].ToString() + "\0";
-                    str_DonneesColis += MyReader[6].ToString() + "\0";
-                    str_DonneesColis += MyReader[7].ToString() + "\0";
-                    str_DonneesColis += MyReader[8].ToString() + "\0";
-                    str_DonneesColis += MyReader[9].ToString() + "\0";
-                    str_DonneesColis += MyReader[9].ToString() + "\0";
-                    str_DonneesColis += MyReader[10].ToString() + "\0";
-                    str_DonneesColis += MyReader[11].ToString() + "\0";
-                    str_DonneesColis += MyReader[12].ToString() + "\0";
-                    str_DonneesColis += MyReader[13].ToString() + "\0";
-                    str_DonneesColis += MyReader[14].ToString() + "\0";
-                    str_DonneesColis += MyReader[15].ToString();
+                    str_DonneesColis = MyReader[1].ToString() + ";";
+                    str_DonneesColis += MyReader[2].ToString() + ";";
+                    str_DonneesColis += MyReader[3].ToString() + ";";
+                    str_DonneesColis += MyReader[4].ToString() + ";";
+                    str_DonneesColis += MyReader[5].ToString() + ";";
+                    str_DonneesColis += MyReader[6].ToString() + ";";
+                    str_DonneesColis += MyReader[7].ToString() + ";";
+                    str_DonneesColis += MyReader[8].ToString() + ";";
+                    str_DonneesColis += MyReader[9].ToString() + ";";
+                    str_DonneesColis += MyReader[9].ToString() + ";";
+                    str_DonneesColis += MyReader[10].ToString() + ";";
+                    str_DonneesColis += MyReader[11].ToString() + ";";
+                    str_DonneesColis += MyReader[12].ToString() + ";";
+                    str_DonneesColis += MyReader[13].ToString() + ";";
+                    str_DonneesColis += MyReader[14].ToString() + ";";
+                    str_DonneesColis += MyReader[15].ToString() + "*";;
                 }
                 MyReader.Close();
                 return str_DonneesColis;
@@ -320,9 +320,10 @@ namespace TCPServerReceiver
 
                 while (MyReader.Read())
                 {
-                    str_ColisList += MyReader[0].ToString() + "\0";
-                    str_ColisList += MyReader[1].ToString() + "\0";
+                    str_ColisList += MyReader[0].ToString() + ";";
+                    str_ColisList += MyReader[1].ToString() + ";";
                 }
+                str_ColisList += "*";
                 MyReader.Close();
                 return str_ColisList;
             }
