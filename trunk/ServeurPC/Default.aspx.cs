@@ -164,18 +164,31 @@ public partial class _Default : System.Web.UI.Page
             if (MyReader.Read())
             {
                 //Response.Write("<script language=javascript>alert('Le numéro d'identification de ce colis existe déjà');</script>\n");
+                lblError.Text = "Le colis existe déjà!";
                 lblError.Visible = true;
             }
             else
             {
-                if (rdb_Etat1.Checked == true)
+                if (rdb_Etat3.Checked == true)
                 {
-                    str_EtatColis = "0";
+                    lblError.Text = "État initial invalide";
+                    lblError.Visible = true;
                 }
-                else if (rdb_Etat2.Checked == true)
+                else if (rdb_Etat3.Checked == true)
                 {
-                    str_EtatColis = "1";
+                    lblError.Text = "État initial invalide";
+                    lblError.Visible = true;
                 }
+                else
+                {
+                    if (rdb_Etat1.Checked == true)
+                    {
+                        str_EtatColis = "0";
+                    }
+                    else if (rdb_Etat2.Checked == true)
+                    {
+                        str_EtatColis = "1";
+                    }
                 else if (rdb_Etat3.Checked == true)
                 {
                     str_EtatColis = "2";
@@ -185,22 +198,23 @@ public partial class _Default : System.Web.UI.Page
                     str_EtatColis = "4";
                 }
 
-                str_PlageDebutCli = txt_PlageClient1.Text + ":00";
-                str_PlageFinCli = txt_PlageClient2.Text + ":00";
-                str_PlageDebutDest = txt_PlageDest1.Text + ":00";
-                str_PlageFinDest = txt_PlageDest2.Text + ":00";
+                    str_PlageDebutCli = txt_PlageClient1.Text + ":00";
+                    str_PlageFinCli = txt_PlageClient2.Text + ":00";
+                    str_PlageDebutDest = txt_PlageDest1.Text + ":00";
+                    str_PlageFinDest = txt_PlageDest2.Text + ":00";
 
-                //TODO : checker que le numero de colis est pas deja dans la BD
-                str_Sql = "INSERT INTO colis (col_noident, col_nomcli, col_adrcli1, col_adrcli2, col_hrdebutcli, col_hrfincli, ";
-                str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest1, col_adrdest2, col_hrdebutdest, col_hrfindest, ";
-                str_Sql += "col_remarquedest, cam_nom) VALUES ('" + txt_Ident.Text + "', '" + txt_NomClient.Text + "', '" + txt_AdresseClient1.Text;
-                str_Sql += "', '" + txt_AdresseClient2.Text + "', '" + str_PlageDebutCli + "', '" + str_PlageFinCli + "', '";
-                str_Sql += txt_RemarquesClient1.Text + "', '" + str_EtatColis + "', '" + txt_NomDest.Text + "', '";
-                str_Sql += txt_AdresseDest1.Text + "', '" + txt_AdresseDest2.Text + "', '" + str_PlageDebutDest + "', '" + str_PlageFinDest;
-                str_Sql += "', '" + txt_RemarquesDest1.Text + "', '" + dropAssign.SelectedValue.ToString() + "')";
+                    //TODO : checker que le numero de colis est pas deja dans la BD
+                    str_Sql = "INSERT INTO colis (col_noident, col_nomcli, col_adrcli1, col_adrcli2, col_hrdebutcli, col_hrfincli, ";
+                    str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest1, col_adrdest2, col_hrdebutdest, col_hrfindest, ";
+                    str_Sql += "col_remarquedest, cam_nom) VALUES ('" + txt_Ident.Text + "', '" + txt_NomClient.Text + "', '" + txt_AdresseClient1.Text;
+                    str_Sql += "', '" + txt_AdresseClient2.Text + "', '" + str_PlageDebutCli + "', '" + str_PlageFinCli + "', '";
+                    str_Sql += txt_RemarquesClient1.Text + "', '" + str_EtatColis + "', '" + txt_NomDest.Text + "', '";
+                    str_Sql += txt_AdresseDest1.Text + "', '" + txt_AdresseDest2.Text + "', '" + str_PlageDebutDest + "', '" + str_PlageFinDest;
+                    str_Sql += "', '" + txt_RemarquesDest1.Text + "', '" + dropAssign.SelectedValue.ToString() + "')";
 
-                MyCommand = new MySqlCommand(str_Sql, MyConnection);
-                MyCommand.ExecuteNonQuery();
+                    MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                    MyCommand.ExecuteNonQuery();
+                }
             }
             MyReader.Close();
         }
@@ -238,13 +252,31 @@ public partial class _Default : System.Web.UI.Page
                 {
                     rdb_Etat1.Checked = true;
                     rdb_Etat2.Checked = false;
+                    rdb_Etat3.Checked = false;
+                    rdb_Etat4.Checked = false;
                 }
                 else if (MyReader[8].ToString() == "1")
                 {
                     rdb_Etat1.Checked = false;
                     rdb_Etat2.Checked = true;
+                    rdb_Etat3.Checked = false;
+                    rdb_Etat4.Checked = false;
                 }
-
+                else if (MyReader[8].ToString() == "2")
+                {
+                    rdb_Etat1.Checked = false;
+                    rdb_Etat2.Checked = false;
+                    rdb_Etat3.Checked = true;
+                    rdb_Etat4.Checked = false;
+                }
+                else if (MyReader[8].ToString() == "3")
+                {
+                    rdb_Etat1.Checked = false;
+                    rdb_Etat2.Checked = false;
+                    rdb_Etat3.Checked = false;
+                    rdb_Etat4.Checked = true;
+                }
+                
                 txt_NomDest.Text = MyReader[9].ToString();
                 txt_AdresseDest1.Text = MyReader[10].ToString();
                 txt_AdresseDest2.Text = MyReader[11].ToString();
@@ -285,9 +317,9 @@ public partial class _Default : System.Web.UI.Page
             {
                 str_EtatColis = "2";
             }
-            else if (rdb_Etat5.Checked == true)
+            else if (rdb_Etat4.Checked == true)
             {
-                str_EtatColis = "4";
+                str_EtatColis = "3";
             }
 
             str_PlageDebutCli = txt_PlageClient1.Text + ":00";
@@ -309,6 +341,28 @@ public partial class _Default : System.Web.UI.Page
         catch (MySqlException myEx)
         {
         }
+    }
+
+    protected void cmdEffacerChamps_Click(object sender, EventArgs e)
+    {
+        txt_Ident.Text = "";
+        txt_NomClient.Text = "";
+        txt_NomDest.Text = "";
+        txt_AdresseClient1.Text = "";        
+        txt_AdresseClient2.Text = "";
+        txt_AdresseDest1.Text = "";
+        txt_AdresseDest2.Text = "";
+        txt_PlageClient1.Text = "";
+        txt_PlageClient2.Text = "";
+        txt_PlageDest1.Text = "";        
+        txt_PlageDest2.Text = "";
+        txt_RemarquesClient1.Text = "";
+        txt_RemarquesDest1.Text = "";
+        rdb_Etat1.Checked = false;
+        rdb_Etat2.Checked = false;
+        rdb_Etat3.Checked = false;
+        rdb_Etat4.Checked = false;
+        dropAssign.SelectedIndex = 0;
     }
         
     protected void cmdEnvoyerMsg_Click(object sender, EventArgs e)
