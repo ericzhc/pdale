@@ -81,10 +81,46 @@
                 <tr><td style="width: 70px" bgcolor="#800">Remarques</td><td>
                     <asp:TextBox ID="txt_RemarquesClient1" Width="200px" runat="server" Height="50px"></asp:TextBox></td><td bgcolor="#800">Remarques</td><td>
                         <asp:TextBox ID="txt_RemarquesDest1" Width="200px" runat="server" Height="50px"></asp:TextBox></td></tr>
-                <tr><td style="width: 70px" bgcolor="#800">État</td><td><table><tr><td style="height: 18px">Non cueilli</td><td style="height: 18px">
-                    <asp:RadioButton ID="rdb_Etat1" GroupName="Etat" runat="server" /></td></tr></table></td><td></td><td></td></tr>
-                <tr><td style="width: 70px" bgcolor="#800"></td><td><table><tr><td>Cueilli</td><td>
-                    <asp:RadioButton ID="rdb_Etat2" GroupName="Etat" runat="server" /></td></tr></table></td><td></td><td></td></tr>
+                <tr><td style="width: 70px" bgcolor="#800">État</td>
+                    <td>
+                        <table>
+                            <tr>
+                                <td style="height: 18px">Non cueilli</td>
+                                <td style="height: 18px"><asp:RadioButton ID="rdb_Etat1" GroupName="Etat" runat="server" /></td>
+                            </tr>
+                        </table>
+                    </td><td></td><td></td>
+                </tr>
+                <tr><td style="width: 70px" bgcolor="#800"></td>
+                    <td>
+                        <table>
+                            <tr>
+                                <td>Cueilli</td>
+                                <td><asp:RadioButton ID="rdb_Etat2" GroupName="Etat" runat="server" /></td>
+                            </tr>
+                        </table>
+                    </td><td></td><td></td>
+                </tr>
+                <tr><td style="width: 70px" bgcolor="#800"></td>
+                    <td>
+                        <table>
+                            <tr>
+                                <td>En livraison</td>
+                                <td><asp:RadioButton ID="rdb_Etat3" GroupName="Etat" runat="server" /></td>
+                            </tr>
+                        </table>
+                    </td><td></td><td></td>
+                </tr>
+                <tr><td style="width: 70px" bgcolor="#800"></td>
+                    <td>
+                        <table>
+                            <tr>
+                                <td>Livré</td>
+                                <td><asp:RadioButton ID="rdb_Etat4" GroupName="Etat" runat="server" /></td>
+                            </tr>
+                        </table>
+                    </td><td></td><td></td>
+                </tr>                    
                 <tr><td style="width: 70px" bgcolor="#800">Assigner à : </td><td><asp:DropDownList ID="dropAssign" Width="200px" runat="server"></asp:DropDownList></td></tr>
                 <tr><td style="width: 70px">
                     <asp:Button ID="cmdValiderAjout" runat="server" BackColor="#FF8000" BorderColor="Black"

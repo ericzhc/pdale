@@ -158,9 +158,6 @@ public partial class _Default : System.Web.UI.Page
             // Verification de la presence d'un numero de colis dans la BD
             str_Sql = "SELECT * FROM colis WHERE col_noident='" + txt_Ident.Text + "'";
 
-            MyConnection = new MySqlConnection(str_ConnString);
-            MyConnection.Open();
-
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyReader = MyCommand.ExecuteReader();
 
@@ -345,15 +342,12 @@ public partial class _Default : System.Web.UI.Page
         try
         {
             string str_Sql = "";
-            MySqlConnection MyConnection = null;
+            MySqlConnection MyConnection = GetConnection();
             MySqlCommand MyCommand = null;
             MySqlDataReader MyReader = null;
 
             // Verification de la presence d'un numero de colis dans la BD
             str_Sql = "SELECT * FROM camion WHERE cam_nom='" + txt_AjoutCamion.Text + "'";
-
-            MyConnection = new MySqlConnection(str_ConnString);
-            MyConnection.Open();
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyReader = MyCommand.ExecuteReader();
@@ -366,9 +360,6 @@ public partial class _Default : System.Web.UI.Page
             else
             {
                 str_Sql = "INSERT INTO camion (cam_nom) VALUES ('" + txt_AjoutCamion.Text + "')";
-
-                MyConnection = new MySqlConnection(str_ConnString);
-                MyConnection.Open();
 
                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
                 MyCommand.ExecuteNonQuery();
@@ -393,13 +384,10 @@ public partial class _Default : System.Web.UI.Page
         try
         {
             string str_Sql = "";
-            MySqlConnection MyConnection = null;
+            MySqlConnection MyConnection = GetConnection();
             MySqlCommand MyCommand = null;
      
             str_Sql = "DELETE FROM camion WHERE cam_nom='" + dropRetirer.SelectedValue + "'";
-
-            MyConnection = new MySqlConnection(str_ConnString);
-            MyConnection.Open();
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyCommand.ExecuteNonQuery();
