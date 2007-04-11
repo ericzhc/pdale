@@ -116,24 +116,43 @@ void ISR_Serial()
 /*******************************************************
  Sends a buffer to the serial port with a maximum size of SERIAL_BUFF_SIZE
 *******************************************************/
-void TransmitBuffer(char *databuff, int length) 
+void TransmitBuffer(char *databuff) 
 {
+	OS_FLAGS flags;
 	OSSemPend(TransmitFctSem, 0, &err); // protects dual entry in this fct
 	OSSemPend(TxSerialSem, 0, &err);    // protects the transmission buffer
 	int i;
-	for (i=0; i<length; i++) {
+	for (i=0; databuff[i] != '\0'; i++) {
 		// Increment the buffer's ending pointer
 		ptrTxBuffEnd = (ptrTxBuffEnd+1) % (int)SERIAL_BUFF_SIZE;
 		
 		// Sleep until there is an empty buffer spot
-		while(ptrTxBuffEnd == ptrTxBuffCurr) {
-			OSSemPost(TxSerialSem);
-			OSTimeDlyHMSM(0,0,0,10);
-			OSSemPend(TxSerialSem, 0, &err);
+		if (ptrTxBuffEnd == (ptrTxBuffCurr-1)) {
+			OSFlagPost( comFlag, 
+				TX_SERIAL_DATA_READY_TO_SEND, 
+				OS_FLAG_SET, 
+				&err);
+
+			flags = OSFlagPend(comFlag, 
+				TX_SERIAL_DATA_SENT, 
+				OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 
+				0,
+				&err);
 		}
 
-		TxSerialBuffer[ptrTxBuffEnd] = *(databuff + i);
+		TxSerialBuffer[ptrTxBuffEnd] = databuff[i];
 	}
+	OSFlagPost( comFlag, 
+		TX_SERIAL_DATA_READY_TO_SEND, 
+		OS_FLAG_SET, 
+		&err);
+
+	flags = OSFlagPend(comFlag, 
+		TX_SERIAL_DATA_SENT, 
+		OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 
+		0,
+		&err);
+
 	OSSemPost(TxSerialSem);
 	OSSemPost(TransmitFctSem);
 }
@@ -144,17 +163,27 @@ void TransmitBuffer(char *databuff, int length)
 *******************************************************/
 void BufferTransmissionTask() 
 {
+	OS_FLAGS flags;
+
 #if DEBUG
 	printf("BufferTransmissionTask started\n\r");
 #endif
 	while (1) {
-		OSSemPend(TxSerialSem, 0, &err);
+		flags = OSFlagPend(comFlag, 
+			TX_SERIAL_DATA_READY_TO_SEND, 
+			OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 
+			0,
+			&err);
+
 		while (ptrTxBuffCurr != ptrTxBuffEnd) {
 			ptrTxBuffCurr = (ptrTxBuffCurr+1) % (int)SERIAL_BUFF_SIZE;
 			output_byte_serial_front((char)TxSerialBuffer[ptrTxBuffCurr]);
 		}
-		OSSemPost(TxSerialSem);
-		OSTimeDlyHMSM(0,0,0,10);
+
+		OSFlagPost( comFlag, 
+					TX_SERIAL_DATA_SENT, 
+					OS_FLAG_SET, 
+					&err);
 	}
 }
 
