@@ -88,7 +88,7 @@ void ReceivedTSIP()
 // Sends the TSIP packets for GPS configuration
 void SendTSIP(char *data) 
 {
-	TransmitBuffer(data, sizeof(data));
+	TransmitBuffer(data);
 }
 
 void ReadPosition() 

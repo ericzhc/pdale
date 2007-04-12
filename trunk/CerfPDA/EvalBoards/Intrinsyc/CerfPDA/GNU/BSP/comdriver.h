@@ -5,8 +5,6 @@
 
 #define SERIAL_BUFF_SIZE 1024 // more than twice the worst-case from TSIP doc
 
-
-
 /*
 *********************************************************************************************************
 *                                        DEFINITION DES STRUCTURES
