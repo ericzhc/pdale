@@ -20,6 +20,7 @@
 #include <math.h>
 //#include "COMM.h" SERVER
 #include "GUI.h"
+//#include "GUI_X.h"
 #include "GUI_Utilities.h"
 #include "FRAMEWIN.h"
 #include "MULTIPAGE.h"
@@ -592,16 +593,25 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 static void ListColisCallback(WM_MESSAGE * pMsg)
 {
 	int NCode, Id;
+	int OldTimer, NewTimer;
 	static int Flag;
 	static char Colis1[MAX_CODEBARRE_LENGTH];
 	static char Colis2[MAX_CODEBARRE_LENGTH];
 	WM_HWIN hWin = pMsg->hWin;
 	static WM_HWIN ListView;
+	
+	NewTimer = Gui_GetTime();
+	if ((NewTimer - OldTimer) > 10000)
+	{
+		GUI_EndDialog(hWin, 0);
+		ShowListColis();
+	}
+	
 	switch (pMsg->MsgId) 
 	{
 		case WM_INIT_DIALOG:
 			Flag = 0;
-
+			OldTimer = GUI_GetTime();
 			ListView = WM_GetDialogItem(hWin, LV_LISTCOLIS_INFO_ID);
 
 			LISTVIEW_AddColumn(ListView, 90, "# identification", GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -809,7 +819,7 @@ void BuildList(WM_HWIN opListView, int ipCamion)
 
 		i++;
 		j++;
-		StringCopy(&TableColis[Row][0], StringLu);
+		StringCopy(TableColis[Row][0], StringLu);
 		for(j = 0; StringLu[j] != '\0'; j++)
 		{
 			StringLu[j] = ' ';
@@ -829,7 +839,7 @@ void BuildList(WM_HWIN opListView, int ipCamion)
 		}
 
 		j++;
-		StringCopy(&TableColis[Row][1], StringLu);
+		StringCopy(TableColis[Row][1], StringLu);
 		for(j = 0; StringLu[j] != '\0'; j++)
 		{
 			StringLu[j] = ' ';
