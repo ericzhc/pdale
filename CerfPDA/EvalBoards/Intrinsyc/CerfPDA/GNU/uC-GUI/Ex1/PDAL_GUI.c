@@ -26,10 +26,25 @@
 #include "LISTVIEW.h"
 
 #define MAX_CODEBARRE_LENGTH 11
-#define STATE_UNPICKED 0
-#define STATE_PICKED 1
-#define STATE_UNDELIVERED 2
-#define STATE_DELIVERED 3
+
+#define STATE_UNPICKED		  0
+#define STATE_PICKED		  1
+#define STATE_UNDELIVERED	  2
+#define STATE_DELIVERED		  3
+
+#define INFO_STATE			  0
+#define INFO_NOMCLIENT		  1
+#define INFO_NOMDESTINATAIRE  2
+#define INFO_ADRESSECLIENT1	  3
+#define INFO_ADRESSECLIENT2	  4
+#define INFO_ADRESSEDEST1	  5
+#define INFO_ADRESSEDEST2	  6
+#define INFO_PDELDEBUTCUEILLE 7
+#define INFO_PDELFINCUEILLE	  8
+#define INFO_PDELDEBUTLIVRE	  9
+#define INFO_PDELFINLIVRE	  10
+#define INFO_REMARQUES		  11
+
 /*********************************************************************
 *
 *       Define of all the GUI IDs.
@@ -57,20 +72,18 @@
 #define PB_CODEBARRE_OK_ID			   2156
 
 // Modif Colis
-#define EDIT_MODIFCOLIS_NUMEROCOLIS_ID 2157
-#define EDIT_MODIFCOLIS_NOM_ID		   2158
-#define EDIT_MODIFCOLIS_ADRESSE1_ID    2159
-#define EDIT_MODIFCOLIS_ADRESSE2_ID    2159
-#define EDIT_MODIFCOLIS_PDELDEBUT_ID   2161
-#define EDIT_MODIFCOLIS_PDELFIN_ID     2162
-#define EDIT_MODIFCOLIS_REMARQUES_ID   2163
+#define TEXT_MODIFCOLIS_NUMEROCOLIS_ID 2157
+#define TEXT_MODIFCOLIS_NOM_ID		   2158
+#define TEXT_MODIFCOLIS_ADRESSE1_ID    2159
+#define TEXT_MODIFCOLIS_ADRESSE2_ID    2159
+#define TEXT_MODIFCOLIS_PDELDEBUT_ID   2161
+#define TEXT_MODIFCOLIS_PDELFIN_ID     2162
+#define TEXT_MODIFCOLIS_REMARQUES_ID   2163
 #define CB_MODIFCOLIS_NONCUEILLI_ID    2164
 #define CB_MODIFCOLIS_CUEILLI_ID       2165
 #define CB_MODIFCOLIS_LIVRAISON_ID     2166
 #define CB_MODIFCOLIS_LIVRE_ID         2167
 #define PB_MODIFCOLIS_SAUVEGARDER_ID   2168
-
-// Map
 
 // List Colis
 #define PB_LISTCOLIS_OK_ID			   2051
@@ -127,7 +140,6 @@ void  ShowListColis(void);
 *       Variables globales
 *		
 **********************************************************************/
-WM_HWIN MAINWINDOW;
 WM_HWIN INITIALISATIONWINDOW;
 WM_HWIN CODEBARREWINDOW;
 WM_HWIN MODIFCOLISWINDOW;
@@ -145,31 +157,8 @@ size_t SIZERESULT;
 char    SQLCOLISNUMBER[MAX_CODEBARRE_LENGTH];
 int		CAMIONCOURANT;
 
-// Table pour test listView
-char * Table[8][2];
-char * test[20][2];
-
-static const char * TestTable1[][2] = {
-  { "623499-0010001", "Item 1" },
-  { "623499-0010002", "Item 2" },
-  { "623499-0010003", "Item 3" },
-  { "1111111111", "Item 4" },
-  { "623499-0010005", "Item 5" },
-  { "623499-0010006", "Item 6" },
-  { "623499-0010007", "Item 7" },
-  { "623499-0010008", "Item 8" }
-};
-
-static const char * TestTable2[][2] = {
-  { "0010001-623499", "va" },
-  { "0010002-623499", "te" },
-  { "0010003-623499", "faire" },
-  { "0010004-623499", "mettre" },
-  { "0010005-623499", "sale" },
-  { "0010006-623499", "pédale" },
-  { "0010007-623499", "osti" },
-  { "0010008-623499", "dcave" }
-};
+// Table pour listView
+char TableColis[50][2][11];
 
 // Construction de Initialisation Dialog
 static const GUI_WIDGET_CREATE_INFO InitialisationDialogCreate[] = 
@@ -198,20 +187,20 @@ static const GUI_WIDGET_CREATE_INFO ModifColisDialogCreate[] =
 {
 	{ FRAMEWIN_CreateIndirect, MODIFCOLIS_MSG2, 0, 0, 0, 240, 248, 0, 0 },
 	{ TEXT_CreateIndirect, "Colis # ", 0, 5, 5, 85, 19, 0, GUI_TA_LEFT },
-	{ TEXT_CreateIndirect, "test", 0, 90, 5, 120, 19, 0 },
+	{ TEXT_CreateIndirect, "test", TEXT_MODIFCOLIS_NUMEROCOLIS_ID, 90, 5, 120, 19, 0 },
 	{ TEXT_CreateIndirect, MODIFCOLIS_MSG1, 0, 5, 25, 220, 20, 0, GUI_TA_LEFT },
 	{ TEXT_CreateIndirect, "Nom: ", 0, 5, 50, 85, 19, 0, GUI_TA_LEFT },
-	{ TEXT_CreateIndirect, "test", 0, 90, 50, 120, 19, 0 },
+	{ TEXT_CreateIndirect, "test", TEXT_MODIFCOLIS_NOM_ID, 90, 50, 120, 19, 0 },
 	{ TEXT_CreateIndirect, "Adresse: ", 0, 5, 70, 85, 19, 0, GUI_TA_LEFT },
-	{ TEXT_CreateIndirect, "test", 0, 90, 70, 120, 19, 0 },
-	{ TEXT_CreateIndirect, "test", 0, 90, 90, 120, 19, 0 },
+	{ TEXT_CreateIndirect, "test", TEXT_MODIFCOLIS_ADRESSE1_ID, 90, 70, 120, 19, 0 },
+	{ TEXT_CreateIndirect, "test", TEXT_MODIFCOLIS_ADRESSE2_ID, 90, 90, 120, 19, 0 },
 	{ TEXT_CreateIndirect, "Plage horaire de:", 0, 5, 110, 85, 19, 0, GUI_TA_LEFT },
-	{ TEXT_CreateIndirect, "test", 0, 90, 110, 120, 19, 0 },
+	{ TEXT_CreateIndirect, "test", TEXT_MODIFCOLIS_PDELDEBUT_ID, 90, 110, 120, 19, 0 },
 	{ TEXT_CreateIndirect, "", 0, 5, 130, 70, 19, 0, GUI_TA_RIGHT },
 	{ TEXT_CreateIndirect, "À:", 0, 75, 130, 10, 19, 0, GUI_TA_RIGHT },
-	{ TEXT_CreateIndirect, "test", 0, 90, 130, 120, 19, 0 },
+	{ TEXT_CreateIndirect, "test", TEXT_MODIFCOLIS_PDELFIN_ID, 90, 130, 120, 19, 0 },
 	{ TEXT_CreateIndirect, "Remarques:", 0, 5, 150, 85, 19, 0, GUI_TA_LEFT },
-	{ TEXT_CreateIndirect, "test", 0, 90, 150, 120, 19, 0 },
+	{ TEXT_CreateIndirect, "test", TEXT_MODIFCOLIS_REMARQUES_ID, 90, 150, 120, 19, 0 },
 	{ TEXT_CreateIndirect, "État Actuel:", 0, 5, 170, 70, 19, 0, GUI_TA_LEFT },
 	{ TEXT_CreateIndirect, "Non Cueilli", 0, 80, 170, 60, 19, 0, GUI_TA_RIGHT },
 	{ CHECKBOX_CreateIndirect, NULL, CB_MODIFCOLIS_NONCUEILLI_ID, 140, 170, 15, 15, 0, 0 },
@@ -242,11 +231,18 @@ static const GUI_WIDGET_CREATE_INFO MessageDialogCreate[] =
 	{ BUTTON_CreateIndirect, "ENVOYER", PB_MESSAGE_ENVOYER_ID, 20, 205, 180, 25, 0, 0  }
 };
 
-/*********************************************************************
+/*
+*********************************************************************************************************
+* InitialisationCallback()
 *
-* All Callback that can happen in the Initialisation dialog
+* Description : Cette fonction gère tous les callbacks du dialog d'Initialisation
 *
-*********************************************************************/
+* Argument(s) : pMsg: est l'indice permettant de déterminer d'où vient et quelle
+*				est la notification.
+*
+* Return(s) : 
+*********************************************************************************************************
+*/
 static void InitialisationCallback(WM_MESSAGE * pMsg) 
 {
 	int NCode, Id, i, j;
@@ -298,11 +294,18 @@ static void InitialisationCallback(WM_MESSAGE * pMsg)
 	}
 }
 
-/*********************************************************************
+/*
+*********************************************************************************************************
+* CodeBarreWaitCallback()
 *
-* All Callback that can happen in the Wait for CodeBarre read dialog
+* Description : Cette fonction gère tous les callbacks du dialog AttenteCodeBarre
 *
-*********************************************************************/
+* Argument(s) : pMsg: est l'indice permettant de déterminer d'où vient et quelle
+*				est la notification.
+*
+* Return(s) : 
+*********************************************************************************************************
+*/
 static void CodeBarreWaitCallback(WM_MESSAGE * pMsg) 
 {
 	int NCode, Id;
@@ -355,18 +358,28 @@ static void CodeBarreWaitCallback(WM_MESSAGE * pMsg)
 	}
 }
 
-/*********************************************************************
+/*
+*********************************************************************************************************
+* ModifColisCallback()
 *
-* All Callback that can happen in the Modification de Colis dialog
+* Description : Cette fonction gère tous les callbacks du dialog ModifColis
 *
-*********************************************************************/
+* Argument(s) : pMsg: est l'indice permettant de déterminer d'où vient et quelle
+*				est la notification.
+*
+* Return(s) : 
+*********************************************************************************************************
+*/
 static void ModifColisCallback(WM_MESSAGE * pMsg) 
 {
 	static int CheckedBoxIndex;
-	int NCode, Id, NewState;
-	char AllPacketInfo[400];
+	int NCode, Id, NewState, i, j, k;
+	char AllPacketInfo[] = "1;test;test;test;test;test;test;test;test;test;test;test;";
+	char PacketInfoList[13][40];
 	WM_HWIN hWin = pMsg->hWin;
 	WM_HWIN CB_NonCueilli, CB_Cueilli, CB_EnLivraison, CB_Livre;
+	WM_HWIN TEXT_NumeroColis, TEXT_Nom, TEXT_Adresse1, TEXT_Adresse2;
+	WM_HWIN TEXT_PDeLDebut, TEXT_PDeLFin, TEXT_Remarques;
 
 	CB_NonCueilli	 = WM_GetDialogItem(hWin, CB_MODIFCOLIS_NONCUEILLI_ID);
 	CB_Cueilli		 = WM_GetDialogItem(hWin, CB_MODIFCOLIS_CUEILLI_ID);
@@ -376,11 +389,73 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 	switch (pMsg->MsgId) 
 	{
 		case WM_INIT_DIALOG:
+			TEXT_NumeroColis = WM_GetDialogItem(hWin, TEXT_MODIFCOLIS_NUMEROCOLIS_ID);
+			TEXT_Nom	     = WM_GetDialogItem(hWin, TEXT_MODIFCOLIS_NOM_ID);
+			TEXT_Adresse1	 = WM_GetDialogItem(hWin, TEXT_MODIFCOLIS_ADRESSE1_ID);
+			TEXT_Adresse2	 = WM_GetDialogItem(hWin, TEXT_MODIFCOLIS_ADRESSE2_ID);
+			TEXT_PDeLDebut	 = WM_GetDialogItem(hWin, TEXT_MODIFCOLIS_PDELDEBUT_ID);
+			TEXT_PDeLFin	 = WM_GetDialogItem(hWin, TEXT_MODIFCOLIS_PDELFIN_ID);
+			TEXT_Remarques	 = WM_GetDialogItem(hWin, TEXT_MODIFCOLIS_REMARQUES_ID);
+					
+			TEXT_SetText(TEXT_NumeroColis, SQLCOLISNUMBER);
+			// GetPacketInfos(SQLCOLISNUMBER, AllPacketInfo); // SERVER
 			
-			// GetPacketInfos(SQLCOLISNUMBER, AllPacketInfo); // SERVER TODO DEFINE ORDER GODDAMMITNITNBTAOJH
+			j = 0;
+			k = 0;
+			for(i = 0; AllPacketInfo[i] != '\0'; i++)
+			{
+				if (AllPacketInfo[i] != ';')
+				{
+					PacketInfoList[j][k] = AllPacketInfo[i];
+					k++;
+				}
+				else
+				{
+					PacketInfoList[j][k] = '\0';
+					j++;
+					k = 0;
+				}
+			}
 
-			CheckedBoxIndex = CB_MODIFCOLIS_NONCUEILLI_ID; // TO REMOVE
-			CHECKBOX_Check(CB_NonCueilli);
+			if (PacketInfoList[INFO_STATE][0] == '0' || PacketInfoList[INFO_STATE][0] == '1')
+			{
+				TEXT_SetText(TEXT_Nom,       PacketInfoList[INFO_NOMCLIENT]);
+				TEXT_SetText(TEXT_Adresse1,  PacketInfoList[INFO_ADRESSECLIENT1]);
+				TEXT_SetText(TEXT_Adresse2,  PacketInfoList[INFO_ADRESSECLIENT2]);
+				TEXT_SetText(TEXT_PDeLDebut, PacketInfoList[INFO_PDELDEBUTCUEILLE]);
+				TEXT_SetText(TEXT_PDeLFin,   PacketInfoList[INFO_PDELFINCUEILLE]);
+				TEXT_SetText(TEXT_Remarques, PacketInfoList[INFO_REMARQUES]);
+				if (PacketInfoList[INFO_STATE][0] == '0')
+				{
+					CheckedBoxIndex = CB_MODIFCOLIS_NONCUEILLI_ID; 
+					CHECKBOX_Check(CB_NonCueilli);
+				}
+				else
+				{
+					CheckedBoxIndex = CB_MODIFCOLIS_CUEILLI_ID; 
+					CHECKBOX_Check(CB_Cueilli);
+				}
+			}
+			else
+			{
+				TEXT_SetText(TEXT_Nom,       PacketInfoList[INFO_NOMDESTINATAIRE]);
+				TEXT_SetText(TEXT_Adresse1,  PacketInfoList[INFO_ADRESSEDEST1]);
+				TEXT_SetText(TEXT_Adresse2,  PacketInfoList[INFO_ADRESSEDEST2]);
+				TEXT_SetText(TEXT_PDeLDebut, PacketInfoList[INFO_PDELDEBUTLIVRE]);
+				TEXT_SetText(TEXT_PDeLFin,   PacketInfoList[INFO_PDELFINLIVRE]);
+				if (PacketInfoList[INFO_STATE][0] == '2')
+				{
+					CheckedBoxIndex = CB_MODIFCOLIS_LIVRAISON_ID; 
+					CHECKBOX_Check(CB_EnLivraison);
+				}
+				else
+				{
+					CheckedBoxIndex = CB_MODIFCOLIS_LIVRE_ID; 
+					CHECKBOX_Check(CB_Livre);
+				}
+			}
+
+			TEXT_SetText(TEXT_Remarques, PacketInfoList[INFO_REMARQUES]);
 			break;
 
 		case WM_NOTIFY_PARENT:
@@ -715,47 +790,62 @@ void ShowMessage(void)
 *********************************************************************/
 void BuildList(WM_HWIN opListView, int ipCamion)
 {
-    /* SQL REQUEST TODO: */
-	unsigned int i;
-	switch (ipCamion)
-	{
-		case 1:
-			for (i = 0; i < GUI_COUNTOF(TestTable1); i++)
-			{
-				memcpy(Table[i], TestTable1[i], GUI_COUNTOF(TestTable1));
-			}
-			break;
+    char String[] = {"1111111111;aaaa;2222222222;bbbb;3333333333;cccc;4444444444;dddd*"};
+	char StringLu[11] = "0";
+	int i = 0; 
+	int j = 0;
+	int Row = 0;
 
-		case 2:
-			for (i = 0; i < GUI_COUNTOF(TestTable1); i++)
-			{
-				memcpy(Table[i], TestTable2[i], GUI_COUNTOF(TestTable2));
-			}
-			break;
-	}
+	//GetAllPackages(int truckid, char* buffer)  //demande du string
 	
-
-	/*for (i = 0; i < GUI_COUNTOF(TestTable1); i++) 
+	while(String[i] != '*')
 	{
-		LISTVIEW_DeleteRow(listView, 0);
-	}
-*/
+		while( String[i] != ';')
+		{
+			StringLu[j] = String[i];
+			i++;
+			j++;
+		}
 
-	for (i = 0; i < GUI_COUNTOF(Table); i++) 
+		i++;
+		j++;
+		StringCopy(&TableColis[Row][0], StringLu);
+		for(j = 0; StringLu[j] != '\0'; j++)
+		{
+			StringLu[j] = ' ';
+		}
+
+		j = 0;
+		while(String[i] != ';' && String[i] != '*')
+		{
+			StringLu[j] = String[i];
+			i++;
+			j++;
+		}
+
+		if (String[i] != '*')
+		{
+			i++;
+		}
+
+		j++;
+		StringCopy(&TableColis[Row][1], StringLu);
+		for(j = 0; StringLu[j] != '\0'; j++)
+		{
+			StringLu[j] = ' ';
+		}
+
+		j = 0;
+		Row++;
+	}
+
+	for (i = 0; i < GUI_COUNTOF(TableColis); i++) 
 	{
-		LISTVIEW_AddRow(opListView, Table[i]);
+		GUI_ConstString temp[2];
+		temp[0] = TableColis[i][0];
+		temp[1] = TableColis[i][1];
+		LISTVIEW_AddRow(opListView, temp);
 	}
-	
-}
-
-/*********************************************************************
-*
-* Construction d'un tableau à partir d'un string
-*
-*********************************************************************/
-void BuildTable()
-{
-		
 }
 
 /*******************************************************************
@@ -765,7 +855,7 @@ void BuildTable()
 /******************************************************************/
 void GetIdColis(int piLigne, char* ColisID)
 {
-	StringCopy(ColisID, Table[piLigne][0]);
+	StringCopy(ColisID, TableColis[piLigne][0]);
 }
 
 /*******************************************************************
