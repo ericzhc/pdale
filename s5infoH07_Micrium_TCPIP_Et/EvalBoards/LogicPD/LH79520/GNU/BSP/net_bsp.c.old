@@ -1,0 +1,316 @@
+/*
+*********************************************************************************************************
+*                                              uC/TCP-IP
+*                                      The Embedded TCP/IP Stack
+*
+*                            (c) Copyright 2004; Micrium, Inc.; Weston, FL
+*
+*                   All rights reserved.  Protected by international copyright laws.
+*                   Knowledge of the source code may not be used to write a similar
+*                   product.  This file may only be used in accordance with a license
+*                   and should not be redistributed in any way.
+*********************************************************************************************************
+*
+*                                BOARD SUPPORT PACKAGE (BSP) FUNCTIONS
+*
+* Filename   : net_bsp.c
+* Programmer : Jean J. Labrosse
+*              Ian  T. Johns
+*********************************************************************************************************
+*/
+
+/*
+*********************************************************************************************************
+*                                            INCLUDE FILES
+*********************************************************************************************************
+*/
+
+#include <includes.h>
+
+
+/*
+*********************************************************************************************************
+*                                            LOCAL DEFINES
+*********************************************************************************************************
+*/
+
+#define  LAN91C111_PWR_CTRL_ADDR                  (*(INT8U *)0x54200000)
+#define  LAN91C111_REG_ADDR_BASE                             0x54000300
+
+#define  WLAN_INT_MSK_ADDR                        (*(INT8U *)0x54C00000)
+
+/*$PAGE*/
+/*
+*********************************************************************************************************
+*                                        NETWORK INTERRUPT INITIALIZATION
+*
+* Description : This function is called by LAN91C111_Init() to to initialize the interrupt structure for the NIC.
+*
+* Arguments   : none
+*
+* Note(s)     : 1) The LAN91C111 is connected to external interrupt #4 on the LogicPD board because it
+*                  passes through the I/O board.
+*********************************************************************************************************
+*/
+
+void  NetNIC_IntInit (void)
+{
+    LAN91C111_PWR_CTRL_ADDR      = 0x00;                         /* WLAN Power Enable                  */
+    OSTimeDly(OS_TICKS_PER_SEC / 10);                            /* Delay 1/10 second to power up      */
+
+    WLAN_INT_MSK_ADDR            = 0x13;                         /* WLAN Interrupts Enabled            */
+
+                                                                 /* LAN91C111 is on EXT #4             */
+    RCPC->intclear               = _BIT(VIC_EXINT4);             /* ... Disable the interrupt          */                                            
+    RCPC->intconfig             &= ~0x00000C00L;                 /* ... Enable for LOW Level interrupt */
+    RCPC->intconfig             |=  0x00000000L;
+                                                                 /* LAN91C111 is on EXT #4             */
+    VIC->vectcntl[VIC_VECT_NIC]  = VIC_VECTCNTL_ENABLE | VIC_EXINT4;
+    VIC->vectaddr[VIC_VECT_NIC]  = (INT32U)NetNIC_ISR_Handler;   /* Address of ISR to vector to        */
+    VIC->intenable               = _BIT(VIC_EXINT4);             /* Enable the interrupt               */
+}
+
+/*
+*********************************************************************************************************
+*                                    INITIALIZE INTERRUPT CONTROLLER
+*
+* Description : This function is called to clear the interrupt controller associated with the NIC.
+*
+* Arguments   : none
+*********************************************************************************************************
+*/
+
+void  NetNIC_IntClr (void)
+{
+                                                      /* LAN91C111 is on EXT #4 on LogicPD LH79520     */
+    RCPC->intclear  = _BIT(VIC_EXINT4);               /* ... Clear the interrupt                       */
+    VIC->vectoraddr = 0x00000000L;                    /* Clear the vector address register             */
+}
+
+/*$PAGE*/
+/*
+*********************************************************************************************************
+*                                           NetNIC_Rd16()
+*
+* Description : Read 16-bit data value from the Ethernet chip.
+*
+* Argument(s) : reg_offset      Register address offset.
+*
+* Return(s)   : 16-bit data read from register.
+*
+* Caller(s)   : LAN91C111_RegRd().
+*
+* Notes(s)    : 1) You need to know the actual physical address or location of the NIC.  From that, you
+*                  simply add the offset passed to this function to this 'base' address.
+*********************************************************************************************************
+*/
+
+CPU_INT16U  NetNIC_Rd16 (CPU_INT16U reg_offset)
+{
+    CPU_INT16U  val;
+
+
+    val = *((volatile CPU_INT16U *)(LAN91C111_REG_ADDR_BASE + (CPU_INT32U)reg_offset));
+
+    return (val);
+}
+
+
+/*
+*********************************************************************************************************
+*                                           NetNIC_Wr16()
+*
+* Description : Write 16-bit data value to the NIC
+*
+* Argument(s) : reg_offset      Register address offset.
+*
+*               val             16-bit data to write to register.
+*
+* Return(s)   : none.
+*
+* Caller(s)   : LAN91C111_RegRd(),
+*               LAN91C111_RegWr().
+*
+* Notes(s)    : 1) You need to know the actual physical address or location of the NIC.  From that, you
+*                  simply add the offset passed to this function to this 'base' address.
+*********************************************************************************************************
+*/
+
+void  NetNIC_Wr16 (CPU_INT16U reg_offset, CPU_INT16U val)
+{
+    *((volatile CPU_INT16U *)(LAN91C111_REG_ADDR_BASE + (CPU_INT32U)reg_offset)) = val;
+}
+
+
+/*$PAGE*/
+/*
+*********************************************************************************************************
+*                                         LAN91C111_PwrCtrl()
+*
+* Description : Control power to the LAN91C111, if supported by your application's hardware.  This feature 
+*               would be provided if power consumption is an issue in your application.
+*
+* Argument(s) : pwr         Control power to the LAN91C111 :
+*
+*						        NET_ON              Apply  power to   the LAN91C111
+*						        NET_OFF             Remove power from the LAN91C111
+*
+* Return(s)   : none.
+*
+* Caller(s)   : none.
+*
+* Note(s)     : none.
+*********************************************************************************************************
+*/
+
+void  LAN91C111_PwrCtrl (CPU_BOOLEAN  pwr)
+{
+    if (pwr == DEF_ON) {
+        *((volatile INT16U *)LAN91C111_PWR_CTRL_ADDR) = 0;
+    } else {
+        *((volatile INT16U *)LAN91C111_PWR_CTRL_ADDR) = 1;
+    }
+}
+
+
+/*
+*********************************************************************************************************
+*                                         LAN91C111_DlyReset()
+*
+* Description : Implement a 50 mS delay after reset to allow the chip to stabilize.
+*
+*               This delay was recommended by SMSC (see SMSC AN9.6, Section 4.7.1).
+*
+* Argument(s) : none.
+*
+* Return(s)   : none.
+*
+* Caller(s)   : none.
+*
+* Note(s)     : none.
+*********************************************************************************************************
+*/
+
+void  LAN91C111_DlyReset (void)
+{
+    INT16U  ticks;
+
+
+    ticks = OS_TICKS_PER_SEC / 20;
+    OSTimeDly(ticks);
+}
+
+
+/*$PAGE*/
+/*
+*********************************************************************************************************
+*                                       LAN91C111_DlyAutoNegAck()
+*
+* Description : Implement a 1.5 second delay after auto-negotiation initiation.
+*
+*               This delay was recommended by SMSC (see SMSC AN9.6, Section 4.7.1).
+*
+* Argument(s) : none.
+*
+* Return(s)   : none.
+*
+* Caller(s)   : none.
+*
+* Note(s)     : none.
+*********************************************************************************************************
+*/
+
+void  LAN91C111_DlyAutoNegAck (void)
+{
+    INT16U  ticks;
+
+
+    ticks = OS_TICKS_PER_SEC + (OS_TICKS_PER_SEC / 2);
+    OSTimeDly(ticks);
+}
+
+
+/*
+*********************************************************************************************************
+*                                     LAN91C111_PhyFrameClkDly()
+*
+* Description : Implement a brief delay after LAN91C111 Physical Frame clock pulses
+*                   (see '\DRV\LAN91C111\net_drv.c  LAN91C111_PhyFrameClk()  Note #2').
+*
+* Argument(s) : none.
+*
+* Return(s)   : none.
+*
+* Caller(s)   : none.
+*
+* Note(s)     : none.
+*********************************************************************************************************
+*/
+
+void  LAN91C111_PhyFrameClkDly (void)
+{
+}
+
+
+/*$PAGE*/
+/*
+*********************************************************************************************************
+*                                          NetUtil_TS_Get()
+*
+* Description : Get current Internet Timestamp.
+*
+*               (1) "The Timestamp is a right-justified, 32-bit timestamp in milliseconds since midnight
+*                    UT [Universal Time]" (RFC #791, Section 3.1 'Options : Internet Timestamp').
+*
+*               (2) The developer is responsible for providing a real-time clock with correct time-zone
+*                   configuration to implement the Internet Timestamp.
+*
+*
+* Argument(s) : none.
+*
+* Return(s)   : Internet Timestamp.
+*
+* Caller(s)   : various.
+*
+* Note(s)     : none.
+*********************************************************************************************************
+*/
+
+NET_TS  NetUtil_TS_Get (void)
+{
+    /* $$$$ Insert code to return Internet Timestamp.   */
+
+    return ((NET_TS)0);
+}
+
+/*$PAGE*/
+/*
+*********************************************************************************************************
+*                                        NetTCP_InitTxSeqNbr()
+*
+* Description : Initialize the Transmit Initial Sequence Counter, 'NetTCP_TxSeqNbrCtr.
+*
+*               (1) Possible initialization methods include :
+*
+*                   (a) Time-based initialization is one preferred method since it more appropriately
+*                       provides a pseudo-random initial sequence number.
+*                   (b) Hardware-generated random number initialization is NOT a preferred method since it 
+*                       tends to produce a discrete set of pseudo-random initial sequence numbers--often 
+*                       the same initial sequence number.
+*                   (c) Hard-coded initial sequence number is NOT a preferred method since it is NOT random.
+*
+*
+* Argument(s) : none.
+*
+* Return(s)   : none.
+*
+* Caller(s)   : NetTCP_Init().
+*
+* Note(s)     : none.
+*********************************************************************************************************
+*/
+
+void  NetTCP_InitTxSeqNbr (void)
+{
+    NetTCP_TxSeqNbrCtr = 5000;
+}

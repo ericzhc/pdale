@@ -1,0 +1,6 @@
+ping 192.168.1.1
+
+download tftp:192.168.1.107 Project.bin 0xc0000000
+
+jump 0xc0000000
+
