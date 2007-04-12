@@ -1,3 +1,10 @@
+/*
+*********************************************************************************************************
+* Fichier : Default.aspx.cs
+* Par     : Marc-Étienne Lebeau, Julien Beaumier-Ethier, Richard Labonté, Francis Robichaud
+* Date    : 2007/04/12
+*********************************************************************************************************
+*/
 using System;
 using System.Data;
 using System.Drawing;
@@ -15,11 +22,24 @@ using System.Threading;
 
 public partial class _Default : System.Web.UI.Page 
 {
+    // Chargement du "connection string" définit dans le fichier web.config
     private string str_ConnString = ConfigurationSettings.AppSettings["ConnectionString"];
+
     private MySqlConnection m_SqlConnection;
     static bool onMsgDiv;
     static bool onListeDiv;
-    
+
+    /*
+    *********************************************************************************************************
+    *                                              Page_Load()
+    *
+    * Description : Cette fonction est appelée lors de chaque chargement/rafraîchissement de la page web
+    *
+    * Notes		  : La fonction permet de gérer l'affichage du contenu de l'interface web. Elle effectue
+    *               aussi un chargement du contenu des menus déroulant des camions lors du premier chargement
+    *               de la page web via une requête SQL 
+    *********************************************************************************************************
+    */
     protected void Page_Load(object sender, EventArgs e)
     {
         divMsg.Visible = false;
@@ -30,6 +50,7 @@ public partial class _Default : System.Web.UI.Page
 
         Timer2_Tick(null, null);
 
+        // Ce code est roulé lors du premier chargement de la page web
         if (!IsPostBack)
         {
             try
@@ -45,6 +66,8 @@ public partial class _Default : System.Web.UI.Page
                 MyReader = MyCommand.ExecuteReader();
 
                 int i = 0;
+
+                // Emplissage des menus déroulant des camions
                 while (MyReader.Read())
                 {
                     dropAssign.Items.Add(MyReader[0].ToString());
@@ -57,17 +80,34 @@ public partial class _Default : System.Web.UI.Page
             catch (MySqlException myEx)
             {
             }
-
             onMsgDiv = false;
         }
     }
 
+    /*
+    *********************************************************************************************************
+    *                                              OnUnload()
+    *
+    * Description : Cette fonction est appelée lors de chaque "unload" de la page web
+    *
+    * Notes		  : La fonction effectue une fermeture de la connexion avec la base de données.
+    *********************************************************************************************************
+    */
     protected override void OnUnload(EventArgs e)
     {
         CloseConnection();
         base.OnUnload(e);
     }
 
+    /*
+    *********************************************************************************************************
+    *                                              cmd_Ajout_Click()
+    *
+    * Description : Cette fonction est appelée lors d'un clique sur le tab "Ajouter un colis"
+    *
+    * Notes		  : La fonction effectue la gestion de l'affichage du contenu du tab "Ajouter un colis"
+    *********************************************************************************************************
+    */
     protected void cmd_Ajout_Click(object sender, EventArgs e)
     {
         cmd_Ajout.BackColor = Color.DarkOrange;
@@ -81,7 +121,16 @@ public partial class _Default : System.Web.UI.Page
         onMsgDiv = false;
         onListeDiv = false;
     }
-    
+
+    /*
+    *********************************************************************************************************
+    *                                              cmd_Carte_Click()
+    *
+    * Description : Cette fonction est appelée lors d'un clique sur le tab "Carte de la ville"
+    *
+    * Notes		  : La fonction effectue la gestion de l'affichage du contenu du tab "Carte de la ville"
+    *********************************************************************************************************
+    */
     protected void cmd_Carte_Click(object sender, EventArgs e)
     {
         cmd_Ajout.BackColor = Color.Yellow;
@@ -94,7 +143,16 @@ public partial class _Default : System.Web.UI.Page
         onMsgDiv = false;
         onListeDiv = false;
     }
-    
+
+    /*
+    *********************************************************************************************************
+    *                                              cmd_ListeColis_Click()
+    *
+    * Description : Cette fonction est appelée lors d'un clique sur le tab "Liste des colis"
+    *
+    * Notes		  : La fonction effectue la gestion de l'affichage du contenu du tab "Liste des colis"
+    *********************************************************************************************************
+    */
     protected void cmd_ListeColis_Click(object sender, EventArgs e)
     {
         cmd_Ajout.BackColor = Color.Yellow;
@@ -110,7 +168,16 @@ public partial class _Default : System.Web.UI.Page
         onMsgDiv = false;
         onListeDiv = true;
     }
-    
+
+    /*
+    *********************************************************************************************************
+    *                                              cmd_Msg_Click()
+    *
+    * Description : Cette fonction est appelée lors d'un clique sur le tab "Messages"
+    *
+    * Notes		  : La fonction effectue la gestion de l'affichage du contenu du tab "Messages"
+    *********************************************************************************************************
+    */
     protected void cmd_Msg_Click(object sender, EventArgs e)
     {
         cmd_Ajout.BackColor = Color.Yellow;
@@ -125,7 +192,16 @@ public partial class _Default : System.Web.UI.Page
         onMsgDiv = true;
         onListeDiv = false;
     }
-    
+
+    /*
+    *********************************************************************************************************
+    *                                              cmd_Camion_Click()
+    *
+    * Description : Cette fonction est appelée lors d'un clique sur le tab "Gestion des camions"
+    *
+    * Notes		  : La fonction effectue la gestion de l'affichage du contenu du tab "Gestion des camions"
+    *********************************************************************************************************
+    */
     protected void cmd_Camion_Click(object sender, EventArgs e)
     {
 
@@ -141,6 +217,17 @@ public partial class _Default : System.Web.UI.Page
         onMsgDiv = false;
     }
 
+    /*
+    *********************************************************************************************************
+    *                                              cmdValiderAjout_Click()
+    *
+    * Description : Cette fonction est appelée lorsque l'utilisateur clique sur le bouton "Ajouter ce colis"
+    *
+    * Notes		  : La fonction vérifie si le numéro de colis à ajouter n'est présent dans la BD.
+    *               Le cas échéant, elle effectue une requête SQL "INSERT INTO" permettant d'ajouter les 
+    *               champs entrés par l'utilisateur dans la base de données "colis". 
+    *********************************************************************************************************
+    */
     protected void cmdValiderAjout_Click(object sender, EventArgs e)
     {
         try
@@ -161,9 +248,9 @@ public partial class _Default : System.Web.UI.Page
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyReader = MyCommand.ExecuteReader();
 
+            // Si le colis des déjà présent dans la BD, afficher label d'erreur
             if (MyReader.Read())
             {
-                //Response.Write("<script language=javascript>alert('Le numéro d'identification de ce colis existe déjà');</script>\n");
                 lblError.Text = "Le colis existe déjà!";
                 lblError.Visible = true;
             }
@@ -193,7 +280,7 @@ public partial class _Default : System.Web.UI.Page
                 {
                     str_EtatColis = "2";
                 }
-                else if (rdb_Etat5.Checked == true)
+                else if (rdb_Etat4.Checked == true)
                 {
                     str_EtatColis = "4";
                 }
@@ -203,7 +290,6 @@ public partial class _Default : System.Web.UI.Page
                     str_PlageDebutDest = txt_PlageDest1.Text + ":00";
                     str_PlageFinDest = txt_PlageDest2.Text + ":00";
 
-                    //TODO : checker que le numero de colis est pas deja dans la BD
                     str_Sql = "INSERT INTO colis (col_noident, col_nomcli, col_adrcli1, col_adrcli2, col_hrdebutcli, col_hrfincli, ";
                     str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest1, col_adrdest2, col_hrdebutdest, col_hrfindest, ";
                     str_Sql += "col_remarquedest, cam_nom) VALUES ('" + txt_Ident.Text + "', '" + txt_NomClient.Text + "', '" + txt_AdresseClient1.Text;
@@ -223,12 +309,22 @@ public partial class _Default : System.Web.UI.Page
         }
     }
 
+    /*
+    *********************************************************************************************************
+    *                                              cmdValiderRecherche_Click()
+    *
+    * Description : Cette fonction est appelée lorsque l'utilisateur clique sur le bouton "Rechercher 
+    *               ce colis".
+    *
+    * Notes		  : La fonction permet de rechercher un colis dans la BD en effectuant une requête SQL
+    *               "SELECT" dans la table "colis".
+    *********************************************************************************************************
+    */
     protected void cmdValiderRecherche_Click(object sender, EventArgs e)
     {
         try
         {
             string str_Sql = "";
-            string str_Temp = "";
             MySqlConnection MyConnection = GetConnection();
             MySqlCommand MyCommand = null;
             MySqlDataReader MyReader = null;
@@ -248,6 +344,7 @@ public partial class _Default : System.Web.UI.Page
                 txt_PlageClient2.Text = MyReader[6].ToString().Substring(0, 5);
                 txt_RemarquesClient1.Text = MyReader[7].ToString();
 
+                // Gestion des "radio buttons"
                 if (MyReader[8].ToString() == "0")
                 {
                     rdb_Etat1.Checked = true;
@@ -292,6 +389,16 @@ public partial class _Default : System.Web.UI.Page
         }
     }
 
+    /*
+    *********************************************************************************************************
+    *                                              cmdValiderModif_Click()
+    *
+    * Description : Cette fonction est appelée lorsque l'utilisateur clique sur le bouton "Modifier ce colis"
+    *
+    * Notes		  : La fonction effectue une requête SQL "UPDATE" permettant d'modifier les 
+    *               champs de l'interface web entrés par l'utilisateur dans la base de données "colis". 
+    *********************************************************************************************************
+    */
     protected void cmdValiderModif_Click(object sender, EventArgs e)
     {
         try
@@ -343,6 +450,15 @@ public partial class _Default : System.Web.UI.Page
         }
     }
 
+    /*
+    *********************************************************************************************************
+    *                                              cmdEffacerChamps_Click()
+    *
+    * Description : Cette fonction est appelée lorsque l'utilisateur clique sur le bouton "Effacer les champs"
+    *
+    * Notes		  : La fonction efface tous les champs de l'interface web.
+    *********************************************************************************************************
+    */
     protected void cmdEffacerChamps_Click(object sender, EventArgs e)
     {
         txt_Ident.Text = "";
@@ -364,7 +480,18 @@ public partial class _Default : System.Web.UI.Page
         rdb_Etat4.Checked = false;
         dropAssign.SelectedIndex = 0;
     }
-        
+
+    /*
+    *********************************************************************************************************
+    *                                              cmdEnvoyerMsg_Click()
+    *
+    * Description : Cette fonction est appelée lorsque l'utilisateur clique sur le bouton "Envoyer" du tab
+    *               Messages
+    *
+    * Notes		  : La fonction ouvre un socket TCP, stocke le contenu du message à envoyer dans un buffer
+    *               et envoie le contenu du buffer sur le socket 
+    *********************************************************************************************************
+    */
     protected void cmdEnvoyerMsg_Click(object sender, EventArgs e)
     {
         int hour = DateTime.Now.Hour;
@@ -376,10 +503,7 @@ public partial class _Default : System.Web.UI.Page
         else
             minStr = min.ToString();
         
-        /////////////////////////////////////////////////
         //Envoi du message par socket TCP
-        /////////////////////////////////////////////////
-        
         Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
         const int remotePort = 216999;
@@ -392,22 +516,40 @@ public partial class _Default : System.Web.UI.Page
         sendSocket.Send(buf);
         sendSocket.Close();
 
-        //bufferLabelMsgRecus = LabelMsgRecus.Text + "\n" + hour.ToString() + "h" + minStr + " : " + dropCamion.Text + " : " + TextEnvoiMsg.Text;
         LabelMsgRecus.Text = "";
         divMsg.Visible = true;
     }
 
+    /*
+    *********************************************************************************************************
+    *                                              cmdResetMsgRecus_Click()
+    *
+    * Description : Cette fonction est appelée lorsque l'utilisateur clique sur le bouton "Effacer" du tab
+    *               Messages
+    *
+    * Notes		  : La fonction efface le contenu du label affichant les messages reçus
+    *********************************************************************************************************
+    */
     protected void cmdResetMsgRecus_Click(object sender, EventArgs e)
     {
         divMsg.Visible = true;
         LabelMsgRecus.Text = "";
     }
 
+    /*
+    *********************************************************************************************************
+    *                                              cmdAjouterCamion_Click()
+    *
+    * Description : Cette fonction est appelée lorsque l'utilisateur clique sur le bouton "Ajouter ce camion"
+    *               du tab Gestion des camions
+    *
+    * Notes		  : La fonction effectue une requête SQL "INSERT INTO" permettant d'ajouter ne nouvelle
+    *               entrée à la table "camion" de la BD. Elle met ensuite à jour les menus déroulant.
+    *********************************************************************************************************
+    */
     protected void cmdAjouterCamion_Click(object sender, EventArgs e)
     {
         divCamion.Visible = true;
-
-        //TODO: classer les trucs en ordre alphabetique
 
         try
         {
@@ -424,7 +566,6 @@ public partial class _Default : System.Web.UI.Page
 
             if (MyReader.Read())
             {
-                //Response.Write("<script language=javascript>alert('Le numéro d'identification de ce colis existe déjà');</script>\n");
                 lblErrorCam.Visible = true;
             }
             else
@@ -447,6 +588,17 @@ public partial class _Default : System.Web.UI.Page
         }       
     }
 
+    /*
+    *********************************************************************************************************
+    *                                              cmdRetirerCamion_Click()
+    *
+    * Description : Cette fonction est appelée lorsque l'utilisateur clique sur le bouton "Retirer ce camion"
+    *               du tab Gestion des camions
+    *
+    * Notes		  : La fonction effectue une requête SQL "DELETE FROM" permettant de supprimer une entrée
+    *               de la table "camion" de la BD. Elle met ensuite à jour les menus déroulant.
+    *********************************************************************************************************
+    */
     protected void cmdRetirerCamion_Click(object sender, EventArgs e)
     {
         divCamion.Visible = true;
@@ -472,6 +624,16 @@ public partial class _Default : System.Web.UI.Page
 
     }
 
+    /*
+    *********************************************************************************************************
+    *                                              Timer1_Tick()
+    *
+    * Description : Cette fonction ouvre un socket de communication afin de permettre l'envoie et la
+    *               réception de messages avec un PDA 
+    *
+    * Notes		  : La fonction est appelée par un module AJAX
+    *********************************************************************************************************
+    */
     protected void Timer1_Tick(object sender, EventArgs e)
     {
         byte[] bufMsg = new byte[1000];
@@ -491,7 +653,6 @@ public partial class _Default : System.Web.UI.Page
 
             string myCurrentStr = "";
 
-            bool transfertTermine = false;
             while (bufMsgLength > 0) {
                 bufMsgLength = sendSocket.Receive(bufMsg);
                 if (bufMsgLength > 0)
@@ -515,11 +676,9 @@ public partial class _Default : System.Web.UI.Page
                 i++;
             }
 
-
             for (int j = 0; j < i; j++) {
                 LabelMsgRecus.Text = receivedMsg[j] + "\n" + LabelMsgRecus.Text;
             }
-
 
             sendSocket.Close();
 
@@ -531,6 +690,15 @@ public partial class _Default : System.Web.UI.Page
         }
     }
 
+    /*
+    *********************************************************************************************************
+    *                                              Timer2_Tick()
+    *
+    * Description : Cette fonction effectue une requête SQL à la base de données afin d'obtenir la liste
+    *               des colis qu'il affiche ensuite dans le tab "Liste des colis" 
+    *
+    *********************************************************************************************************
+    */
     protected void Timer2_Tick(object sender, EventArgs e)
     {
         string str_Sql = "";
@@ -569,6 +737,15 @@ public partial class _Default : System.Web.UI.Page
             divListe.Visible = true;
     }
 
+    /*
+    *********************************************************************************************************
+    *                                              GetConnection()
+    *
+    * Description : Cette fonction établit une connexion avec la base de données.
+    *
+    * Retourne    : MySqlConnection        La connexion avec la base de données MySql
+    *********************************************************************************************************
+    */
     public MySqlConnection GetConnection()
     { 
         if (m_SqlConnection == null) {
@@ -581,6 +758,15 @@ public partial class _Default : System.Web.UI.Page
 
         return m_SqlConnection;
     }
+
+    /*
+    *********************************************************************************************************
+    *                                              CloseConnection()
+    *
+    * Description : Cette fonction ferme une connexion avec la base de données.
+    *
+    *********************************************************************************************************
+    */
     private void CloseConnection() 
     {
         if (m_SqlConnection != null && m_SqlConnection.State == ConnectionState.Open) {
