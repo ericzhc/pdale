@@ -99,7 +99,7 @@
 
 /*********************************************************************
 *
-*            Label Message
+*            Text Messages in Dialog
 *
 **********************************************************************/
 
@@ -126,15 +126,17 @@
 *       Prototype de Fonctions
 *		
 **********************************************************************/
-void  GetIdColis(int, char*);
-void  BuildTable(void);
-void  BuildList();
+void	GetIdColis(int, char*);
+void	BuildTable(void);
+void	BuildList();
 
-void  PdaleInterface(void);
+void	PdaleInterface(void);
 
-void  ShowModifColis();
-void  ShowAttenteCodeBarre();
-void  ShowListColis(void);
+void	ShowModifColis();
+void	ShowAttenteCodeBarre();
+void	ShowListColis(void);
+
+WM_HWIN ShowLoadingDialog();
 
 /*********************************************************************
 *
@@ -229,7 +231,14 @@ static const GUI_WIDGET_CREATE_INFO MessageDialogCreate[] =
 	{ TEXT_CreateIndirect, "", TEXT_MESSAGE_RECUS_ID, 5, 25, 200, 125, 0, GUI_TA_LEFT },
 	{ TEXT_CreateIndirect, MESSAGE_MSG2, 0, 5, 155, 200, 15, 0, GUI_TA_LEFT },
 	{ EDIT_CreateIndirect, NULL, EDIT_MESSAGE_ENVOI_ID, 0, 175, 230, 20, 0, 0 },
-	{ BUTTON_CreateIndirect, "ENVOYER", PB_MESSAGE_ENVOYER_ID, 20, 205, 180, 25, 0, 0  }
+	{ BUTTON_CreateIndirect, "ENVOYER", PB_MESSAGE_ENVOYER_ID, 20, 205, 180, 25, 0, 0 }
+};
+
+// Construction dun Loading Dialog
+static const GUI_WIDGET_CREATE_INFO LoadingDialogCreate[] = 
+{
+	{ FRAMEWIN_CreateIndirect, "CHARGEMENT...", 0, 0, 0, 240, 270, 0, 0 },
+	{ TEXT_CreateIndirect, "EN CHARGEMENT...", 0, 75, 75, 100, 20, 0, GUI_TA_LEFT }
 };
 
 /*
@@ -381,6 +390,7 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 	WM_HWIN CB_NonCueilli, CB_Cueilli, CB_EnLivraison, CB_Livre;
 	WM_HWIN TEXT_NumeroColis, TEXT_Nom, TEXT_Adresse1, TEXT_Adresse2;
 	WM_HWIN TEXT_PDeLDebut, TEXT_PDeLFin, TEXT_Remarques;
+	WM_HWIN LoadingDialog;
 
 	CB_NonCueilli	 = WM_GetDialogItem(hWin, CB_MODIFCOLIS_NONCUEILLI_ID);
 	CB_Cueilli		 = WM_GetDialogItem(hWin, CB_MODIFCOLIS_CUEILLI_ID);
@@ -399,7 +409,9 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 			TEXT_Remarques	 = WM_GetDialogItem(hWin, TEXT_MODIFCOLIS_REMARQUES_ID);
 					
 			TEXT_SetText(TEXT_NumeroColis, SQLCOLISNUMBER);
+			LoadingDialog = ShowLoadingDialog();
 			// GetPacketInfos(SQLCOLISNUMBER, AllPacketInfo); // SERVER
+			GUI_EndDialog(LoadingDialog, 0);
 			
 			j = 0;
 			k = 0;
@@ -598,6 +610,7 @@ static void ListColisCallback(WM_MESSAGE * pMsg)
 	static char Colis1[MAX_CODEBARRE_LENGTH];
 	static char Colis2[MAX_CODEBARRE_LENGTH];
 	WM_HWIN hWin = pMsg->hWin;
+	WM_HWIN LoadingDialog;
 	static WM_HWIN ListView;
 	
 /*	NewTimer = Gui_GetTime();
@@ -616,7 +629,11 @@ static void ListColisCallback(WM_MESSAGE * pMsg)
 
 			LISTVIEW_AddColumn(ListView, 90, "# identification", GUI_TA_HCENTER | GUI_TA_VCENTER);
 			LISTVIEW_AddColumn(ListView, 138, "Statut du colis", GUI_TA_HCENTER | GUI_TA_VCENTER);
+			
+			LoadingDialog = ShowLoadingDialog();
 			BuildList(ListView, CAMIONCOURANT);
+			GUI_EndDialog(LoadingDialog, 0);
+			
 			break;
 
 		case WM_NOTIFY_PARENT:
@@ -668,6 +685,7 @@ static void MessageCallback(WM_MESSAGE * pMsg)
 	char MessagesRecus[400];
 	char MessageToSend[51];
 	WM_HWIN hWin = pMsg->hWin;
+	WM_HWIN LoadingDialog;
 	WM_HWIN Edit_Envoi, Text_Recu;
 
 	Edit_Envoi = WM_GetDialogItem(hWin, EDIT_MESSAGE_ENVOI_ID);
@@ -677,7 +695,9 @@ static void MessageCallback(WM_MESSAGE * pMsg)
 	{
 		case WM_INIT_DIALOG:
 			EDIT_SetMaxLen(Edit_Envoi, 50);
+			LoadingDialog = ShowLoadingDialog();
 			//GetMessages(CAMIONCOURANT, MessagesRecus); SERVER
+			GUI_EndDialog(LoadingDialog, 0);
 			TEXT_SetText(Text_Recu, MessagesRecus); 
 			break;
 
@@ -701,6 +721,12 @@ static void MessageCallback(WM_MESSAGE * pMsg)
 			WM_DefaultProc(pMsg);
 			break;
 	}
+}
+
+static void LoadingCallback(WM_MESSAGE * pMsg)
+{
+	/* This function does nothing but is necessary for creating
+	the loading dialog */
 }
 
 /*********************************************************************
@@ -791,6 +817,10 @@ void ShowMessage(void)
 	CURRENTWINDOW = MESSAGEWINDOW;
 }
 
+WM_HWIN ShowLoadingDialog(void)
+{
+	return GUI_CreateDialogBox(LoadingDialogCreate, GUI_COUNTOF(LoadingDialogCreate), &LoadingCallback, 0, 0, 50);
+}
 
 /*********************************************************************
 *
