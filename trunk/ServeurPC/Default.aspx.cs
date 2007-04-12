@@ -276,14 +276,14 @@ public partial class _Default : System.Web.UI.Page
                     {
                         str_EtatColis = "1";
                     }
-                else if (rdb_Etat3.Checked == true)
-                {
-                    str_EtatColis = "2";
-                }
-                else if (rdb_Etat4.Checked == true)
-                {
-                    str_EtatColis = "4";
-                }
+                    else if (rdb_Etat3.Checked == true)
+                    {
+                        str_EtatColis = "2";
+                    }
+                    else if (rdb_Etat4.Checked == true)
+                    {
+                        str_EtatColis = "3";
+                    }
 
                     str_PlageDebutCli = txt_PlageClient1.Text + ":00";
                     str_PlageFinCli = txt_PlageClient2.Text + ":00";
