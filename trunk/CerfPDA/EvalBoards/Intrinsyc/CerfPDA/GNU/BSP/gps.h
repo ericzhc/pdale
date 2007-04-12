@@ -1,21 +1,21 @@
 #ifndef GPS_H
 #define GPS_H
 
-#define TSIP_BUFF_SIZE 8
+#define TSIP_BUFF_SIZE 256
 #define TASK_GPS_PRIO 8
 #define TASK_GPS_SIZE 1024
 
 #define GPS_DLE 0x10
-#define GPS_ID 0x2B // See documentation Lassen Page 106
+#define GPS_POS 0x4A // See documentation Lassen Page 106
 #define GPS_TIME 0x41
 #define	GPS_ETX 0x03
 
 #define SECONDS_IN_ONE_DAY 60*60*24
 
 typedef struct {
-	char Latitude[6];
-	char Longitude[6];
-	char Altitude[6];
+	char Latitude[10];
+	char Longitude[10];
+	char Altitude[10];
 } GPSCoord;
 
 typedef struct {
@@ -24,6 +24,11 @@ typedef struct {
 	int Minutes;
 	int Seconds;
 } GPSTime;
+
+// GPS position that is updated locally and read from external apps
+GPSCoord GPSPosition;
+// GPS Time
+GPSTime GPSTimeValue;
 
 void GPS_Init();
 void GPSUpdateTask();
