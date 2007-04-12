@@ -33,10 +33,11 @@ void BufferTransmissionTask();
 *********************************************************************************************************
 */
 COM_BUFF_INFO GetTaskRxComBuff();
-extern OS_FLAG_GRP* comFlag;
+OS_FLAG_GRP* comFlag;
 
-#define TX_SERIAL_DATA_READY_TO_SEND			1
-#define TX_SERIAL_DATA_SENT					2
+#define TX_SERIAL_DATA_READY_TO_SEND	1
+#define TX_SERIAL_DATA_SENT				2
+#define RX_SERIAL_DATA_AVAILABLE		4
 
 
 #endif

@@ -59,8 +59,6 @@ void RFDriverInit()
 	setInterruptHandle_rf(ISR_Serial_RF);
 	init_serial_rf(SERIAL_BAUD_115200);
 	
-	
-
 	printf("RF driver init...done\n\r");
 }
 
@@ -187,18 +185,28 @@ void TransmitRfBuffer(char *databuff, int length)
 *******************************************************/
 void BufferRfTransmissionTask() 
 {
-#if DEBUG
-	printf("BufferRfTransmissionTaskStk started\n\r");
-#endif
 	INT8U err;
+	OS_FLAGS flags;
+
+#if DEBUG
+	printf("Buffer_Rf_TransmissionTask started\n\r");
+#endif
 	while (1) {
-		OSSemPend(TxRfSerialSem, 0, &err);
-		while (ptrRfTxBuffCurr != ptrRfTxBuffEnd) {
-			ptrRfTxBuffCurr = (ptrRfTxBuffCurr+1) % (int)SERIAL_BUFF_SIZE;
-			output_byte_serial_rf((char)TxRfSerialBuffer[ptrRfTxBuffCurr]);
+		flags = OSFlagPend(rfFlag, 
+			TX_RFSERIAL_DATA_READY_TO_SEND, 
+			OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 
+			0,
+			&err);
+
+		while (ptrTxBuffCurr != ptrTxBuffEnd) {
+			ptrRfTxBuffCurr = (ptrRfTxBuffCurr+1) % (int)RFSERIAL_BUFF_SIZE;
+			output_byte_serial_front((char)TxRfSerialBuffer[ptrRfTxBuffCurr]);
 		}
-		OSSemPost(TxRfSerialSem);
-		OSTimeDlyHMSM(0,0,0,10);
+
+		OSFlagPost( rfFlag, 
+					TX_RFSERIAL_DATA_SENT, 
+					OS_FLAG_SET, 
+					&err);
 	}
 }
 

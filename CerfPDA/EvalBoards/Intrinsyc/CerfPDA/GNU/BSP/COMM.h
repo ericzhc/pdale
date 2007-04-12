@@ -17,7 +17,7 @@
 #define COMMAND_GETMSGS 0x35
 #define COMMAND_SENDMSG 0x36
 
-void ReceiveData(char*, char*);
+void ReceiveData(char, char*);
 void GetTruckNames(char*); // Fills parameter pointer
 char IsValidPackage(int);  // returns 0 or 1 to specify is package is valid
 void GetPacketInfos(int, char*); // Define sequence order (seperate each field with ;)

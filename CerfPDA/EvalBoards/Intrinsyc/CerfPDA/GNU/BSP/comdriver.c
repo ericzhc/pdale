@@ -32,6 +32,8 @@ void ComDriverInit(short config)
 	// Semaphore to protect multiple entry in transmission
 	TxSerialSem = OSSemCreate(1);
 	TransmitFctSem = OSSemCreate(1);
+	/* Initialisation du flag de communication */
+	comFlag = OSFlagCreate(0x00, &err);
 
 	// Task that watches the transmit buffer
 	if (firstStart) {
@@ -67,7 +69,7 @@ void ComDriverInit(short config)
 void ISR_Serial() 
 {
 	#if DEBUG
-		printf("Interupt IIR: %2.2x \n\r",IIR);
+		//printf("Interupt IIR: %2.2x \n\r",IIR);
 	#endif
 
 	int x;
@@ -75,7 +77,6 @@ void ISR_Serial()
 
 	switch(GetInterruptStatus())
 	{
-		
 		case TRANSMIT_INTERRUPT:
 			while(!txFIFOEmpty()) {
 				if (ptrTxBuffCurr <= ptrTxBuffEnd) {
@@ -84,22 +85,28 @@ void ISR_Serial()
 				}
 			}
 			break;
-
 		case RECEIVER_INTERRUPT: 
-			//trash = RHR;
-			ptrRxBuffEnd = (ptrRxBuffEnd + 1) % (int)SERIAL_BUFF_SIZE;
-
+			
 			while(rxfifoFull()) {
+				//trash = RHR;
+				ptrRxBuffEnd = (ptrRxBuffEnd + 1) % (int)SERIAL_BUFF_SIZE;
+				
 				// Buffer is not full
 				if (ptrRxBuffCurr != ptrRxBuffEnd) {
 					RxSerialBuffer[ptrRxBuffEnd] = RHR;
 					
 				#if DEBUG
-						printf("Received car %c \n\r",RxSerialBuffer[ptrRxBuffEnd]);
+						//printf("Received car %c \n\r",RxSerialBuffer[ptrRxBuffEnd]);
 				#endif
-					ptrRxBuffEnd = (ptrRxBuffEnd + 1) % (int)SERIAL_BUFF_SIZE;
-				} 
+					
+				} else {
+					break;
+				}
 			}
+			OSFlagPost(comFlag, 
+				RX_SERIAL_DATA_AVAILABLE, 
+				OS_FLAG_SET, 
+				&err);
 			break;
 		default:
 			#if DEBUG
@@ -120,7 +127,7 @@ void TransmitBuffer(char *databuff)
 {
 	OS_FLAGS flags;
 	OSSemPend(TransmitFctSem, 0, &err); // protects dual entry in this fct
-	OSSemPend(TxSerialSem, 0, &err);    // protects the transmission buffer
+
 	int i;
 	for (i=0; databuff[i] != '\0'; i++) {
 		// Increment the buffer's ending pointer
@@ -153,7 +160,6 @@ void TransmitBuffer(char *databuff)
 		0,
 		&err);
 
-	OSSemPost(TxSerialSem);
 	OSSemPost(TransmitFctSem);
 }
 
