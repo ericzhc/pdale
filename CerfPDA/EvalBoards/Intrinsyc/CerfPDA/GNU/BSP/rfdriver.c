@@ -19,6 +19,7 @@ int firstRfStart = 1;
 OS_EVENT* TxRfSerialSem;
 OS_EVENT* TransmitRfFctSem;
 OS_STK BufferRfTransmissionTaskStk[TASK_RFSERIAL_SIZE];
+OS_FLAG_GRP* RxFlag; // Flag to announce data was received after issuing a command
 
 /*******************************************************
  Needs to be called once from the application integrating this
@@ -26,14 +27,15 @@ OS_STK BufferRfTransmissionTaskStk[TASK_RFSERIAL_SIZE];
 *******************************************************/
 void RFDriverInit() 
 {
+	INT8U err;
 #if DEBUG
 	printf("RF driver init\n\r");
 #endif
 	// Semaphore to protect multiple entry in transmission
 	TxRfSerialSem = OSSemCreate(1);
 	TransmitRfFctSem = OSSemCreate(1);
-	INT8U err;
-
+	RxFlag = OSFlagCreate(0x00, &err); // Two flags required, one to protect TX buffer and one to tell application we have received it's desired message
+	
 	// Task that watches the transmit buffer
 	if (firstRfStart) {
 		OSTaskCreateExt(BufferRfTransmissionTask,
@@ -99,12 +101,12 @@ void close_socket()
 {
 	TransmitRfBuffer("+++\n\r",5);
 }
+
 /*******************************************************
  Called by the interruption service to save the UART's content
 *******************************************************/
 void ISR_Serial_RF() 
 {
-
 	unsigned char ucData;
 	unsigned char ucErreur;
 	unsigned char ucSource;
@@ -120,12 +122,14 @@ void ISR_Serial_RF()
 				SERIAL_RF_UTSR0 |= 0x00000002;                /* Clear interrupt                                */
 			}
 			do {
-				ucData = SERIAL_RF_UTDR;		                /* Read a char                                  */
-				erD_sndchr(ucData);                                                
-				                                                /* move char into Rx_FIFO                       */
+				ucData = SERIAL_RF_UTDR;		              /* Read a char                                  */
+				erD_sndchr(ucData); 
+				ptrRfRxBuffEnd = (ptrRfRxBuffEnd + 1) % (int) SERIAL_BUFF_SIZE;
+				RxRfSerialBuffer[ptrRfRxBuffEnd] = ucData;	  /* move char into Rx_FIFO                       */
 				
 			} while (SERIAL_RF_UTSR1 & 0x00000002);           /* While buffer is not empty                      */
 			continue;
+			OSFlagPost(RxFlag, TCP_TRANSFER_RECEIVED, 0, &err); /* Announce we have received a message          */
 		}
                                                                 /* Rbb is set                                     */
 		if (ucSource & 0x00000008) {
@@ -154,11 +158,11 @@ void ISR_Serial_RF()
 /*******************************************************
  Sends a buffer to the serial port with a maximum size of SERIAL_BUFF_SIZE
 *******************************************************/
-void TransmitRfBuffer(char *databuff, int length) 
+void TransmitRfBuffer(char *databuff, int length)
 {
 	INT8U err;
 	OSSemPend(TransmitRfFctSem, 0, &err); // protects dual entry in this fct
-	OSSemPend(TxRfSerialSem, 0, &err);    // protects the transmission buffer
+	
 	int i;
 	for (i=0; i<length; i++) {
 		// Increment the buffer's ending pointer
@@ -173,7 +177,7 @@ void TransmitRfBuffer(char *databuff, int length)
 
 		TxRfSerialBuffer[ptrRfTxBuffEnd] = *(databuff + i);
 	}
-	OSSemPost(TxRfSerialSem);
+	OSFlagClear(RxFlag, TCP_TX_TRANSFER_DONE, OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 0, &err);
 	OSSemPost(TransmitRfFctSem);
 }
 
