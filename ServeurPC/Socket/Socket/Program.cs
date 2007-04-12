@@ -17,6 +17,12 @@ namespace TCPServerReceiver
 {
     class Program
     {
+        /* Socket global pour le PDA */
+        static IPEndPoint ipep;
+        static Socket newsock;
+        Socket client;
+
+        private static Semaphore dataAvailable;
         static string[] messagesReceived = new string[5];
         static string[] messagesToSend = new string[100];
 
@@ -90,6 +96,19 @@ namespace TCPServerReceiver
 
         public static void Main()
         {
+            dataAvailable = new Semaphore(0, 1);
+
+            ipep = new IPEndPoint(IPAddress.Any, 2166);
+
+            newsock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+            newsock.Bind(ipep);
+            newsock.Listen(10);
+
+            client = newsock.Accept();
+            IPEndPoint newclient = (IPEndPoint)client.RemoteEndPoint;
+            Console.WriteLine("Connected with {0} at port {1}", newclient.Address, newclient.Port);
+
             Thread SenderPdaThread = new Thread(new ThreadStart(TCPSenderPDA));
             Thread ReceiverPdaThread = new Thread(new ThreadStart(TCPReceiverPDA));
             Thread WebThread = new Thread(new ThreadStart(TCPWeb));
@@ -107,46 +126,31 @@ namespace TCPServerReceiver
 
 
         }
+
+
         static private void TCPSenderPDA()
         {
+
+
             byte[] data = new byte[1024];
-            IPEndPoint ipep = new IPEndPoint(IPAddress.Any, 2165);
-
-            Socket newsock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-            newsock.Bind(ipep);
-            newsock.Listen(10);
-
-            Console.WriteLine("Waiting for a connexion on port 2165");
-
-            Socket client = newsock.Accept();
-            IPEndPoint newclient = (IPEndPoint)client.RemoteEndPoint;
-            Console.WriteLine("Connected with {0} at port {1}", newclient.Address, newclient.Port);
 
 
             while (true)
             {
-                Console.WriteLine("\nMessage to send: ");
-                string msgSend = Console.ReadLine();
+                dataAvailable.WaitOne();
                 data = Encoding.ASCII.GetBytes(msgSend);
                 client.Send(data);
+                dataAvailable.Release();
             }
         }
 
         static private void TCPReceiverPDA()
         {
-            IPEndPoint ipep = new IPEndPoint(IPAddress.Any, 2166);
-
-            Socket newsock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             newsock.Bind(ipep);
             newsock.Listen(10);
 
             Console.WriteLine("Waiting for a connexion on port 2166");
-
-            Socket client = newsock.Accept();
-            IPEndPoint newclient = (IPEndPoint)client.RemoteEndPoint;
-            Console.WriteLine("Connected with {0} at port {1}", newclient.Address, newclient.Port);
 
 
             byte[] data = new byte[1024];
