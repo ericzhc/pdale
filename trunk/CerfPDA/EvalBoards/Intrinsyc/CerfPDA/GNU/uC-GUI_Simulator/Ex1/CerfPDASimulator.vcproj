@@ -1,147 +1,210 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="8.00"
 	Name="CerfPDASimulator"
 	ProjectGUID="{EE562656-8E4C-4385-A3D6-6CA3E025D3D3}"
-	SccProjectName=""
-	SccLocalPath="">
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory=".\Debug"
 			IntermediateDirectory=".\Debug"
 			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Debug/CerfPDASimulator.tlb"
+				HeaderFileName=""
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".,..\..\..\..\..\..\uC-GUI\Start\gui\Core,..\..\..\..\..\..\uC-GUI\Start\gui\Font,..\..\..\..\..\..\uC-GUI\Start\gui\Widget,..\..\..\..\..\..\uC-GUI\Start\gui\WM"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
-				UsePrecompiledHeader="2"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\Debug/CerfPDASimulator.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
+				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
-				CompileAs="0"/>
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib libc.lib"
-				OutputFile=".\Debug/CerfPDASimulator.exe"
-				LinkIncremental="1"
-				SuppressStartupBanner="TRUE"
-				IgnoreAllDefaultLibraries="TRUE"
-				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\Debug/CerfPDASimulator.pdb"
-				SubSystem="2"
-				TargetMachine="1"/>
-			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				MkTypLibCompatible="TRUE"
-				SuppressStartupBanner="TRUE"
-				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/CerfPDASimulator.tlb"
-				HeaderFileName=""/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"
-				Culture="3084"/>
+				Culture="3084"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCLinkerTool"
+				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib "
+				OutputFile=".\Debug/CerfPDASimulator.exe"
+				LinkIncremental="1"
+				SuppressStartupBanner="true"
+				IgnoreAllDefaultLibraries="true"
+				IgnoreDefaultLibraryNames="libc.lib"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile=".\Debug/CerfPDASimulator.pdb"
+				SubSystem="2"
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory=".\Release"
 			IntermediateDirectory=".\Release"
 			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Release/CerfPDASimulator.tlb"
+				HeaderFileName=""
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories=".,C:\Cygwin\home\Software\uC-GUI\Start\gui\Core,C:\Cygwin\home\Software\uC-GUI\Start\gui\Font,C:\Cygwin\home\Software\uC-GUI\Start\gui\Widget,C:\Cygwin\home\Software\uC-GUI\Start\gui\WM"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
-				StringPooling="TRUE"
-				RuntimeLibrary="4"
-				EnableFunctionLevelLinking="TRUE"
-				UsePrecompiledHeader="2"
+				StringPooling="true"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\Release/CerfPDASimulator.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
-				CompileAs="0"/>
+				SuppressStartupBanner="true"
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="3084"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib libc.lib"
 				OutputFile=".\Release/CerfPDASimulator.exe"
 				LinkIncremental="1"
-				SuppressStartupBanner="TRUE"
-				IgnoreAllDefaultLibraries="TRUE"
+				SuppressStartupBanner="true"
+				IgnoreAllDefaultLibraries="true"
 				ProgramDatabaseFile=".\Release/CerfPDASimulator.pdb"
 				SubSystem="2"
-				TargetMachine="1"/>
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="TRUE"
-				SuppressStartupBanner="TRUE"
-				TargetEnvironment="1"
-				TypeLibraryName=".\Release/CerfPDASimulator.tlb"
-				HeaderFileName=""/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="3084"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCWebDeploymentTool"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -149,294 +212,369 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			>
 			<File
-				RelativePath="..\..\..\..\..\..\uC-GUI\Sample\Application\HouseControl.c">
+				RelativePath="..\..\uC-GUI\Ex1\GUI_Utilities.c"
+				>
+			</File>
+			<File
+				RelativePath="Main.c"
+				>
 				<FileConfiguration
-					Name="Debug|Win32">
+					Name="Debug|Win32"
+					>
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
+						BasicRuntimeChecks="3"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Release|Win32"
+					>
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
 						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
+						PreprocessorDefinitions=""
+					/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="Main.c">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\uC-GUI\Ex1\PDAL_GUI.c"
+				>
 			</File>
 			<File
-				RelativePath="SIM_X.c">
+				RelativePath="SIM_X.c"
+				>
 				<FileConfiguration
-					Name="Debug|Win32">
+					Name="Debug|Win32"
+					>
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
+						BasicRuntimeChecks="3"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Release|Win32"
+					>
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
 						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
+						PreprocessorDefinitions=""
+					/>
 				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl">
+			Filter="h;hpp;hxx;hm;inl"
+			>
 			<File
-				RelativePath="GUIConf.h">
+				RelativePath="..\..\uC-GUI\Ex1\GUI_Utilities.h"
+				>
 			</File>
 			<File
-				RelativePath="GUITouchConf.h">
+				RelativePath="GUIConf.h"
+				>
 			</File>
 			<File
-				RelativePath="LCDConf.h">
+				RelativePath="GUITouchConf.h"
+				>
 			</File>
 			<File
-				RelativePath="SIM.h">
+				RelativePath="LCDConf.h"
+				>
+			</File>
+			<File
+				RelativePath="SIM.h"
+				>
 			</File>
 			<Filter
 				Name="GUI"
-				Filter="">
+				>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\BUTTON.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\BUTTON.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\BUTTON_Private.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\BUTTON_Private.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\CHECKBOX.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\CHECKBOX.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\DIALOG.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\DIALOG.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\DIALOG_Intern.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\DIALOG_Intern.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\DROPDOWN.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\DROPDOWN.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\EDIT.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\EDIT.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\EDIT_Private.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\EDIT_Private.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\FRAMEWIN.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\FRAMEWIN.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\FRAMEWIN_Private.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\FRAMEWIN_Private.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\GUI.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\GUI.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\GUI_ARRAY.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\GUI_ARRAY.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\GUI_Private.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\GUI_Private.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\GUI_Protected.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\GUI_Protected.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\GUI_X.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\GUI_X.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\GUIDebug.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\GUIDebug.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\GUIType.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\GUIType.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\GUIVersion.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\GUIVersion.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\HEADER.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\HEADER.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\HEADER_Private.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\HEADER_Private.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jconfig.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jconfig.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jdct.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jdct.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jdhuff.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jdhuff.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jerror.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jerror.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jinclude.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jinclude.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jmemsys.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jmemsys.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jmorecfg.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jmorecfg.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jpegint.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jpegint.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jpeglib.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jpeglib.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jversion.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\JPEG\jversion.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\LCD.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\LCD.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\LCD_ConfDefaults.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\LCD_ConfDefaults.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\LCD_Private.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\LCD_Private.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\LCD_Protected.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\LCD_Protected.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\LCDFixedPalette.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\LCDFixedPalette.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\LCDSIM.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Core\LCDSIM.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\LISTBOX.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\LISTBOX.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\LISTBOX_Private.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\LISTBOX_Private.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\LISTVIEW.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\LISTVIEW.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\MARQUEE.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\MARQUEE.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\MULTIEDIT.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\MULTIEDIT.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\MULTIPAGE.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\MULTIPAGE.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\PROGBAR.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\PROGBAR.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\RADIO.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\RADIO.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\SCROLLBAR.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\SCROLLBAR.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\SCROLLBAR_Private.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\SCROLLBAR_Private.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\SLIDER.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\SLIDER.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\TEXT.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\TEXT.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\WIDGET.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\Widget\WIDGET.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\WM\WM.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\WM\WM.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\WM\WM_GUI.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\WM\WM_GUI.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\WM\WM_Intern.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\WM\WM_Intern.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\WM\WM_Intern_ConfDep.h">
+					RelativePath="..\..\..\..\..\..\uC-GUI\Start\gui\WM\WM_Intern_ConfDep.h"
+					>
 				</File>
 			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"
-			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
+			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+			>
 			<File
-				RelativePath="Res\Branding.rh">
+				RelativePath="Res\Branding.rh"
+				>
 			</File>
 			<File
-				RelativePath="Res\Device.bmp">
+				RelativePath="Res\Device.bmp"
+				>
 			</File>
 			<File
-				RelativePath="Res\Device1.bmp">
+				RelativePath="Res\Device1.bmp"
+				>
 			</File>
 			<File
-				RelativePath="Res\Logo.bmp">
+				RelativePath="Res\Logo.bmp"
+				>
 			</File>
 			<File
-				RelativePath="Res\ResourceSim.h">
+				RelativePath="Res\ResourceSim.h"
+				>
 			</File>
 			<File
-				RelativePath="Res\Simulation.ico">
+				RelativePath="Res\Simulation.ico"
+				>
 			</File>
 			<File
-				RelativePath="Res\Simulation.rc">
+				RelativePath="Res\Simulation.rc"
+				>
 				<FileConfiguration
-					Name="Debug|Win32">
+					Name="Debug|Win32"
+					>
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions=""
-						AdditionalIncludeDirectories="Res"/>
+						AdditionalIncludeDirectories="Res"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Release|Win32"
+					>
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions=""
-						AdditionalIncludeDirectories="Res"/>
+						AdditionalIncludeDirectories="Res"
+					/>
 				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
 			Name="Library Files"
-			Filter="">
+			>
 			<File
-				RelativePath="..\Lib\Release\GUI.lib">
+				RelativePath="GUISim.lib"
+				>
 			</File>
 			<File
-				RelativePath="GUISim.lib">
+				RelativePath="..\lib\release\Project.a"
+				>
 			</File>
 		</Filter>
 	</Files>
