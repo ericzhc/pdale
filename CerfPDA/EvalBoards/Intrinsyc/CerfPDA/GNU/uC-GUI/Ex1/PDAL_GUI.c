@@ -255,16 +255,22 @@ static const GUI_WIDGET_CREATE_INFO LoadingDialogCreate[] =
 */
 static void InitialisationCallback(WM_MESSAGE * pMsg) 
 {
+	// Initialisation de variables
 	int NCode, Id, i, j;
 	char CamionName[30];
 	char AllCamionsName[400];
 	WM_HWIN hWin = pMsg->hWin;
+
+	// Acquisition du DropDown
 	WM_HWIN DD_Camion;
 	DD_Camion = WM_GetDialogItem(hWin, DD_INITIALISATION_CAMION_ID);
 	switch (pMsg->MsgId)
 	{
+		// Initialisation du dialog
 		case WM_INIT_DIALOG:
-			// GetTruckNames(AllCamionsName); // SERVER
+			// GetTruckNames(AllCamionsName); // SERVER REQUEST
+			
+			// Remplir le DropDown avec le nom des camions
 			j = 0;
 			for (i = 0; AllCamionsName[i] == '\0'; i++)
 			{
@@ -288,6 +294,7 @@ static void InitialisationCallback(WM_MESSAGE * pMsg)
 			switch (NCode) 
 			{
 				case WM_NOTIFICATION_RELEASED: /* React only if released */
+					// Conserver le ID du Camion choisi et faire apparaitre la liste de colis
 					if (Id == PB_INITIALISATION_OK_ID) 
 					{
 						CAMIONCOURANT = DROPDOWN_GetSel(DD_Camion) + 1;
@@ -318,16 +325,20 @@ static void InitialisationCallback(WM_MESSAGE * pMsg)
 */
 static void CodeBarreWaitCallback(WM_MESSAGE * pMsg) 
 {
+	// Initialisation de variables
 	int NCode, Id;
 	char CodeBarre[MAX_CODEBARRE_LENGTH];
 	WM_HWIN hWin = pMsg->hWin;
+
+	// Acquisition du Edit "NumeroColis"
 	WM_HWIN Edit_NumeroColis;
 	Edit_NumeroColis = WM_GetDialogItem(hWin, EDIT_CODEBARRE_NUMEROCOLIS_ID);		
 	switch (pMsg->MsgId) 
 	{
 		case WM_INIT_DIALOG:
+			// Initialisation du dialog
 			EDIT_SetMaxLen(Edit_NumeroColis, MAX_CODEBARRE_LENGTH);
-		//	CodeBarreRead(CodeBarre); SERVER
+		//	CodeBarreRead(CodeBarre); SERVER REQUEST
 			EDIT_SetText(Edit_NumeroColis, CodeBarre);
 			break;
 
@@ -337,24 +348,27 @@ static void CodeBarreWaitCallback(WM_MESSAGE * pMsg)
 			switch (NCode) 
 			{
 				case WM_NOTIFICATION_RELEASED: /* React only if released */
+					// Verifier si le colis est valid et conserver son numero avant dafficher
+					// le dialog de Modification du colis
 					if (Id == PB_CODEBARRE_OK_ID) 
 					{
 						/* TODO: SQL Check the DataBase to see if the colis exist */
 						EDIT_GetText(Edit_NumeroColis, SQLCOLISNUMBER, 1000);
-						/* if (IsValidPackage(SQLCOLISNUMBER) == '1') SERVER
+						/* if (IsValidPackage(SQLCOLISNUMBER) == '1') SERVER REQUEST
 						{
 							GUI_EndDialog(hWin, 0);
-							//CodeBarreDisable(); SERVER
+							//CodeBarreDisable(); SERVER REQUEST
 							ShowModifColis();
 						} */
 						if (strcmp(SQLCOLISNUMBER, "1111111111") == 0) // TO REMOVE
 						{
 							GUI_EndDialog(hWin, 0);
-							//CodeBarreDisable(); SERVER
+							//CodeBarreDisable(); SERVER REQUEST
 							ShowModifColis();
 						}
 						else
 						{
+							// Si le numero nest pas valide il y aura une erreur
 							GUI_MessageBox(CODEBARRE_MSG5, "ERREUR", GUI_MESSAGEBOX_CF_MOVEABLE);
 						}
 					}
@@ -382,6 +396,7 @@ static void CodeBarreWaitCallback(WM_MESSAGE * pMsg)
 */
 static void ModifColisCallback(WM_MESSAGE * pMsg) 
 {
+	// Initialisation des variables
 	static int CheckedBoxIndex;
 	int NCode, Id, NewState, i, j, k;
 	char AllPacketInfo[] = "1;test;test;test;test;test;test;test;test;test;test;test;";
@@ -392,6 +407,7 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 	WM_HWIN TEXT_PDeLDebut, TEXT_PDeLFin, TEXT_Remarques;
 	WM_HWIN LoadingDialog;
 
+	// Acquisition des objets CheckBox
 	CB_NonCueilli	 = WM_GetDialogItem(hWin, CB_MODIFCOLIS_NONCUEILLI_ID);
 	CB_Cueilli		 = WM_GetDialogItem(hWin, CB_MODIFCOLIS_CUEILLI_ID);
 	CB_EnLivraison	 = WM_GetDialogItem(hWin, CB_MODIFCOLIS_LIVRAISON_ID);
@@ -400,6 +416,8 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 	switch (pMsg->MsgId) 
 	{
 		case WM_INIT_DIALOG:
+			// Initialisation du dialog
+			// Acquisition des objets TEXT
 			TEXT_NumeroColis = WM_GetDialogItem(hWin, TEXT_MODIFCOLIS_NUMEROCOLIS_ID);
 			TEXT_Nom	     = WM_GetDialogItem(hWin, TEXT_MODIFCOLIS_NOM_ID);
 			TEXT_Adresse1	 = WM_GetDialogItem(hWin, TEXT_MODIFCOLIS_ADRESSE1_ID);
@@ -409,6 +427,8 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 			TEXT_Remarques	 = WM_GetDialogItem(hWin, TEXT_MODIFCOLIS_REMARQUES_ID);
 					
 			TEXT_SetText(TEXT_NumeroColis, SQLCOLISNUMBER);
+
+			// Obtenir linformation pour le numero de colis 
 			LoadingDialog = ShowLoadingDialog();
 			// GetPacketInfos(SQLCOLISNUMBER, AllPacketInfo); // SERVER
 			GUI_EndDialog(LoadingDialog, 0);
@@ -430,6 +450,7 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 				}
 			}
 
+			// Construire les TEXT selon l'information recue
 			if (PacketInfoList[INFO_STATE][0] == '0' || PacketInfoList[INFO_STATE][0] == '1')
 			{
 				TEXT_SetText(TEXT_Nom,       PacketInfoList[INFO_NOMCLIENT]);
@@ -477,6 +498,7 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 			switch (NCode) 
 			{
 				case WM_NOTIFICATION_RELEASED: /* React only if released */
+					// Sauvegarder le nouvel etat du colis et revenir a Attente de Code Barre
 					if (Id == PB_MODIFCOLIS_SAUVEGARDER_ID) 
 					{
 						GUI_EndDialog(hWin, 0);
@@ -503,6 +525,7 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 					break;
 				
 				case WM_NOTIFICATION_CLICKED: /* React when a CB is clicked */
+					// Algorithme interpretant les CB comme des RadioButton
 					if (Id == CB_MODIFCOLIS_NONCUEILLI_ID) 
 					{
 						if (CheckedBoxIndex == CB_MODIFCOLIS_NONCUEILLI_ID)
@@ -695,6 +718,7 @@ static void ListColisCallback(WM_MESSAGE * pMsg)
 */
 static void MessageCallback(WM_MESSAGE * pMsg) 
 {
+	// Initialisation des variables
 	int NCode, Id;
 	char MessagesRecus[400];
 	char MessageToSend[51];
@@ -702,15 +726,19 @@ static void MessageCallback(WM_MESSAGE * pMsg)
 	WM_HWIN LoadingDialog;
 	WM_HWIN Edit_Envoi, Text_Recu;
 
+	// Acquisiton du EDIT et du TEXT
 	Edit_Envoi = WM_GetDialogItem(hWin, EDIT_MESSAGE_ENVOI_ID);
 	Text_Recu  = WM_GetDialogItem(hWin, TEXT_MESSAGE_RECUS_ID);
 
 	switch (pMsg->MsgId) 
 	{
 		case WM_INIT_DIALOG:
+			// Initialisation du dialog
 			EDIT_SetMaxLen(Edit_Envoi, 50);
+
+			// Aller chercher les 5 derniers messages recus et les afficher
 			LoadingDialog = ShowLoadingDialog();
-			//GetMessages(CAMIONCOURANT, MessagesRecus); SERVER
+			//GetMessages(CAMIONCOURANT, MessagesRecus); SERVER REQUEST
 			GUI_EndDialog(LoadingDialog, 0);
 			TEXT_SetText(Text_Recu, MessagesRecus); 
 			break;
@@ -723,8 +751,9 @@ static void MessageCallback(WM_MESSAGE * pMsg)
 				case WM_NOTIFICATION_RELEASED: /* React only if released */
 					if (Id == PB_MESSAGE_ENVOYER_ID) 
 					{
+						// Envoyer le message au server
 						EDIT_GetText(Edit_Envoi, MessageToSend, 50);
-						//SendMessage(CAMIONCOURANT, Message); SERVER
+						//SendMessage(CAMIONCOURANT, Message); SERVER REQUEST
 						EDIT_SetText(Edit_Envoi, "");
 					}
 					break;
