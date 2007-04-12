@@ -103,20 +103,15 @@ static void  AppStartTask (void *p_arg)
     printf("Start statistics...\n\r");
     OSStatInit();                               /* Start stats task                                    */
 #endif
-
-	GPSCoord Position;
-	GPSTime TimeValue;
 	
-	ComDriverInit(DEFAULT_CONFIG);
+	GPS_Init();
 
     while (1) {                                 /* Task body, always written as an infinite loop.      */
                                                 /* Delay task execution for 500 ms                     */
-        /*Position = GetGPSPosition();
-		TimeValue = GetGPSTime();
 
-		printf("Lat: %s - Long: %s - Alt: %s\n\r", Position.Latitude, Position.Longitude, Position.Altitude);
-		printf("Time : %d:%d:%d\n\r", TimeValue.Hours, TimeValue.Minutes, TimeValue.Seconds);*/
-		TransmitBuffer("testing 123\n\r\0"); 
+		printf("Lat: %s - Long: %s - Alt: %s\n\r", GPSPosition.Latitude, GPSPosition.Longitude, GPSPosition.Altitude);
+		printf("Time : %d:%d:%d\n\r", GPSTimeValue.Hours, GPSTimeValue.Minutes, GPSTimeValue.Seconds);
+		//TransmitBuffer("testing 123\n\r\0"); 
 		//output_byte_serial('a');
 		//output_byte_serial('t');
 		//output_byte_serial('a');
