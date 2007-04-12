@@ -29,7 +29,7 @@
 char* StringCopy(char* opString1, char* ipString2)
 {
 	int i;
-	for(i = 0; i < sizeof(ipString2); i++)
+	for(i = 0; ipString2[i] != '\0'; i++)
 	{
 		opString1[i] = ipString2[i];
 	}
