@@ -593,25 +593,25 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 static void ListColisCallback(WM_MESSAGE * pMsg)
 {
 	int NCode, Id;
-	int OldTimer, NewTimer;
+//	int OldTimer, NewTimer;
 	static int Flag;
 	static char Colis1[MAX_CODEBARRE_LENGTH];
 	static char Colis2[MAX_CODEBARRE_LENGTH];
 	WM_HWIN hWin = pMsg->hWin;
 	static WM_HWIN ListView;
 	
-	NewTimer = Gui_GetTime();
+/*	NewTimer = Gui_GetTime();
 	if ((NewTimer - OldTimer) > 10000)
 	{
 		GUI_EndDialog(hWin, 0);
 		ShowListColis();
 	}
-	
+*/	
 	switch (pMsg->MsgId) 
 	{
 		case WM_INIT_DIALOG:
 			Flag = 0;
-			OldTimer = GUI_GetTime();
+	//		OldTimer = GUI_GetTime();
 			ListView = WM_GetDialogItem(hWin, LV_LISTCOLIS_INFO_ID);
 
 			LISTVIEW_AddColumn(ListView, 90, "# identification", GUI_TA_HCENTER | GUI_TA_VCENTER);
