@@ -1,3 +1,10 @@
+/*
+*********************************************************************************************************
+* Fichier : Program.cs
+* Par     : Marc-Étienne Lebeau, Julien Beaumier-Ethier, Richard Labonté
+* Date    : 2007/04/12
+*********************************************************************************************************
+*/
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
@@ -20,6 +27,18 @@ namespace TCPServerReceiver
                 "User ID=pdale;" +
                 "Password=projets5;";
 
+        /*
+        *********************************************************************************************************
+        *                                              SendData()
+        *
+        * Description : Cette fonction envoie des données sur le socket
+        *
+        * Argument(s) : s               Le socket de communication
+        *               data            Buffer contenant le data à envoyer
+        *
+        * Return(s)   : int             Le nombre d'octets envoyés sur le socket
+        *********************************************************************************************************
+        */
         private static int SendData(Socket s, byte[] data)
         {
             int total = 0;
@@ -36,6 +55,18 @@ namespace TCPServerReceiver
             return total;
         }
 
+        /*
+        *********************************************************************************************************
+        *                                              ReceiveData()
+        *
+        * Description : Cette fonction envoie du data sur le socket
+        *
+        * Argument(s) : s               Le socket de communication
+        *               size            Le nombre d'octets à recevoir sur le socket
+        *
+        * Return(s)   : byte[]          Le tableau d'octets contenant les données reçues
+        *********************************************************************************************************
+        */
         private static byte[] ReceiveData(Socket s, int size)
         {
             int total = 0;
