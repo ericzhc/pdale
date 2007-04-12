@@ -5,29 +5,34 @@
 * Date    : 2007/04/12
 *********************************************************************************************************
 */
+using Socket.MapPoint;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 
 namespace TCPServerReceiver
 {
     class Program
-    {
+    { 
         /* Socket global pour le PDA */
         static IPEndPoint ipep;
-        static Socket newsock;
-        Socket client;
+        static System.Net.Sockets.Socket newsock;
+        static System.Net.Sockets.Socket client;
 
         private static Semaphore dataAvailable;
         static string[] messagesReceived = new string[5];
         static string[] messagesToSend = new string[100];
 
         private static MySqlConnection m_SqlConnection;
-        private string connectionString =
+        private static string str_ConnString =
                 "Server=69.16.250.95;" +
                 "Database=pdale;" +
                 "User ID=pdale;" +
@@ -45,7 +50,7 @@ namespace TCPServerReceiver
         * Return(s)   : int             Le nombre d'octets envoyés sur le socket
         *********************************************************************************************************
         */
-        private static int SendData(Socket s, byte[] data)
+        private static int SendData(System.Net.Sockets.Socket s, byte[] data)
         {
             int total = 0;
             int size = data.Length;
@@ -73,7 +78,7 @@ namespace TCPServerReceiver
         * Return(s)   : byte[]          Le tableau d'octets contenant les données reçues
         *********************************************************************************************************
         */
-        private static byte[] ReceiveData(Socket s, int size)
+        private static byte[] ReceiveData(System.Net.Sockets.Socket s, int size)
         {
             int total = 0;
             int dataleft = size;
@@ -96,11 +101,11 @@ namespace TCPServerReceiver
 
         public static void Main()
         {
-            dataAvailable = new Semaphore(0, 1);
+            /*dataAvailable = new Semaphore(0, 1);
 
             ipep = new IPEndPoint(IPAddress.Any, 2166);
 
-            newsock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            newsock = new System.Net.Sockets.Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             newsock.Bind(ipep);
             newsock.Listen(10);
@@ -122,11 +127,14 @@ namespace TCPServerReceiver
             messagesReceived[2] = "Salut marc voici le troisieme message;";
             messagesReceived[3] = "Salut marc voici le quatrieme message;";
             messagesReceived[4] = "Salut marc voici le sixieme message (mais non cetait le cinqueieme hihihihi);";
+            */
 
+            string OrigAddress = "1408 RUE DE L'EGLISE;SAINT-LAURENT;QC;H4L2H3";
+            string DestAddress = "8105 BOULEVARD DECARIE;MONTREAL;QC;H4P2H5";
 
-
+            //GetDirectionsFromAdress(OrigAddress, DestAddress);
+            GetRouteFromGps(45.40391131, -71.88929146, 46.34018682, -72.54498962);
         }
-
 
         static private void TCPSenderPDA()
         {
@@ -138,7 +146,7 @@ namespace TCPServerReceiver
             while (true)
             {
                 dataAvailable.WaitOne();
-                data = Encoding.ASCII.GetBytes(msgSend);
+                //data = Encoding.ASCII.GetBytes(msgSend);
                 client.Send(data);
                 dataAvailable.Release();
             }
@@ -169,14 +177,14 @@ namespace TCPServerReceiver
 
             IPEndPoint ipep = new IPEndPoint(IPAddress.Any, 2160);
 
-            Socket newsock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            System.Net.Sockets.Socket newsock = new System.Net.Sockets.Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             newsock.Bind(ipep);
             newsock.Listen(10);
 
             Console.WriteLine("Waiting for a connexion on port 2160");
 
-            Socket client;
+            System.Net.Sockets.Socket client;
             IPEndPoint newclient;
 
             byte[] data = new byte[1024];
@@ -329,7 +337,7 @@ namespace TCPServerReceiver
                 str_Sql = "UPDATE colis SET col_etat = '" + str_EtatColis + "' WHERE str_IdColis = '" + str_IdColis + "'";
 
                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
-                MyCommand.EndExecuteNonQuery();
+                MyCommand.ExecuteNonQuery();
             }
             catch (MySqlException myEx)
             {
@@ -348,7 +356,7 @@ namespace TCPServerReceiver
                 MySqlCommand MyCommand = null;
                 MySqlDataReader MyReader = null;
 
-                str_Sql = "SELECT col_noident, col_etat FROM colis WHERE cam_nom='" + strNomCamion + "'";
+                str_Sql = "SELECT col_noident, col_etat FROM colis WHERE cam_nom='" + str_NomCamion + "'";
 
                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
                 MyReader = MyCommand.ExecuteReader();
@@ -382,5 +390,244 @@ namespace TCPServerReceiver
 
             return m_SqlConnection;
         }
+
+        // Le format du string à passer en argument à la fonction est celui-ci
+        // ex: strOrigAddress = "1408 RUE DE L'EGLISE;SAINT-LAURENT;QC;H4L2H3;CA";
+        public static void GetDirectionsFromAdress(string strOrigAddress, string strDestAddress)
+        {
+            FindServiceSoap findService = new FindServiceSoap();
+            findService.Credentials = new System.Net.NetworkCredential("124624", "PDALE_projets5");
+            FindSpecification findSpec = new FindSpecification();
+            FindResults startResults = null;
+            FindResults endResults = null;
+
+
+            //Output the formatted address
+            string [] strTemp = new String[5];
+            strTemp = strOrigAddress.Split(';');
+
+            Address myOrigAddress = new Address();
+            myOrigAddress.AddressLine = strTemp[0];
+            myOrigAddress.PrimaryCity = strTemp[1];
+            myOrigAddress.Subdivision = strTemp[2];
+            myOrigAddress.PostalCode = strTemp[3];
+            myOrigAddress.CountryRegion = strTemp[4];
+
+            FindAddressSpecification findOrigAddressSpec = new FindAddressSpecification();
+            findOrigAddressSpec.InputAddress = myOrigAddress;
+            findOrigAddressSpec.DataSourceName = "MapPoint.NA";
+
+            //Retrieve the values of startResults
+            try
+            {
+                startResults = findService.FindAddress(findOrigAddressSpec);
+            }
+            catch (Exception e2)  //The request failed with HTTP status 401: Unauthorized.
+            {
+                Console.WriteLine("Problem connecting with service");
+            }
+
+            //Output the formatted address
+            strTemp = strDestAddress.Split(';');
+
+            Address myDestAddress = new Address();
+            myDestAddress.AddressLine = strTemp[0];
+            myDestAddress.PrimaryCity = strTemp[1];
+            myDestAddress.Subdivision = strTemp[2];
+            myDestAddress.PostalCode = strTemp[3];
+            myDestAddress.CountryRegion = strTemp[4];
+
+            FindAddressSpecification findDestAddressSpec = new FindAddressSpecification();
+            findDestAddressSpec.InputAddress = myDestAddress;
+            findDestAddressSpec.DataSourceName = "MapPoint.NA";
+
+            //Retrieve the values of endResults
+            try
+            {
+                endResults = findService.FindAddress(findDestAddressSpec);
+            }
+            catch
+            {
+                Console.WriteLine("Problem connecting with service");
+            }
+
+            // Make sure findResults isn't null
+            if (startResults == null)
+            {
+                Console.WriteLine("Originating Address not found.");
+            }
+            else
+            {
+                // If no results were found, display error and return
+                if (startResults.NumberFound == 0)
+                {
+                    Console.WriteLine("Originating Address not found.");
+                    return;
+                }
+            }
+            if (endResults == null)
+            {
+                Console.WriteLine("Destination Address not found.");
+            }
+            else
+            {
+                // If no results were found, display error and return
+                if (endResults.NumberFound == 0)
+                {
+                    Console.WriteLine("Destination Address not found.");
+                    return;
+                }
+            }
+
+            //Call GetRoute:Calculates the Route and also generates the Map
+            GetRoute(startResults, endResults);
+        }
+
+        //GetRoute:Calculates the Route and 
+        //also generates the Map
+        public static void GetRoute(FindResults sResults, FindResults eResults)
+        {
+            SegmentSpecification[] routeSegment;
+            routeSegment = new SegmentSpecification[2];
+
+            routeSegment[0] = new SegmentSpecification();
+            routeSegment[0].Waypoint = new Waypoint();
+            routeSegment[0].Waypoint.Name = sResults.Results[0].FoundLocation.Entity.Name;
+            routeSegment[0].Waypoint.Location = sResults.Results[0].FoundLocation;
+
+            routeSegment[1] = new SegmentSpecification();
+            routeSegment[1].Waypoint = new Waypoint();
+            routeSegment[1].Waypoint.Name = eResults.Results[0].FoundLocation.Entity.Name;
+            routeSegment[1].Waypoint.Location = eResults.Results[0].FoundLocation;
+
+
+            RouteSpecification routeSpecs = new RouteSpecification();
+            routeSpecs.DataSourceName = "MapPoint.NA";
+            routeSpecs.Segments = routeSegment;
+    
+            RouteServiceSoap routeService = new RouteServiceSoap();
+            routeService.Credentials = new System.Net.NetworkCredential("124624", "PDALE_projets5");
+            routeService.PreAuthenticate = true;
+            // routeService.Proxy = myProxy;
+
+            Route route = new Route();
+            route = routeService.CalculateRoute(routeSpecs);
+
+            // Generate the Route Map
+            MapSpecification mapSpec = new MapSpecification();
+            mapSpec.Options = new MapOptions();
+            mapSpec.Options.Format = new ImageFormat();
+
+            //Set the map width and height 
+            //according to the PictureBox
+            mapSpec.Options.Format.Height = 260;
+            mapSpec.Options.Format.Width = 240;
+
+            //Set the Map Datasource
+            mapSpec.DataSourceName = "MapPoint.NA";
+
+            mapSpec.Route = route;
+
+            try
+            {
+                // Get the map image
+                RenderServiceSoap renderService = new RenderServiceSoap();
+                renderService.Credentials = new System.Net.NetworkCredential("124624", "PDALE_projets5");
+                MapImage tempImage = renderService.GetMap(mapSpec)[0];
+                Bitmap myMap = new Bitmap(new MemoryStream(tempImage.MimeData.Bits, false), true);
+                //pcMap.Image = myMap;
+                FileStream stream = new FileStream("c:\\map\\map.bmp", FileMode.OpenOrCreate);
+                myMap.Save(stream, System.Drawing.Imaging.ImageFormat.Bmp);
+                stream.Close();
+                System.Threading.Thread.Sleep(1000);
+                //System.Diagnostics.Process.Start("c:\\map\\bmpcvt.exe","c:\\map\\map.bmp -convertintobestpalette -saveasmap,3 -exit");
+                System.Diagnostics.Process.Start("c:\\map\\bmpcvt.exe", "c:\\map\\map.bmp -convertintobestpalette -saveasc:\\map\\toto.c,1 -exit");
+                //stsMain.Text = "Done";//BmpCvt logo.bmp -convertintobestpalette -saveaslogo,1 -exit
+            }
+            catch (Exception e)
+            {
+                //MessageBox.Show(e.ToString());
+            }
+        }
+
+        //GetRoute:Calculates the Route and 
+        //also generates the Map
+        public static void GetRouteFromGps(double OrigLat, double OrigLong, double DestLat, double DestLong)
+        {
+            Location LocDepart = new Location();
+            LocDepart.LatLong = new LatLong();
+            LocDepart.LatLong.Latitude = OrigLat;
+            LocDepart.LatLong.Longitude = OrigLong;
+
+            Location LocArrivee = new Location();
+            LocArrivee.LatLong = new LatLong();
+            LocArrivee.LatLong.Latitude = DestLat;
+            LocArrivee.LatLong.Longitude = DestLong;
+
+            SegmentSpecification[] routeSegment;
+            routeSegment = new SegmentSpecification[2];
+
+            routeSegment[0] = new SegmentSpecification();
+            routeSegment[0].Waypoint = new Waypoint();
+            routeSegment[0].Waypoint.Name = "Depart";
+            routeSegment[0].Waypoint.Location = LocDepart;
+
+            routeSegment[1] = new SegmentSpecification();
+            routeSegment[1].Waypoint = new Waypoint();
+            routeSegment[1].Waypoint.Name = "Arrivee";
+            routeSegment[1].Waypoint.Location = LocArrivee;
+
+
+            RouteSpecification routeSpecs = new RouteSpecification();
+            routeSpecs.DataSourceName = "MapPoint.NA";
+            routeSpecs.Segments = routeSegment;
+     
+            RouteServiceSoap routeService = new RouteServiceSoap();
+            routeService.Credentials = new System.Net.NetworkCredential("124624", "PDALE_projets5");
+            routeService.PreAuthenticate = true;
+            // routeService.Proxy = myProxy;
+
+            Route route = new Route();
+            route = routeService.CalculateRoute(routeSpecs);
+
+            // Generate the Route Map
+            MapSpecification mapSpec = new MapSpecification();
+            mapSpec.Options = new MapOptions();
+            mapSpec.Options.Format = new ImageFormat();
+
+            //Set the map width and height 
+            //according to the PictureBox
+            mapSpec.Options.Format.Height = 260;
+            mapSpec.Options.Format.Width = 240;
+
+            //Set the Map Datasource
+            mapSpec.DataSourceName = "MapPoint.NA"; ;
+
+            mapSpec.Route = route;
+
+            try
+            {
+                // Get the map image
+                RenderServiceSoap renderService = new RenderServiceSoap();
+                renderService.Credentials = new System.Net.NetworkCredential("124624", "PDALE_projets5");
+                MapImage tempImage = renderService.GetMap(mapSpec)[0];
+
+                Bitmap myMap = new Bitmap(new MemoryStream(tempImage.MimeData.Bits, false), true);
+
+                FileStream stream = new FileStream("c:\\map\\map.bmp", FileMode.OpenOrCreate);
+                myMap.Save(stream, System.Drawing.Imaging.ImageFormat.Bmp);
+                stream.Close();
+
+                System.Threading.Thread.Sleep(1000);
+                //System.Diagnostics.Process.Start("c:\\map\\bmpcvt.exe","c:\\map\\map.bmp -convertintobestpalette -saveasmap,3 -exit");
+                System.Diagnostics.Process.Start("c:\\map\\bmpcvt.exe", "c:\\map\\map.bmp -convertintobestpalette -saveasc:\\map\\toto.c,1 -exit");
+                //stsMain.Text = "Done";//BmpCvt logo.bmp -convertintobestpalette -saveaslogo,1 -exit
+            }
+            catch (Exception e)
+            {
+                //MessageBox.Show(e.ToString());
+            }
+        }
+         
     }
 }
