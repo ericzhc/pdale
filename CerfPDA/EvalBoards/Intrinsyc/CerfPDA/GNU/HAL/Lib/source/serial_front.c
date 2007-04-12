@@ -80,9 +80,6 @@ void init_serial_front(short config)
 	//setBufferTriger();
 	setRxInterrupt();
 	
-
-	
-	
 	#if DEBUG
 		printf("Serial front driver init...done\n\r");
 	#endif
@@ -92,11 +89,23 @@ void ConfigGPS()
 {
 	// TSIP: 9600, odd parity, 1 stop bit, 8 bit config, FIFO enabled
 	// page 40 - Lassen IQ Reference
+	int temp1;
+	
+	temp1 = LCR;
+
+	EFR = 0x10;		// enable enhanced fucntions access
+	IER = 0;		// disable all interrupts
+	FCR = 0x06;		// clear Rx and Tx FIFOs
+	FCR = 0xA1;		// FIFO trigger levels: tx=32, rx=32
+	EFR = 0x00;     // disable enhanced functions access
+	LCR = 0x03;     // 8 data bits, 1 stop bit, no parity		
 	setBaudRate(SF_9600_BAUDS);
-	LCR = 0;
-	LCR |= 0x03;	// 8 bits configuration
-	LCR &= 0xFB;	// 1 stop bit
 	setParity(PARITY_ODD);
+	MCR = 0x0F;     //  RTS = on
+					//  DTR = on
+					//  FIFO Rdy enable = on
+					//  IRQ enable  = on
+	temp1 = MSR;
 }
 
 void ConfigBCR()
