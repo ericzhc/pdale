@@ -161,7 +161,7 @@ char    SQLCOLISNUMBER[MAX_CODEBARRE_LENGTH];
 int		CAMIONCOURANT;
 
 // Table pour listView
-char TableColis[50][2][11];
+char TABLECOLIS[50][2][11];
 
 // Construction de Initialisation Dialog
 static const GUI_WIDGET_CREATE_INFO InitialisationDialogCreate[] = 
@@ -597,11 +597,18 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 	}
 }
 
-/*********************************************************************
+/*
+*********************************************************************************************************
+* ListColisCallback()
 *
-* All Callback that can happen in the Liste de Colis dialog
+* Description : Cette fonction gère tous les callbacks du dialog ListColis
 *
-*********************************************************************/
+* Argument(s) : pMsg: est l'indice permettant de déterminer d'où vient et quelle
+*				est la notification.
+*
+* Return(s) : 
+*********************************************************************************************************
+*/
 static void ListColisCallback(WM_MESSAGE * pMsg)
 {
 	int NCode, Id;
@@ -674,11 +681,18 @@ static void ListColisCallback(WM_MESSAGE * pMsg)
 }
 
 
-/*********************************************************************
+/*
+*********************************************************************************************************
+* MessageCallback()
 *
-* All Callback that can happen in the Message dialog
+* Description : Cette fonction gère tous les callbacks du dialog Message
 *
-*********************************************************************/
+* Argument(s) : pMsg: est l'indice permettant de déterminer d'où vient et quelle
+*				est la notification.
+*
+* Return(s) : 
+*********************************************************************************************************
+*/
 static void MessageCallback(WM_MESSAGE * pMsg) 
 {
 	int NCode, Id;
@@ -723,28 +737,52 @@ static void MessageCallback(WM_MESSAGE * pMsg)
 	}
 }
 
+/*
+*********************************************************************************************************
+* LoadingCallback()
+*
+* Description : Cette fonction gère tous les callbacks du dialog Loading
+*
+* Argument(s) : pMsg: est l'indice permettant de déterminer d'où vient et quelle
+*				est la notification.
+*
+* Return(s) : 
+*********************************************************************************************************
+*/
 static void LoadingCallback(WM_MESSAGE * pMsg)
 {
 	/* This function does nothing but is necessary for creating
 	the loading dialog */
 }
 
-/*********************************************************************
+/*
+*********************************************************************************************************
+* ShowInitDialog()
 *
-*       Montre le dialog d'initialisation du PDA
+* Description : Cette fonction crée le Dialog d'initialisation
 *
-**********************************************************************/
+* Argument(s) : 
+*
+* Return(s) : 
+*********************************************************************************************************
+*/
 void ShowInitDialog(void)
 {
 	INITIALISATIONWINDOW = GUI_CreateDialogBox(InitialisationDialogCreate, GUI_COUNTOF(InitialisationDialogCreate), &InitialisationCallback, 0, 0, 50);
 	CURRENTWINDOW = INITIALISATIONWINDOW;
 }
 
-/*********************************************************************
+/*
+*********************************************************************************************************
+* ShowAttenteCodeBarre()
 *
-*       Shows the Attente de lecture Code Barre Dialog
+* Description : Cette fonction crée le Dialog d'attente de Code Barre
 *
-**********************************************************************/
+* Argument(s) : 
+*
+* Return(s) : 
+*********************************************************************************************************
+*/
 void ShowAttenteCodeBarre(void)
 {
 	CODEBARREWINDOW = GUI_CreateDialogBox(WaitCodeBarreDialogCreate, GUI_COUNTOF(WaitCodeBarreDialogCreate), &CodeBarreWaitCallback, 0, 0, 72);
@@ -752,22 +790,34 @@ void ShowAttenteCodeBarre(void)
 	//CodeBarreInit(); SERVER
 }
 
-/*********************************************************************
+/*
+*********************************************************************************************************
+* ShowModifColis()
 *
-*       Shows the Modification de Colis Dialog
+* Description : Cette fonction crée le Dialog d'attente de Modification d'un Colis
 *
-**********************************************************************/
+* Argument(s) : 
+*
+* Return(s) : 
+*********************************************************************************************************
+*/
 void ShowModifColis(void)
 {
 	MODIFCOLISWINDOW = GUI_CreateDialogBox(ModifColisDialogCreate, GUI_COUNTOF(ModifColisDialogCreate), &ModifColisCallback, 0, 0, 72);
 	CURRENTWINDOW = MODIFCOLISWINDOW;
 }
 
-/*********************************************************************
+/*
+*********************************************************************************************************
+* ShowMap()
 *
-*       Shows the Map
+* Description : Cette fonction affiche la carte de la ville
 *
-**********************************************************************/
+* Argument(s) : 
+*
+* Return(s) : 
+*********************************************************************************************************
+*/
 void ShowMap(void)
 {
 	//ToDO : Requête map tous les 5 sec
@@ -795,39 +845,70 @@ void ShowMap(void)
 	GUI_JPEG_Draw(BUFFER, sizeof(char)*IMAGESIZE, 0, 72);
 }
 
-/*********************************************************************
+/*
+*********************************************************************************************************
+* ShowListColis()
 *
-*       Shows the Shipping List
+* Description : Cette fonction affiche le dialog de la liste des colis
 *
-**********************************************************************/
+* Argument(s) : 
+*
+* Return(s) : 
+*********************************************************************************************************
+*/
 void ShowListColis(void)
 {
 	LISTECOLISWINDOW = GUI_CreateDialogBox(ListColisDialogCreate, GUI_COUNTOF(ListColisDialogCreate), &ListColisCallback, 0, 0, 72);
 	CURRENTWINDOW = LISTECOLISWINDOW;
 }
 
-/*********************************************************************
+/*
+*********************************************************************************************************
+* ShowMessage()
 *
-*       Shows the Messages Dialog
+* Description : Cette fonction affiche le dialog de Message
 *
-*********************************************************************/
+* Argument(s) : 
+*
+* Return(s) : 
+*********************************************************************************************************
+*/
 void ShowMessage(void)
 {	
 	MESSAGEWINDOW = GUI_CreateDialogBox(MessageDialogCreate, GUI_COUNTOF(MessageDialogCreate), &MessageCallback, 0, 0, 72);
 	CURRENTWINDOW = MESSAGEWINDOW;
 }
 
+/*
+*********************************************************************************************************
+* ShowLoadingDialog()
+*
+* Description : Cette fonction affiche le dialog de Loading
+*
+* Argument(s) : 
+*
+* Return(s) : WM_HWIN : Retourne l'objet dialog associé à la création de ce dialog
+*********************************************************************************************************
+*/
 WM_HWIN ShowLoadingDialog(void)
 {
 	return GUI_CreateDialogBox(LoadingDialogCreate, GUI_COUNTOF(LoadingDialogCreate), &LoadingCallback, 0, 0, 50);
 }
 
-/*********************************************************************
+/*
+*********************************************************************************************************
+* BuildList()
 *
-*       Fonction construisant la liste des colis en fonction du 
-*		camion sélectionné
+* Description : Cette fonction construit la liste de colis et leur état pour un camion donné
 *
-*********************************************************************/
+* Argument(s) : opListView: L'objet ListView à inclure dans le dialog qui se fera remplir par 
+*				la fonction
+*
+*				ipCamion: Le ID du camion pour lequel on veut l'information des colis
+*
+* Return(s)   : 
+*********************************************************************************************************
+*/
 void BuildList(WM_HWIN opListView, int ipCamion)
 {
     char String[] = {"1111111111;aaaa;2222222222;bbbb;3333333333;cccc;4444444444;dddd*"};
@@ -849,7 +930,7 @@ void BuildList(WM_HWIN opListView, int ipCamion)
 
 		i++;
 		j++;
-		StringCopy(TableColis[Row][0], StringLu);
+		StringCopy(TABLECOLIS[Row][0], StringLu);
 		for(j = 0; StringLu[j] != '\0'; j++)
 		{
 			StringLu[j] = ' ';
@@ -869,7 +950,7 @@ void BuildList(WM_HWIN opListView, int ipCamion)
 		}
 
 		j++;
-		StringCopy(TableColis[Row][1], StringLu);
+		StringCopy(TABLECOLIS[Row][1], StringLu);
 		for(j = 0; StringLu[j] != '\0'; j++)
 		{
 			StringLu[j] = ' ';
@@ -879,30 +960,44 @@ void BuildList(WM_HWIN opListView, int ipCamion)
 		Row++;
 	}
 
-	for (i = 0; i < GUI_COUNTOF(TableColis); i++) 
+	for (i = 0; i < GUI_COUNTOF(TABLECOLIS); i++) 
 	{
 		GUI_ConstString temp[2];
-		temp[0] = TableColis[i][0];
-		temp[1] = TableColis[i][1];
+		temp[0] = TABLECOLIS[i][0];
+		temp[1] = TABLECOLIS[i][1];
 		LISTVIEW_AddRow(opListView, temp);
 	}
 }
 
-/*******************************************************************
+/*
+*********************************************************************************************************
+* GetIdColis()
 *
-* Recherche du numéro d'identification du colis celon sa position dans la liste
+* Description : Cette fonction prend une ligne de la table des colis et en sort son ID
 *
-/******************************************************************/
-void GetIdColis(int piLigne, char* ColisID)
+* Argument(s) : ColisID: L'ID que du Colis que l'on cherche
+*
+*				ipLigne: La ligne correspondante au colis dont on veut le ID 
+*
+* Return(s)   : 
+*********************************************************************************************************
+*/
+void GetIdColis(int ipLigne, char* ColisID)
 {
-	StringCopy(ColisID, TableColis[piLigne][0]);
+	StringCopy(ColisID, TABLECOLIS[ipLigne][0]);
 }
 
-/*******************************************************************
+/*
+*********************************************************************************************************
+* GetIdColis()
 *
-* The method which checks the status of the 4 main buttons (PDA TAB)
+* Description : Cette fonction regarde l'état des 4 buttons principaux (PDA TAB)
 *
-/******************************************************************/
+* Argument(s) : 
+*
+* Return(s)   : 
+*********************************************************************************************************
+*/
 static void CheckButtonState(void)
 {
 	int Key;
@@ -955,11 +1050,17 @@ static void CheckButtonState(void)
 	}
 }
 
-/*********************************************************************
+/*
+*********************************************************************************************************
+* PdaleInterface()
 *
-*       Affichage écran 240 x 320 pixel
-*		
-**********************************************************************/
+* Description : Cette fonction crée la base du GUI du PDA
+*
+* Argument(s) : 
+*
+* Return(s)   : 
+*********************************************************************************************************
+*/
 static void PdaleInterface(void) 
 {
 	//LOGO
@@ -971,18 +1072,27 @@ static void PdaleInterface(void)
 	GUI_DispStringAt("PDA Livraison Expresse", 50, 25);
 }
 
-/*********************************************************************
+/*
+*********************************************************************************************************
+* MainTask()
 *
-*       MainTask
+* Description : Base d'initialisation du programme (PDA TAB)
 *
-***********************************************************************/
+* Argument(s) : 
+*
+* Return(s)   : 
+*********************************************************************************************************
+*/
 void MainTask(void) 
 {
+	// Initialisation d'un GUI
 	GUI_Init();
 	PdaleInterface();
+
+	// Montre le dialog d'initialisation
 	ShowInitDialog();
 	while (1) 
 	{
-		CheckButtonState();
+		CheckButtonState(); // Regarde l'état des boutons constamment
 	}
 }
