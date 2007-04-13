@@ -6,7 +6,7 @@
 #define STATE_UNDELIVERED 2
 #define STATE_DELIVERED 3
 
-#define MAX_MSG_SIZE = 100;
+#define MAX_MSG_SIZE 100
 
 #define COMMAND_EOL '\0'
 #define COMMAND_TRUCKNAMES 0x30

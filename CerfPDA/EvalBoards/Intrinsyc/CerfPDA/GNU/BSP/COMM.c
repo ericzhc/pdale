@@ -9,8 +9,9 @@
 
 void ReceiveData(char cmd, char* buffer)
 {
+	INT8U err;
 	// Wait for the data to be received
-	OSFlagPend(RxFlag, TCP_TRANSFER_RECEIVED, OS_FLAG_CONSUME, &err);
+	OSFlagPend(RfFlag, TCP_TRANSFER_RECEIVED, OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 0,&err);
 
 	while((ptrRfRxBuffCurr != ptrRfRxBuffEnd) && (RxRfSerialBuffer[ptrRfRxBuffCurr] != cmd)) {
 		ptrRfRxBuffCurr = (ptrRfRxBuffCurr + 1) % (int) SERIAL_BUFF_SIZE;
@@ -116,7 +117,7 @@ void CodeBarreInit()
 
 }
 
-void CodeBarreRead(char*)
+void CodeBarreRead(char* code)
 {
 
 }

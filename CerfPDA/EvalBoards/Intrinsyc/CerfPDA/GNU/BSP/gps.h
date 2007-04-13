@@ -1,7 +1,7 @@
 #ifndef GPS_H
 #define GPS_H
 
-#define TSIP_BUFF_SIZE 256
+#define TSIP_BUFF_SIZE 1024
 #define TASK_GPS_PRIO 8
 #define TASK_GPS_SIZE 1024
 
@@ -13,9 +13,9 @@
 #define SECONDS_IN_ONE_DAY 60*60*24
 
 typedef struct {
-	char Latitude[10];
-	char Longitude[10];
-	char Altitude[10];
+	float Latitude;
+	float Longitude;
+	float Altitude;
 } GPSCoord;
 
 typedef struct {
