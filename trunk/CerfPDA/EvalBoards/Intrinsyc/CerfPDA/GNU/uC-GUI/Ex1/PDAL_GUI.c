@@ -134,8 +134,11 @@ void	PdaleInterface(void);
 
 void	ShowModifColis();
 void	ShowAttenteCodeBarre();
+void    ShowMap(void);
+void    ShowMessage(void);
 void	ShowListColis(void);
 
+void    TheEnd(void);
 WM_HWIN ShowLoadingDialog();
 
 /*********************************************************************
@@ -501,8 +504,6 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 					// Sauvegarder le nouvel etat du colis et revenir a Attente de Code Barre
 					if (Id == PB_MODIFCOLIS_SAUVEGARDER_ID) 
 					{
-						GUI_EndDialog(hWin, 0);
-						ShowAttenteCodeBarre();
 						if (CHECKBOX_IsChecked(CB_NonCueilli))
 						{
 							NewState = STATE_UNPICKED; 
@@ -521,6 +522,8 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 						}
 
 						// SetPacketState(SQLCOLISNUMBER, NewState); // SERVER
+						GUI_EndDialog(hWin, 0);
+						ShowAttenteCodeBarre();
 					}
 					break;
 				
@@ -635,26 +638,24 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 static void ListColisCallback(WM_MESSAGE * pMsg)
 {
 	int NCode, Id;
-//	int OldTimer, NewTimer;
+	static int OldTimer = 0;
+	static int NewTimer = 0;
 	static int Flag;
+	int Sentinel = 0;
 	static char Colis1[MAX_CODEBARRE_LENGTH];
 	static char Colis2[MAX_CODEBARRE_LENGTH];
 	WM_HWIN hWin = pMsg->hWin;
 	WM_HWIN LoadingDialog;
 	static WM_HWIN ListView;
 	
-/*	NewTimer = Gui_GetTime();
-	if ((NewTimer - OldTimer) > 10000)
-	{
-		GUI_EndDialog(hWin, 0);
-		ShowListColis();
-	}
-*/	
+	NewTimer = GUI_GetTime();
+
+		
 	switch (pMsg->MsgId) 
 	{
 		case WM_INIT_DIALOG:
 			Flag = 0;
-	//		OldTimer = GUI_GetTime();
+			OldTimer = GUI_GetTime();
 			ListView = WM_GetDialogItem(hWin, LV_LISTCOLIS_INFO_ID);
 
 			LISTVIEW_AddColumn(ListView, 90, "# identification", GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -668,34 +669,48 @@ static void ListColisCallback(WM_MESSAGE * pMsg)
 
 		case WM_NOTIFY_PARENT:
 			
+			if ((NewTimer - OldTimer) > 300000)
+			{
+				NewTimer = GUI_GetTime();
+				OldTimer = GUI_GetTime();
+				Sentinel = 1;
+			}
+			
 			Id = WM_GetId(pMsg->hWinSrc); /* Id of widget */
 			NCode = pMsg->Data.v; /* Notification code */
 			switch (NCode) 
 			{
 				case WM_NOTIFICATION_CLICKED:
-					if (Flag == 0)
+					if (Sentinel != 1)
 					{
-						GetIdColis(LISTVIEW_GetSel(ListView), Colis1);
-						Flag = 1;
-					}
-					else if (Flag == 1)
-					{
-						GetIdColis(LISTVIEW_GetSel(ListView), Colis2);
-						Flag = 0;
-
-						if (strcmp(Colis1, Colis2) == 0)
+						if (Flag == 0)
 						{
-							StringCopy(SQLCOLISNUMBER, Colis2);
-							GUI_EndDialog(hWin, 0);
-							ShowModifColis();
+							GetIdColis(LISTVIEW_GetSel(ListView), Colis1);
+							Flag = 1;
 						}
+						else if (Flag == 1)
+						{
+							GetIdColis(LISTVIEW_GetSel(ListView), Colis2);
+							Flag = 0;
+
+							if (strcmp(Colis1, Colis2) == 0)
+							{
+								StringCopy(SQLCOLISNUMBER, Colis2);
+								GUI_EndDialog(hWin, 0);
+								ShowModifColis();
+							}
+						}
+					}
+					else
+					{
+						GUI_EndDialog(hWin, 0);
+						ShowMessage();
 					}
 					break;
 			
 				default:
 					break;
 			}
-
 		break;
 
 		default:
@@ -904,6 +919,7 @@ void ShowListColis(void)
 */
 void ShowMessage(void)
 {	
+//	GUI_EndDialog(CURRENTWINDOW, 0);
 	MESSAGEWINDOW = GUI_CreateDialogBox(MessageDialogCreate, GUI_COUNTOF(MessageDialogCreate), &MessageCallback, 0, 0, 72);
 	CURRENTWINDOW = MESSAGEWINDOW;
 }
