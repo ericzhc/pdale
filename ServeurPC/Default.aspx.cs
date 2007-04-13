@@ -912,9 +912,11 @@ public partial class _Default : System.Web.UI.Page
     *
     * Description : Cette fonction met à jour le camion affecté à un colis
     *
+    * Argument(s) : arr_ColCam  ArrayList contenant les colis et leur camions 
+    *
     *********************************************************************************************************
     */
-    protected void UpdateBDItt(ArrayList arr_ColCam)
+    public void UpdateBDItt(ArrayList arr_ColCam)
     {
         try
         {
@@ -931,6 +933,47 @@ public partial class _Default : System.Web.UI.Page
                  MyCommand = new MySqlCommand(str_Sql, MyConnection);
                  MyCommand.ExecuteNonQuery();
             }  
+        }
+        catch (MySqlException myEx)
+        {
+        }
+    }
+
+    /*
+    *********************************************************************************************************
+    *                                              UpdateBDFinJournee()
+    *
+    * Description : Cette fonction met à jour le camion affecté à un colis
+    *
+    *********************************************************************************************************
+    */
+    public void UpdateBDFinJournee()
+    {
+        try
+        {
+            string str_Sql = "";
+            ArrayList arr_Colis = new ArrayList();
+            MySqlConnection MyConnection = GetConnection();
+
+            str_Sql = "SELECT col_noident FROM colis WHERE col_etat='2'";
+
+            MyCommand = new MySqlCommand(str_Sql, MyConnection);
+            MyReader = MyCommand.ExecuteReader();
+
+            while (MyReader.Read())
+            {
+                arr_Colis.Add(MyReader[0].ToString());
+            }
+            MyReader.Close();
+
+            for (int i = 0; i < arr_Colis.Count; i++)
+            {
+                str_Sql = "UPDATE colis SET cam_nom = '', col_ordre = '0', col_etat = '1'";
+                str_Sql += " WHERE col_noident = '" + arr_Colis[i].ToString() + "'";
+
+                MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                MyCommand.ExecuteNonQuery();
+            }
         }
         catch (MySqlException myEx)
         {
