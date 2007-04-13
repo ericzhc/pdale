@@ -26,7 +26,7 @@
 */
 
 #define  TASK_START_APP_PRIO     5
-#define  TASK_STK_SIZE        1024
+#define  TASK_STK_SIZE        2048
 
 /*
 *********************************************************************************************************
@@ -34,7 +34,7 @@
 *********************************************************************************************************
 */
 
-        OS_STK  AppStartTaskStk[TASK_STK_SIZE];
+OS_STK  AppStartTaskStk[TASK_STK_SIZE];
 
 /*
 *********************************************************************************************************
@@ -56,7 +56,8 @@ int  main (void)
     BSP_Init();                                 /* Initialize BSP                                      */
     printf("Initialize uC/OS-II...\n\r");
     OSInit();                                   /* Initialize uC/OS-II                                 */
-                                                /* Create start task                                   */
+     
+	/* Create start task                                   */
     OSTaskCreateExt(AppStartTask,
                     NULL,
                     (OS_STK *)&AppStartTaskStk[TASK_STK_SIZE-1],
@@ -93,6 +94,7 @@ int  main (void)
 *********************************************************************************************************
 */
 
+
 static void  AppStartTask (void *p_arg)
 {
     INT8U err;
@@ -104,13 +106,18 @@ static void  AppStartTask (void *p_arg)
     OSStatInit();                               /* Start stats task                                    */
 #endif
 	
-	GPS_Init();
+	//GPS_Init();
+	RFDriverInit();
+	//checkNetwork();
+	cell_init();
+	open_socket("2166","skaber.mine.nu");
 
     while (1) {                                 /* Task body, always written as an infinite loop.      */
                                                 /* Delay task execution for 500 ms                     */
-
-		printf("Lat: %s - Long: %s - Alt: %s\n\r", GPSPosition.Latitude, GPSPosition.Longitude, GPSPosition.Altitude);
-		printf("Time : %d:%d:%d\n\r", GPSTimeValue.Hours, GPSTimeValue.Minutes, GPSTimeValue.Seconds);
+		
+		TransmitRfBuffer("AYE BEGIN TES LACETS SONT DETACHES\n\r\0");
+		//printf("Lat: %f - Long: %f - Alt: %f\n\r", GPSPosition.Latitude, GPSPosition.Longitude, GPSPosition.Altitude);
+		//printf("Time : %d:%d:%d\n\r", GPSTimeValue.Hours, GPSTimeValue.Minutes, GPSTimeValue.Seconds);
 		//TransmitBuffer("testing 123\n\r\0"); 
 		//output_byte_serial('a');
 		//output_byte_serial('t');
