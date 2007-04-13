@@ -648,6 +648,7 @@ static void ListColisCallback(WM_MESSAGE * pMsg)
 	WM_HWIN LoadingDialog;
 	static WM_HWIN ListView;
 	
+	//Update du timer
 	NewTimer = GUI_GetTime();
 
 		
@@ -655,12 +656,15 @@ static void ListColisCallback(WM_MESSAGE * pMsg)
 	{
 		case WM_INIT_DIALOG:
 			Flag = 0;
+			//Initialisation du timer
 			OldTimer = GUI_GetTime();
+			//Acquistion du ListView
 			ListView = WM_GetDialogItem(hWin, LV_LISTCOLIS_INFO_ID);
 
 			LISTVIEW_AddColumn(ListView, 90, "# identification", GUI_TA_HCENTER | GUI_TA_VCENTER);
 			LISTVIEW_AddColumn(ListView, 138, "Statut du colis", GUI_TA_HCENTER | GUI_TA_VCENTER);
 			
+			//Construction du ListView
 			LoadingDialog = ShowLoadingDialog();
 			BuildList(ListView, CAMIONCOURANT);
 			GUI_EndDialog(LoadingDialog, 0);
@@ -669,6 +673,7 @@ static void ListColisCallback(WM_MESSAGE * pMsg)
 
 		case WM_NOTIFY_PARENT:
 			
+			//Vérification si 5minutes ont passées
 			if ((NewTimer - OldTimer) > 300000)
 			{
 				NewTimer = GUI_GetTime();
@@ -681,18 +686,22 @@ static void ListColisCallback(WM_MESSAGE * pMsg)
 			switch (NCode) 
 			{
 				case WM_NOTIFICATION_CLICKED:
+					//Si moins de 5 minutes ont passées
 					if (Sentinel != 1)
 					{
+						//Acquisition de l'ID du colis lors d'un premier clique
 						if (Flag == 0)
 						{
 							GetIdColis(LISTVIEW_GetSel(ListView), Colis1);
 							Flag = 1;
 						}
+						//Acquisition de l'ID du colis lors d'un deuxième clique
 						else if (Flag == 1)
 						{
 							GetIdColis(LISTVIEW_GetSel(ListView), Colis2);
 							Flag = 0;
 
+							//Si l'ID du colis est le même lors des deux clique, chargement des caractéristiques du colis 
 							if (strcmp(Colis1, Colis2) == 0)
 							{
 								StringCopy(SQLCOLISNUMBER, Colis2);
@@ -701,10 +710,11 @@ static void ListColisCallback(WM_MESSAGE * pMsg)
 							}
 						}
 					}
+					//Si 5minutes ont passées, on recharge le dialogue
 					else
 					{
 						GUI_EndDialog(hWin, 0);
-						ShowMessage();
+						ShowListColis();
 					}
 					break;
 			
@@ -964,47 +974,50 @@ void BuildList(WM_HWIN opListView, int ipCamion)
 
 	//GetAllPackages(int truckid, char* buffer)  //demande du string
 	
+	//Boucle jusqu'à la fin du string reçu
 	while(String[i] != '*')
 	{
+		//Copie dans le string temporaire jusqu'à un délimiteur de string
 		while( String[i] != ';')
 		{
 			StringLu[j] = String[i];
 			i++;
 			j++;
 		}
-
 		i++;
 		j++;
+		//Copie de l'identificateur dans TABLECOLIS
 		StringCopy(TABLECOLIS[Row][0], StringLu);
+		//Nettoyage du string temporaire
 		for(j = 0; StringLu[j] != '\0'; j++)
 		{
 			StringLu[j] = ' ';
 		}
-
 		j = 0;
+		//Copie dans le string temporaire jusqu'à un délimiteur de string
 		while(String[i] != ';' && String[i] != '*')
 		{
 			StringLu[j] = String[i];
 			i++;
 			j++;
 		}
-
+		//Vérification si on est sur le dernier caractère du string
 		if (String[i] != '*')
 		{
 			i++;
 		}
-
 		j++;
+		//Copie du status dans TABLECOLIS
 		StringCopy(TABLECOLIS[Row][1], StringLu);
+		//Nettoyage du string temporaire
 		for(j = 0; StringLu[j] != '\0'; j++)
 		{
 			StringLu[j] = ' ';
 		}
-
 		j = 0;
 		Row++;
 	}
-
+	//Création du ListView à partir de TABLECOLIS
 	for (i = 0; i < GUI_COUNTOF(TABLECOLIS); i++) 
 	{
 		GUI_ConstString temp[2];
