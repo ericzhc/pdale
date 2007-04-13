@@ -246,25 +246,60 @@ namespace TCPServerReceiver
 
                 while (MyReader.Read())
                 {
-                    str_DonneesColis = MyReader[1].ToString() + ";";
-                    str_DonneesColis += MyReader[2].ToString() + ";";
-                    str_DonneesColis += MyReader[3].ToString() + ";";
-                    str_DonneesColis += MyReader[4].ToString() + ";";
-                    str_DonneesColis += MyReader[5].ToString() + ";";
-                    str_DonneesColis += MyReader[6].ToString() + ";";
-                    str_DonneesColis += MyReader[7].ToString() + ";";
-                    str_DonneesColis += MyReader[8].ToString() + ";";
-                    str_DonneesColis += MyReader[9].ToString() + ";";
-                    str_DonneesColis += MyReader[9].ToString() + ";";
-                    str_DonneesColis += MyReader[10].ToString() + ";";
-                    str_DonneesColis += MyReader[11].ToString() + ";";
-                    str_DonneesColis += MyReader[12].ToString() + ";";
-                    str_DonneesColis += MyReader[13].ToString() + ";";
-                    str_DonneesColis += MyReader[14].ToString() + ";";
-                    str_DonneesColis += MyReader[15].ToString() + "*";;
+                    str_DonneesColis += MyReader[8].ToString() + ";";   // État du colis
+                    str_DonneesColis += MyReader[2].ToString() + ";";   // Nom du client
+                    str_DonneesColis += MyReader[9].ToString() + ";";   // Nom du destinataire
+                    str_DonneesColis += MyReader[3].ToString() + ";";   // Adresse1 du client
+                    str_DonneesColis += MyReader[4].ToString() + ";";   // Adresse2 du client
+                    str_DonneesColis += MyReader[10].ToString() + ";";  // Adresse1 du destinataire
+                    str_DonneesColis += MyReader[11].ToString() + ";";  // Adresse2 du destinataire
+                    str_DonneesColis += MyReader[5].ToString() + ";";   // Plage Horaire de cueilette début
+                    str_DonneesColis += MyReader[6].ToString() + ";";   // Plage Horaire de cueilette fin
+                    str_DonneesColis += MyReader[12].ToString() + ";";  // Plage Horaire de livraison début
+                    str_DonneesColis += MyReader[13].ToString() + ";";  // Plage Horaire de livraison fin
+                    str_DonneesColis += MyReader[7].ToString() + "*";  // Remarque
                 }
                 MyReader.Close();
                 return str_DonneesColis;
+            }
+            catch (MySqlException myEx)
+            {
+                return "";
+            }
+        }
+
+        /*
+        *********************************************************************************************************
+        *                                              GetCamionList()
+        *
+        * Description : Cette fonction retourne la liste des camions
+        *
+        * Return(s)   : string          La liste des camions séparés par un ";"
+        *********************************************************************************************************
+        */
+        public string GetCamionList()
+        {
+            try
+            {
+                string str_Sql = "";
+                string str_CamionList = "";
+                int compteur = 0;
+                MySqlConnection MyConnection = GetConnection();
+                MySqlCommand MyCommand = null;
+                MySqlDataReader MyReader = null;
+
+                str_Sql = "SELECT cam_nom FROM camion";
+
+                MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                MyReader = MyCommand.ExecuteReader();
+
+                while (MyReader.Read())
+                {
+                    str_CamionList += MyReader[0].ToString() + ";";
+                }
+                str_CamionList += "*";
+                MyReader.Close();
+                return str_CamionList;
             }
             catch (MySqlException myEx)
             {
@@ -311,7 +346,7 @@ namespace TCPServerReceiver
 
         /*
         *********************************************************************************************************
-        *                                              GetNomFromIndex()
+        *                                              GetNomCamionFromIndex()
         *
         * Description : Cette fonction retourne le nom du camion correspondant à un index dans la BD
         *
@@ -320,7 +355,7 @@ namespace TCPServerReceiver
         * Return(s)   : string          Le nom du camion
         *********************************************************************************************************
         */
-        public string GetNomFromIndex(string str_IdCamion)
+        public string GetNomCamionFromIndex(string str_IdCamion)
         {
             try
             {
@@ -384,7 +419,7 @@ namespace TCPServerReceiver
 
         /*
         *********************************************************************************************************
-        *                                              GetColis()
+        *                                              GetColisList()
         *
         * Description : Cette fonction retourne la liste des colis et leur état pour un camion donné
         *
@@ -450,7 +485,7 @@ namespace TCPServerReceiver
 
         /*
         *********************************************************************************************************
-        *                                              GetColis()
+        *                                              GetDirectionsFromAdress()
         *
         * Description : Cette fonction effectue un appel au service web MapPoint afin de rechercher deux 
         *               adresses dans le but d'éventuellement tracer un trajet dans une image
@@ -557,7 +592,7 @@ namespace TCPServerReceiver
         //also generates the Map
         /*
         *********************************************************************************************************
-        *                                              GetColis()
+        *                                              GetRoute()
         *
         * Description : Cette fonction effectue le trajet et génère la carte dans un fichier bitmap.
         *
@@ -633,7 +668,7 @@ namespace TCPServerReceiver
 
         /*
         *********************************************************************************************************
-        *                                              GetColis()
+        *                                              GetRouteFromGps()
         *
         * Description : Cette fonction effectue le trajet de génère la carte en bitmap
         *
