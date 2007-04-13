@@ -18,6 +18,10 @@ void GPS_Init(void)
 {
 	ComDriverInit(GPS_CONFIG);
 
+	/*memset(GPSPosition.Latitude, 0x00, 10);
+	memset(GPSPosition.Longitude, 0x00, 10);
+	memset(GPSPosition.Altitude, 0x00, 10);*/
+
 	//strcpy(GPSPosition.Latitude, "1.000");
 	//strcpy(GPSPosition.Longitude, "2.000");
 	//strcpy(GPSPosition.Altitude, "3.000");
@@ -52,36 +56,50 @@ void GPSUpdateTask()
 		while (*(RxBuff.ptrCurrent) != *(RxBuff.ptrEnd)) {
 			*(RxBuff.ptrCurrent) = (*(RxBuff.ptrCurrent)+1) % (int)SERIAL_BUFF_SIZE;
 			//printf("Current: %d - End: %d\n\r", *(RxBuff.ptrCurrent), *(RxBuff.ptrEnd));
-			printf("--- Chars : %x \n\r", RxBuff.Buffer[*(RxBuff.ptrCurrent)]);
+			//printf("--- Chars : %x \n\r", RxBuff.Buffer[*(RxBuff.ptrCurrent)]);
 			ptrGPSBuffEnd = (ptrGPSBuffEnd+1) % (int)TSIP_BUFF_SIZE;
 			GPSBuffer[ptrGPSBuffEnd] = RxBuff.Buffer[*(RxBuff.ptrCurrent)];
 		}
 		ReceivedTSIP();
-		OSTimeDlyHMSM(0,0,0,10);
+		//OSTimeDlyHMSM(0,0,0,10);
 		//printf("GPS Update Task\n\r");
 	}
 }
 
 void ReceivedTSIP()
 {
-	//printf("Current: %d - End: %d\n\r", ptrGPSBuffCurr, ptrGPSBuffEnd);
-	while (ptrGPSBuffCurr != ptrGPSBuffEnd) {
+	//int condition = (ptrGPSBuffCurr+13) % (int)TSIP_BUFF_SIZE;
+	
+	int condition = 0;
+	if (ptrGPSBuffCurr < ptrGPSBuffEnd) {
+		condition = ptrGPSBuffEnd - ptrGPSBuffCurr;
+	} else if (ptrGPSBuffCurr > ptrGPSBuffEnd) {
+		condition = ((int)TSIP_BUFF_SIZE - ptrGPSBuffCurr) + ptrGPSBuffEnd;
+	}
+	printf("Current: %d - End: %d - Condition: %d\n\r", ptrGPSBuffCurr, ptrGPSBuffEnd, condition);
+	while ((ptrGPSBuffCurr != ptrGPSBuffEnd) && (condition > 14)) {
 		
 		ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
 		
-		if((GPSBuffer[ptrGPSBuffCurr] == (char) GPS_DLE) && (ptrGPSBuffCurr != ptrGPSBuffEnd)) {
+		if((GPSBuffer[ptrGPSBuffCurr] == (char) GPS_DLE)) {
 			
 			ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
 			
-			if ((GPSBuffer[ptrGPSBuffCurr] != (char) GPS_ETX) && (ptrGPSBuffCurr != ptrGPSBuffEnd)) {
+			if ((GPSBuffer[ptrGPSBuffCurr] != (char) GPS_ETX)) {
 				
-				if((GPSBuffer[ptrGPSBuffCurr] == (char) GPS_POS) && (ptrGPSBuffCurr != ptrGPSBuffEnd)) {
+				if((GPSBuffer[ptrGPSBuffCurr] == (char) GPS_POS)) {
 					ReadPosition();
 				} else if(GPSBuffer[ptrGPSBuffCurr] == (char) GPS_TIME) {
 					ReadTime();
 				}
 			}
 		}
+		if (ptrGPSBuffCurr < ptrGPSBuffEnd) {
+			condition = ptrGPSBuffEnd - ptrGPSBuffCurr;
+		} else if (ptrGPSBuffCurr > ptrGPSBuffEnd) {
+			condition = ((int)TSIP_BUFF_SIZE - ptrGPSBuffCurr) + ptrGPSBuffEnd;
+		}
+		printf("Current: %d - End: %d - Condition: %d\n\r", ptrGPSBuffCurr, ptrGPSBuffEnd, condition);
 	}
 }
 
@@ -97,55 +115,45 @@ void ReadPosition()
 					24 significant bits, roughly 6.5 digits. Page 87 Lassen Doc
 */
 	// Documentation Page 109 for TSIP structure of a LLA packet
+	printf("Reading position");
+
+	char GPSData[4];
 
 	ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
-	GPSPosition.Latitude[3] = GPSBuffer[ptrGPSBuffCurr];
+	GPSData[3] = GPSBuffer[ptrGPSBuffCurr];
 	ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
-	GPSPosition.Latitude[2] = GPSBuffer[ptrGPSBuffCurr];
+	GPSData[2] = GPSBuffer[ptrGPSBuffCurr];
 	ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
-	GPSPosition.Latitude[1] = GPSBuffer[ptrGPSBuffCurr];
+	GPSData[1] = GPSBuffer[ptrGPSBuffCurr];
 	ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
-	GPSPosition.Latitude[0] = GPSBuffer[ptrGPSBuffCurr];
-	ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
+	GPSData[0] = GPSBuffer[ptrGPSBuffCurr];
 
-	void*  myFloat = GPSPosition.Latitude;
-	float* mySecondFloat = (float*)GPSPosition.Latitude;
-	float value = ((float)*mySecondFloat * 180) /  3.14159265;
+	float* mySecondFloat = (float*)GPSData;
+	GPSPosition.Latitude = (((float)*mySecondFloat) * 180) /  3.14159265;
 
-	sprintf(GPSPosition.Latitude,"%f",value);
-	
-	GPSPosition.Longitude[3] = GPSBuffer[ptrGPSBuffCurr];
 	ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
-	GPSPosition.Longitude[2] = GPSBuffer[ptrGPSBuffCurr];
+	GPSData[3] = GPSBuffer[ptrGPSBuffCurr];
 	ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
-	GPSPosition.Longitude[1] = GPSBuffer[ptrGPSBuffCurr];
+	GPSData[2] = GPSBuffer[ptrGPSBuffCurr];
 	ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
-	GPSPosition.Longitude[0] = GPSBuffer[ptrGPSBuffCurr];
+	GPSData[1] = GPSBuffer[ptrGPSBuffCurr];
 	ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
+	GPSData[0] = GPSBuffer[ptrGPSBuffCurr];
 
-	int i =3;
-	for (i=3; i>=0;i--) {
-		printf("******** %x", GPSPosition.Longitude[i]);
-	}
+	mySecondFloat = (float*)GPSData;
+	GPSPosition.Longitude = (((float)*mySecondFloat) * 180) /  3.14159265;
 
-	myFloat = GPSPosition.Longitude;
-	mySecondFloat = (float*)GPSPosition.Longitude;
-	value = ((float)*mySecondFloat * 180) /  3.14159265;
-	
-	sprintf(GPSPosition.Longitude,"%f",value);
-
-	GPSPosition.Altitude[3] = GPSBuffer[ptrGPSBuffCurr];
 	ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
-	GPSPosition.Altitude[2] = GPSBuffer[ptrGPSBuffCurr];
+	GPSData[3] = GPSBuffer[ptrGPSBuffCurr];
 	ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
-	GPSPosition.Altitude[1] = GPSBuffer[ptrGPSBuffCurr];
+	GPSData[2] = GPSBuffer[ptrGPSBuffCurr];
 	ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
-	GPSPosition.Altitude[0] = GPSBuffer[ptrGPSBuffCurr];
+	GPSData[1] = GPSBuffer[ptrGPSBuffCurr];
+	ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
+	GPSData[0] = GPSBuffer[ptrGPSBuffCurr];
 
-	myFloat = GPSPosition.Altitude;
-	mySecondFloat = (float*)GPSPosition.Altitude;
-
-	sprintf(GPSPosition.Altitude,"%f",*mySecondFloat);
+	mySecondFloat = (float*)GPSData;
+	GPSPosition.Altitude = ((float)*mySecondFloat);
 }
 
 void ReadTime() 
