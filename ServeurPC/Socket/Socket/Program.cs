@@ -218,7 +218,17 @@ namespace TCPServerReceiver
             }
         }
 
-        // Retourne les champs d'un colis séparés par un ; dans un string
+        /*
+        *********************************************************************************************************
+        *                                              GetColis()
+        *
+        * Description : Cette fonction retourne les champs d'un colis séparés par un ";" dans un string
+        *
+        * Argument(s) : str_ColIdent    Le numéro d'identification du colis
+        *
+        * Return(s)   : string          La variable string contenant les champs d'un colis
+        *********************************************************************************************************
+        */
         public string GetColis(string str_ColIdent)
         {
             try
@@ -262,7 +272,15 @@ namespace TCPServerReceiver
             }
         }
 
-        // Retourne le nombre de camion
+        /*
+        *********************************************************************************************************
+        *                                              GetNbrCamion()
+        *
+        * Description : Cette fonction retourne le nombre de camion contenu dans la BD
+        *        
+        * Return(s)   : string          Le nombre de camion contenu dans la BD
+        *********************************************************************************************************
+        */
         public string GetNbrCamion()
         {
             try
@@ -291,7 +309,17 @@ namespace TCPServerReceiver
             }
         }
 
-        // Retourne le nom du camion correspondant à l'index dans la bd
+        /*
+        *********************************************************************************************************
+        *                                              GetNomFromIndex()
+        *
+        * Description : Cette fonction retourne le nom du camion correspondant à un index dans la BD
+        *
+        * Argument(s) : str_IdCamion    L'index du camion
+        *
+        * Return(s)   : string          Le nom du camion
+        *********************************************************************************************************
+        */
         public string GetNomFromIndex(string str_IdCamion)
         {
             try
@@ -325,7 +353,17 @@ namespace TCPServerReceiver
             }
         }
 
-        // Modifie l'etat d'un colis dans la BD
+        /*
+        *********************************************************************************************************
+        *                                              SaveEtatColis()
+        *
+        * Description : Cette fonction modifie l'état d'un colis dans la BD
+        *
+        * Argument(s) : str_IdColis    Le numéro d'identification du colis
+        *               str_EtatColis  Le nouvel état du colis 
+        *
+        *********************************************************************************************************
+        */
         public void SaveEtatColis(string str_IdColis, string str_EtatColis)
         {
             try
@@ -344,7 +382,17 @@ namespace TCPServerReceiver
             }
         }
 
-        // Retourne la liste de colis et de leur etat pour un camion donné
+        /*
+        *********************************************************************************************************
+        *                                              GetColis()
+        *
+        * Description : Cette fonction retourne la liste des colis et leur état pour un camion donné
+        *
+        * Argument(s) : str_NomCamion   Le nom du camion
+        *
+        * Return(s)   : string          La liste des colis et de leur état tous séparés par un ";"
+        *********************************************************************************************************
+        */
         public string GetColisList(string str_NomCamion)
         {
             try
@@ -376,6 +424,15 @@ namespace TCPServerReceiver
             }
         }
 
+        /*
+        *********************************************************************************************************
+        *                                              GetConnection()
+        *
+        * Description : Cette fonction établit une connexion avec la base de données.
+        *
+        * Retourne    : MySqlConnection        La connexion avec la base de données MySql
+        *********************************************************************************************************
+        */
         public static MySqlConnection GetConnection()
         {
             if (m_SqlConnection == null)
@@ -391,8 +448,21 @@ namespace TCPServerReceiver
             return m_SqlConnection;
         }
 
-        // Le format du string à passer en argument à la fonction est celui-ci
-        // ex: strOrigAddress = "1408 RUE DE L'EGLISE;SAINT-LAURENT;QC;H4L2H3;CA";
+        /*
+        *********************************************************************************************************
+        *                                              GetColis()
+        *
+        * Description : Cette fonction effectue un appel au service web MapPoint afin de rechercher deux 
+        *               adresses dans le but d'éventuellement tracer un trajet dans une image
+        *
+        * Argument(s) : strOrigAddress  L'adresse de départ
+        *               strDestAddress  L'adresse de la destination 
+        * 
+        * Note        : Le format du string à passer en argument à la fonction est celui-ci:
+        *               "ADRESSE;VILLE;PROVINCE;CODE POSTAL;PAYS"  
+        *               ex: strOrigAddress = "1408 RUE DE L'EGLISE;SAINT-LAURENT;QC;H4L2H3;CA";
+        *********************************************************************************************************
+        */
         public static void GetDirectionsFromAdress(string strOrigAddress, string strDestAddress)
         {
             FindServiceSoap findService = new FindServiceSoap();
@@ -485,6 +555,17 @@ namespace TCPServerReceiver
 
         //GetRoute:Calculates the Route and 
         //also generates the Map
+        /*
+        *********************************************************************************************************
+        *                                              GetColis()
+        *
+        * Description : Cette fonction effectue le trajet et génère la carte dans un fichier bitmap.
+        *
+        * Argument(s) : sResults        Le résultat de la recherche fait par MapPoint pour l'adresse de départ
+        *               eResults        Le résultat de la recherche fait par MapPoint pour l'adresse de destination
+        * 
+        *********************************************************************************************************
+        */
         public static void GetRoute(FindResults sResults, FindResults eResults)
         {
             SegmentSpecification[] routeSegment;
@@ -550,8 +631,19 @@ namespace TCPServerReceiver
             }
         }
 
-        //GetRoute:Calculates the Route and 
-        //also generates the Map
+        /*
+        *********************************************************************************************************
+        *                                              GetColis()
+        *
+        * Description : Cette fonction effectue le trajet de génère la carte en bitmap
+        *
+        * Argument(s) : OrigLat         Coordonnée GPS Latitude du point d'origine
+        *               OrigLong        Coordonnée GPS Longitude du point d'origine
+        *               DestLat         Coordonnée GPS Latitude du point de destination
+        *               DestLong        Coordonnée GPS Longitude du point de destination
+        * 
+        *********************************************************************************************************
+        */
         public static void GetRouteFromGps(double OrigLat, double OrigLong, double DestLat, double DestLong)
         {
             Location LocDepart = new Location();
@@ -627,7 +719,6 @@ namespace TCPServerReceiver
             {
                 //MessageBox.Show(e.ToString());
             }
-        }
-         
+        }       
     }
 }
