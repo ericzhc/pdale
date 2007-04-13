@@ -6,6 +6,7 @@
 *********************************************************************************************************
 */
 using System;
+using System.Collections;
 using System.Data;
 using System.Drawing;
 using System.Configuration;
@@ -238,6 +239,9 @@ public partial class _Default : System.Web.UI.Page
             string str_PlageDebutDest = "";
             string str_PlageFinDest = "";
             string str_EtatColis = "0";
+            string str_Long = "";
+            string str_Address = "";
+            string[] str_LongLat = new string[2];
             MySqlConnection MyConnection = GetConnection();
             MySqlCommand MyCommand = null;
             MySqlDataReader MyReader = null;
@@ -290,13 +294,27 @@ public partial class _Default : System.Web.UI.Page
                     str_PlageDebutDest = txt_PlageDest1.Text + ":00";
                     str_PlageFinDest = txt_PlageDest2.Text + ":00";
 
+                    /*
+                     * 
+                     * 1408 RUE DE L'EGLISE;SAINT-LAURENT;QC;H4L2H3;CA";
+                    str_Address = txt_AdresseDest.Text + ";";
+                    str_Address += txt_VilleDest.Text + ";";
+                    str_Address += "QC;";
+                    str_Address += txt_CPDest.Text + ";";
+                    str_Address += "CA";
+
+                    */
+
+                    str_LongLat = GetGPSFromAdress(str_Address);
+
                     str_Sql = "INSERT INTO colis (col_noident, col_nomcli, col_adrcli1, col_adrcli2, col_hrdebutcli, col_hrfincli, ";
                     str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest1, col_adrdest2, col_hrdebutdest, col_hrfindest, ";
-                    str_Sql += "col_remarquedest, cam_nom) VALUES ('" + txt_Ident.Text + "', '" + txt_NomClient.Text + "', '" + txt_AdresseClient1.Text;
+                    str_Sql += "col_remarquedest, cam_nom, col_gpslong, col_gpslat) VALUES ('" + txt_Ident.Text + "', '" + txt_NomClient.Text + "', '" + txt_AdresseClient1.Text;
                     str_Sql += "', '" + txt_AdresseClient2.Text + "', '" + str_PlageDebutCli + "', '" + str_PlageFinCli + "', '";
                     str_Sql += txt_RemarquesClient1.Text + "', '" + str_EtatColis + "', '" + txt_NomDest.Text + "', '";
                     str_Sql += txt_AdresseDest1.Text + "', '" + txt_AdresseDest2.Text + "', '" + str_PlageDebutDest + "', '" + str_PlageFinDest;
-                    str_Sql += "', '" + txt_RemarquesDest1.Text + "', '" + dropAssign.SelectedValue.ToString() + "')";
+                    str_Sql += "', '" + txt_RemarquesDest1.Text + "', '" + dropAssign.SelectedValue.ToString() + "', '" + str_LongLat[0];
+                    str_Sql += "', '" + str_LongLat[1] + "')";
 
                     MyCommand = new MySqlCommand(str_Sql, MyConnection);
                     MyCommand.ExecuteNonQuery();
@@ -771,6 +789,151 @@ public partial class _Default : System.Web.UI.Page
     {
         if (m_SqlConnection != null && m_SqlConnection.State == ConnectionState.Open) {
             m_SqlConnection.Close();
+        }
+    }
+
+    /*
+        *********************************************************************************************************
+        *                                              GetGPSFromAdress()
+        *
+        * Description : Cette fonction converti une adresse en coordonnées GPS
+        *
+        * Argument(s) : strOrigAddress  L'adresse de départ 
+        * 
+        * Note        : Le format du string à passer en argument à la fonction est celui-ci:
+        *               "ADRESSE;VILLE;PROVINCE;CODE POSTAL;PAYS"  
+        *               ex: strOrigAddress = "1408 RUE DE L'EGLISE;SAINT-LAURENT;QC;H4L2H3;CA";
+        *********************************************************************************************************
+        */
+    public static string[] GetGPSFromAdress(string strOrigAddress)
+    {
+        FindServiceSoap findService = new FindServiceSoap();
+        findService.Credentials = new System.Net.NetworkCredential("124624", "PDALE_projets5");
+        FindSpecification findSpec = new FindSpecification();
+        FindResults startResults = null;
+        FindResults endResults = null;
+
+
+        //Output the formatted address
+        string[] strTemp = new String[5];
+        strTemp = strOrigAddress.Split(';');
+
+        Address myOrigAddress = new Address();
+        myOrigAddress.AddressLine = strTemp[0];
+        myOrigAddress.PrimaryCity = strTemp[1];
+        myOrigAddress.Subdivision = strTemp[2];
+        myOrigAddress.PostalCode = strTemp[3];
+        myOrigAddress.CountryRegion = strTemp[4];
+
+        FindAddressSpecification findOrigAddressSpec = new FindAddressSpecification();
+        findOrigAddressSpec.InputAddress = myOrigAddress;
+        findOrigAddressSpec.DataSourceName = "MapPoint.NA";
+
+        //Retrieve the values of startResults
+        try
+        {
+            startResults = findService.FindAddress(findOrigAddressSpec);
+        }
+        catch (Exception e2)  //The request failed with HTTP status 401: Unauthorized.
+        {
+            Console.WriteLine("Problem connecting with service");
+        }
+
+        // Make sure findResults isn't null
+        if (startResults == null)
+        {
+            Console.WriteLine("Originating Address not found.");
+        }
+        else
+        {
+            // If no results were found, display error and return
+            if (startResults.NumberFound == 0)
+            {
+                Console.WriteLine("Originating Address not found.");
+                return;
+            }
+        }
+
+        string[] strLongLat = new string[2];
+        strLongLat[0] = startResults.Results[0].FoundLocation.LatLong.Longitude.ToString();
+        strLongLat[1] = startResults.Results[0].FoundLocation.LatLong.Latitude.ToString();
+
+        return strLongLat;
+
+    }
+
+    /*
+    *********************************************************************************************************
+    *                                              GetColisForItt()
+    *
+    * Description : Cette fonction selectionne tous les colis de la bd ayant comme état 0 ou 1 et insère leur
+    *               id et coordonnées gps dans un ArrayList 
+    *
+    *
+    * Retourne    : ArrayList        ArrayList contenant tous les colis correspondant
+    *********************************************************************************************************
+    */
+    public static ArrayList GetColisForItt()
+    {
+        try
+        {
+            string str_Sql = "";
+            MySqlConnection MyConnection = GetConnection();
+            MySqlCommand MyCommand = null;
+            MySqlDataReader MyReader = null;
+            ArrayList arr_ColisToReturn = new ArrayList();
+
+            // Verification de la presence d'un numero de colis dans la BD
+            str_Sql = "SELECT col_gpslong, col_gpslat, col_noident FROM colis WHERE col_etat='0' OR col_etat='1'";
+
+            MyCommand = new MySqlCommand(str_Sql, MyConnection);
+            MyReader = MyCommand.ExecuteReader();
+
+            while (MyReader.Read())
+            {
+                ArrayList arr_Colis = new ArrayList();
+                arr_Colis.Add(MyReader[0].ToString());
+                arr_Colis.Add(MyReader[1].ToString());
+                arr_Colis.Add(MyReader[2].ToString());
+                arr_ColisToReturn.Add(arr_Colis);
+            }
+            MyReader.Close();
+
+            return arr_ColisToReturn;
+        }
+        catch (MySqlException myEx)
+        {
+        }       
+    }
+
+    /*
+    *********************************************************************************************************
+    *                                              UpdateBDItt()
+    *
+    * Description : Cette fonction met à jour le camion affecté à un colis
+    *
+    *********************************************************************************************************
+    */
+    protected void UpdateBDItt(ArrayList arr_ColCam)
+    {
+        try
+        {
+            string str_Sql = "";
+            string str_Ordre = "";
+            MySqlConnection MyConnection = GetConnection();
+            MySqlCommand MyCommand = null;
+
+            for (int i=0; i<arr_ColCam.Count; i++)
+            {
+                 str_Ordre = (i+1).ToString();
+                 str_Sql = "UPDATE colis SET cam_nom = '" + arr_ColCam[i][1] + "', col_ordre = '" +  str_Ordre + "' ";
+                 str_Sql += "WHERE col_noident = '" + arr_ColCam[i][0] + "'"; 
+                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                 MyCommand.ExecuteNonQuery();
+            }  
+        }
+        catch (MySqlException myEx)
+        {
         }
     }
 }
