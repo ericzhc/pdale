@@ -1,3 +1,0 @@
-exec tftp:132.210.78.66 loadscriptFlashUS.txt
-
-
