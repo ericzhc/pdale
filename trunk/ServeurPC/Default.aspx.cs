@@ -29,6 +29,7 @@ public partial class _Default : System.Web.UI.Page
     private MySqlConnection m_SqlConnection;
     static bool onMsgDiv;
     static bool onListeDiv;
+    bool JourneeFlag = false;
 
     const char COMMAND_DELIMITER = ';';
     const int COMMAND_GETMSGS = 0x35;
@@ -73,12 +74,9 @@ public partial class _Default : System.Web.UI.Page
                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
                 MyReader = MyCommand.ExecuteReader();
 
-                int i = 0;
-
                 // Emplissage des menus déroulant des camions
                 while (MyReader.Read())
                 {
-                    dropAssign.Items.Add(MyReader[0].ToString());
                     dropCamion.Items.Add(MyReader[0].ToString());
                     dropRetirer.Items.Add(MyReader[0].ToString());
                 }
@@ -301,18 +299,12 @@ public partial class _Default : System.Web.UI.Page
                     str_PlageDebutDest = txt_PlageDest1.Text + ":00";
                     str_PlageFinDest = txt_PlageDest2.Text + ":00";
 
-                    /*
-                     * 
-                     * 1408 RUE DE L'EGLISE;SAINT-LAURENT;QC;H4L2H3;CA";
-                    str_Address = txt_AdresseDest.Text + ";";
-                    str_Address += txt_VilleDest.Text + ";";
-                    str_Address += "QC;";
-                    str_Address += txt_CPDest.Text + ";";
-                    str_Address += "CA";
-
-                    */
-
-               //     str_LongLat = GetGPSFromAdress(str_Address);
+                  //  str_LongLat = GetGPSFromAdress(str_Address);
+                    string str_CamionName = "";  
+                    if (str_EtatColis == "0" && JourneeFlag)
+                    {
+                        AssignClosestCamion(str_LongLat, ref str_CamionName);
+                    }
 
                     str_Sql = "INSERT INTO colis (col_noident, col_nomcli, col_adrcli1, col_adrcli2, col_hrdebutcli, col_hrfincli, ";
                     str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest1, col_adrdest2, col_hrdebutdest, col_hrfindest, ";
@@ -320,7 +312,7 @@ public partial class _Default : System.Web.UI.Page
                     str_Sql += "', '" + txt_AdresseClient2.Text + "', '" + str_PlageDebutCli + "', '" + str_PlageFinCli + "', '";
                     str_Sql += txt_RemarquesClient1.Text + "', '" + str_EtatColis + "', '" + txt_NomDest.Text + "', '";
                     str_Sql += txt_AdresseDest1.Text + "', '" + txt_AdresseDest2.Text + "', '" + str_PlageDebutDest + "', '" + str_PlageFinDest;
-                    str_Sql += "', '" + txt_RemarquesDest1.Text + "', '" + dropAssign.SelectedValue.ToString() + "', '" + str_LongLat[0];
+                    str_Sql += "', '" + txt_RemarquesDest1.Text + "', '" + str_CamionName + "', '" + str_LongLat[0];
                     str_Sql += "', '" + str_LongLat[1] + "')";
 
                     MyCommand = new MySqlCommand(str_Sql, MyConnection);
@@ -405,7 +397,6 @@ public partial class _Default : System.Web.UI.Page
                 txt_PlageDest1.Text = MyReader[12].ToString().Substring(0, 5);
                 txt_PlageDest2.Text = MyReader[13].ToString().Substring(0, 5);
                 txt_RemarquesDest1.Text = MyReader[14].ToString();
-                dropAssign.SelectedValue = MyReader[15].ToString();
             }
             MyReader.Close();
         }
@@ -465,7 +456,7 @@ public partial class _Default : System.Web.UI.Page
             str_Sql += "', col_etat = '" + str_EtatColis + "', col_nomdest = '" + txt_NomDest.Text + "', col_adrdest1 = '";
             str_Sql += txt_AdresseDest1.Text + "', col_adrdest2 = '" + txt_AdresseDest2.Text + "', col_hrdebutdest = '" + str_PlageDebutDest;
             str_Sql += "', col_hrfindest = '" + str_PlageFinDest + "', col_remarquedest ='" + txt_RemarquesDest1.Text;
-            str_Sql += "', cam_nom = '" + dropAssign.SelectedValue.ToString() + "' WHERE col_noident = '" + txt_Ident.Text + "'";
+            str_Sql += "' WHERE col_noident = '" + txt_Ident.Text + "'";
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyCommand.ExecuteNonQuery();
@@ -503,7 +494,6 @@ public partial class _Default : System.Web.UI.Page
         rdb_Etat2.Checked = false;
         rdb_Etat3.Checked = false;
         rdb_Etat4.Checked = false;
-        dropAssign.SelectedIndex = 0;
     }
 
     /*
@@ -602,7 +592,6 @@ public partial class _Default : System.Web.UI.Page
                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
                 MyCommand.ExecuteNonQuery();
 
-                dropAssign.Items.Add(txt_AjoutCamion.Text);
                 dropCamion.Items.Add(txt_AjoutCamion.Text);
                 dropRetirer.Items.Add(txt_AjoutCamion.Text);
 
@@ -640,7 +629,6 @@ public partial class _Default : System.Web.UI.Page
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyCommand.ExecuteNonQuery();
 
-            dropAssign.Items.Remove(dropRetirer.SelectedValue);
             dropCamion.Items.Remove(dropRetirer.SelectedValue);
             dropRetirer.Items.Remove(dropRetirer.SelectedValue);
         }
@@ -664,11 +652,11 @@ public partial class _Default : System.Web.UI.Page
     protected void cmdDeterminationItineraire_Click(object sender, EventArgs e)
     {
         divCamion.Visible = true;
-
+        JourneeFlag = true;
         try
         {
             ArrayList ColisList = new ArrayList();
-            GetColisForItt(ref ColisList);
+            GetColisForItt(ref ColisList, 1);
             int CamionQuantity = 0;
             GetCamionQuantity(ref CamionQuantity);
             UpdateBDItt(DetermineItinerary(ColisList, CamionQuantity));
@@ -692,38 +680,10 @@ public partial class _Default : System.Web.UI.Page
     protected void cmdFinJournee_Click(object sender, EventArgs e)
     {
         divCamion.Visible = true;
-
+        JourneeFlag = false;
         try
         {
-            string str_Sql = "";
-            MySqlConnection MyConnection = GetConnection();
-            MySqlCommand MyCommand = null;
-            MySqlDataReader MyReader = null;
-
-            // Verification de la presence d'un numero de colis dans la BD
-            str_Sql = "SELECT * FROM camion WHERE cam_nom='" + txt_AjoutCamion.Text + "'";
-
-            MyCommand = new MySqlCommand(str_Sql, MyConnection);
-            MyReader = MyCommand.ExecuteReader();
-
-            if (MyReader.Read())
-            {
-                lblErrorCam.Visible = true;
-            }
-            else
-            {
-                str_Sql = "INSERT INTO camion (cam_nom) VALUES ('" + txt_AjoutCamion.Text + "')";
-
-                MyCommand = new MySqlCommand(str_Sql, MyConnection);
-                MyCommand.ExecuteNonQuery();
-
-                dropAssign.Items.Add(txt_AjoutCamion.Text);
-                dropCamion.Items.Add(txt_AjoutCamion.Text);
-                dropRetirer.Items.Add(txt_AjoutCamion.Text);
-
-                txt_AjoutCamion.Text = "";
-            }
-            MyReader.Close();
+            UpdateBDFinJournee();
         }
         catch (MySqlException myEx)
         {
@@ -908,7 +868,7 @@ public partial class _Default : System.Web.UI.Page
         *               ex: strOrigAddress = "1408 RUE DE L'EGLISE;SAINT-LAURENT;QC;H4L2H3;CA";
         *********************************************************************************************************
         */
-/*    public static string[] GetGPSFromAdress(string strOrigAddress)
+  /*  public static string[] GetGPSFromAdress(string strOrigAddress)
     {
         FindServiceSoap findService = new FindServiceSoap();
         findService.Credentials = new System.Net.NetworkCredential("124624", "PDALE_projets5");
@@ -963,8 +923,8 @@ public partial class _Default : System.Web.UI.Page
 
         return strLongLat;
 
-    }
-    */
+    }*/
+    
     /*
    *********************************************************************************************************
    *                                              GetCamionQuantity()
@@ -1046,9 +1006,11 @@ public partial class _Default : System.Web.UI.Page
     *
     *
     * Argument    : arr_ColisToReturn  ArrayList contenant tous les colis correspondant
+    *               NewCueiletteFlag   Flag qui détermine si on cherche les colis pour batir l'itineraire (1)
+    *                                  ou si l'on est en mode d'ajout d'une cueilette dans la BD. (2)
     *********************************************************************************************************
     */
-    public void GetColisForItt(ref ArrayList arr_ColisToReturn)
+    public void GetColisForItt(ref ArrayList arr_ColisToReturn, int NewCueiletteFlag)
     {
         try
         {
@@ -1058,8 +1020,7 @@ public partial class _Default : System.Web.UI.Page
             MySqlDataReader MyReader = null;
             arr_ColisToReturn = new ArrayList();
 
-            // Verification de la presence d'un numero de colis dans la BD
-            str_Sql = "SELECT col_gpslong, col_gpslat, col_noident FROM colis WHERE col_etat='0' OR col_etat='1'";
+            str_Sql = "SELECT col_gpslong, col_gpslat, col_noident FROM colis WHERE col_etat='0' OR col_etat='" + NewCueiletteFlag + "'";
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyReader = MyCommand.ExecuteReader();
@@ -1280,5 +1241,46 @@ public partial class _Default : System.Web.UI.Page
 
         return ReturnClosest;
     }
- 
+
+    /*
+    *********************************************************************************************************
+    *                                              AssignClosestCamion()
+    *
+    * Description : Cette fonction trouve le camion qui sera le plus près du nouveau colis
+    * 
+    * Arguments   : str_LongLat       Tableau de string avec la position du nouveau colis
+    *               str_CamionName    Le nom du camion qui sera assigné au colis
+    *
+    * Return      : 
+    *
+    *********************************************************************************************************
+    */
+    private void AssignClosestCamion(string[] str_LongLat, ref string str_CamionName)
+    {
+        try
+        {
+            string str_Sql = "";
+            MySqlCommand MyCommand = null;
+            MySqlDataReader MyReader = null;
+            MySqlConnection MyConnection = GetConnection();
+
+            ArrayList ColisList = new ArrayList();
+            GetColisForItt(ref ColisList, 2);
+            double Distance = 0;
+            int ClosestPackage = FindClosestPackage(ColisList, double.Parse(str_LongLat[0]), double.Parse(str_LongLat[1]), ref Distance);
+
+            str_Sql = "SELECT col_cam FROM colis WHERE col_noident = '" + ((ArrayList)ColisList[ClosestPackage])[2].ToString() + "'"; // PackageID
+
+            MyCommand = new MySqlCommand(str_Sql, MyConnection);
+            MyReader = MyCommand.ExecuteReader();
+
+            while (MyReader.Read())
+            {
+                str_CamionName = str_Sql;
+            }
+        }
+        catch (MySqlException myEx)
+        {
+        }
+    }
 }
