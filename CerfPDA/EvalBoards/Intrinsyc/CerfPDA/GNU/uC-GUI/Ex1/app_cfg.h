@@ -39,11 +39,15 @@
 
 #define  MALLOCMUTEX_PIP                           6
 //#define  MALLOCMUTEX_PIP                          8
-#define  RTPJITBUFMUTEX_PIP                        7
-#define  MEDIASTREAMMNG_TASK_PRIO                  9
+//#define  RTPJITBUFMUTEX_PIP                        7
+//#define  MEDIASTREAMMNG_TASK_PRIO                  9
 
 #define TASK_SERIAL_PRIO						   7
-
+#define TASK_RFSERIAL_PRIO						   8
+#define TASK_GPS_PRIO							   9
+#define TASK_GPS_SEND_PRIO						  10
+#define TASK_BCR_PRIO							  13
+#define TASK_MAP_PRIO							  15
 
 #define  MSTREAMRX_TASK_PRIO                      11
 #define  SIPEVNT_PIP                              12
