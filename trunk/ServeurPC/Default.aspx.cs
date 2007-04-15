@@ -305,7 +305,7 @@ public partial class _Default : System.Web.UI.Page
 
                     */
 
-                    str_LongLat = GetGPSFromAdress(str_Address);
+               //     str_LongLat = GetGPSFromAdress(str_Address);
 
                     str_Sql = "INSERT INTO colis (col_noident, col_nomcli, col_adrcli1, col_adrcli2, col_hrdebutcli, col_hrfincli, ";
                     str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest1, col_adrdest2, col_hrdebutdest, col_hrfindest, ";
@@ -870,7 +870,7 @@ public partial class _Default : System.Web.UI.Page
             m_SqlConnection.Close();
         }
     }
-
+/*
     /*
         *********************************************************************************************************
         *                                              GetGPSFromAdress()
@@ -884,7 +884,7 @@ public partial class _Default : System.Web.UI.Page
         *               ex: strOrigAddress = "1408 RUE DE L'EGLISE;SAINT-LAURENT;QC;H4L2H3;CA";
         *********************************************************************************************************
         */
-    public static string[] GetGPSFromAdress(string strOrigAddress)
+/*    public static string[] GetGPSFromAdress(string strOrigAddress)
     {
         FindServiceSoap findService = new FindServiceSoap();
         findService.Credentials = new System.Net.NetworkCredential("124624", "PDALE_projets5");
@@ -940,7 +940,7 @@ public partial class _Default : System.Web.UI.Page
         return strLongLat;
 
     }
-
+    */
     /*
    *********************************************************************************************************
    *                                              GetCamionQuantity()
@@ -961,7 +961,7 @@ public partial class _Default : System.Web.UI.Page
             CamionQuantity = 0;
 
             // Verification de la presence d'un numero de colis dans la BD
-            str_Sql = "SELECT ALL cam_id FROM camion";
+            str_Sql = "SELECT cam_numero FROM camion";
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyReader = MyCommand.ExecuteReader();
@@ -997,7 +997,7 @@ public partial class _Default : System.Web.UI.Page
             MySqlDataReader MyReader = null;
 
             // Verification de la presence d'un numero de colis dans la BD
-            str_Sql = "SELECT cam_nom FROM camion WHERE cam_id = '" + CamionID + "'"; ;
+            str_Sql = "SELECT cam_nom FROM camion WHERE cam_numero = '" + CamionID + "'"; ;
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyReader = MyCommand.ExecuteReader();
@@ -1109,7 +1109,7 @@ public partial class _Default : System.Web.UI.Page
 
             ArrayList arr_Colis = new ArrayList();
 
-            str_Sql = "SELECT ALL col_noident FROM colis";
+            str_Sql = "SELECT col_noident FROM colis";
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyReader = MyCommand.ExecuteReader();
