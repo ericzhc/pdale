@@ -16,7 +16,7 @@ void RFDriverInit();
 void ISR_Serial_RF();
 void TransmitRfBuffer(char*);
 void BufferRfTransmissionTask();
-void open_socket(char* port,char* ipaddress);
+int open_socket(char* port,char* ipaddress);
 void DonneeRecue(char* buffer);
 
 /*
