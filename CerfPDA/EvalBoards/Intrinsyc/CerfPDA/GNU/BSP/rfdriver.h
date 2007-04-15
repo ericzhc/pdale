@@ -15,7 +15,7 @@ void ISR_Serial_RF();
 void TransmitRfBuffer(char*);
 void BufferRfTransmissionTask();
 int open_socket(char* port,char* ipaddress);
-void DonneeRecue(char* buffer);
+int DonneeRecue(char* buffer, INT16U timeout);
 
 /*
 *********************************************************************************************************
