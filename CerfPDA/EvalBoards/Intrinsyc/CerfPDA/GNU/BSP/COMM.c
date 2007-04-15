@@ -108,15 +108,26 @@ void SendMessage(int truckid, char* msg)
 
 void CodeBarreInit()
 {
-
+	BCR_Enable();
 }
 
 void CodeBarreRead(char* code)
 {
+	INT8U err;
 
+	OSFlagPend(bcFlag, 
+		BAR_CODE_AVAILABLE,
+		OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 
+		0,
+		&err);
+	strcpy(code,BCRValue); 
+	OSFlagPost(bcFlag, 
+		BAR_CODE_CONSUMED, 
+		OS_FLAG_SET, 
+		&err);
 }
 
 void CodeBarreDisable()
 {
-
+	BCR_Disable();
 }

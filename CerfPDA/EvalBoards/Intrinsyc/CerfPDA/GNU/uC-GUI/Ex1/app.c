@@ -107,17 +107,29 @@ static void  AppStartTask (void *p_arg)
    // printf("Start statistics...\n\r");
     //OSStatInit();                               /* Start stats task                                    */
 #endif
+	BCR_Init();
+	
 	
 	//GPS_Init();
-	RFDriverInit();
-	checkNetwork();
-	while(cell_init()==0);
-	while(open_socket("2166","skaber.mine.nu")==0);
+	//RFDriverInit();
+	
 
     while (1) {                                 /* Task body, always written as an infinite loop.      */
                                                 /* Delay task execution for 500 ms                     */
-		TransmitRfBuffer("AYE BEGIN TES LACETS SONT DETACHES\n\r\0");
-		OSTimeDly(100);
+		//TransmitRfBuffer("AYE BEGIN TES LACETS SONT DETACHES\n\r\0");
+		//BCRUpdateTask();
+		//OSTimeDly(100);
+
+		OSFlagPend(bcFlag, 
+			BAR_CODE_AVAILABLE,
+			OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 
+			0,
+			&err);
+		printf("bar Code Read : %s", BCRValue); 
+		OSFlagPost(bcFlag, 
+			BAR_CODE_CONSUMED, 
+			OS_FLAG_SET, 
+			&err);
 
     }
 }

@@ -110,18 +110,22 @@ void ConfigGPS()
 
 void ConfigBCR()
 {
-	// 9600, odd parity, 1 stop bit, 8 bit config, FIFO enabled
-	setBaudRate(SF_9600_BAUDS);
-	LCR = 0;
-	LCR |= 0x03;	// 8 bits configuration
-	LCR &= 0xFB;	// 1 stop bit
-	setParity(PARITY_NONE);
-	SetCTS();		// Enable Auto-CTS
-
-	MCR = 0;
+	int temp1;
 	
-	MCR |= 0x01;
-	MCR |= 0x08;		// OP output to low to activate the RS-232 buffer
+	temp1 = LCR;
+
+	EFR = 0x10;		// enable enhanced fucntions access
+	IER = 0;		// disable all interrupts
+	FCR = 0x06;		// clear Rx and Tx FIFOs
+	FCR = 0xA1;		// FIFO trigger levels: tx=32, rx=32
+	EFR = 0x00;     // disable enhanced functions access
+	LCR = 0x03;     // 8 data bits, 1 stop bit, no parity		
+	setBaudRate(SF_9600_BAUDS);
+	MCR = 0x0F;     //  RTS = on
+					//  DTR = on
+					//  FIFO Rdy enable = on
+					//  IRQ enable  = on
+	temp1 = MSR;
 	printf("Init done...serial front\n\r");
 }
 
