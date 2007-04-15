@@ -13,17 +13,11 @@ void ReceiveData(char cmd, char* buffer)
 	// Wait for the data to be received
 	OSFlagPend(RfFlag, TCP_TRANSFER_RECEIVED, OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 0,&err);
 
-	while((ptrRfRxBuffCurr != ptrRfRxBuffEnd) && (RxRfSerialBuffer[ptrRfRxBuffCurr] != cmd)) {
+	int i = 0;
+	while((ptrRfRxBuffCurr != ptrRfRxBuffEnd) && (RxRfSerialBuffer[ptrRfRxBuffCurr] != COMMAND_EOL)) {
 		ptrRfRxBuffCurr = (ptrRfRxBuffCurr + 1) % (int) SERIAL_BUFF_SIZE;
-	}
-
-	if((ptrRfRxBuffCurr != ptrRfRxBuffEnd)) {
-		int i = 0;
-		while((ptrRfRxBuffCurr != ptrRfRxBuffEnd) && (RxRfSerialBuffer[ptrRfRxBuffCurr] != COMMAND_EOL)) {
-			ptrRfRxBuffCurr = (ptrRfRxBuffCurr + 1) % (int) SERIAL_BUFF_SIZE;
-			buffer[i] = RxRfSerialBuffer[ptrRfRxBuffCurr];
-			i++;
-		}
+		buffer[i] = RxRfSerialBuffer[ptrRfRxBuffCurr];
+		i++;
 	}
 }
 

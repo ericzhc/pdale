@@ -12,19 +12,12 @@ char GPSBuffer[TSIP_BUFF_SIZE];
 int ptrGPSBuffCurr = 0, ptrGPSBuffEnd = 0;
 // Required
 OS_STK GPSUpdateTaskStk[TASK_GPS_SIZE];
+OS_STK GPSSendDataTaskTsk[TASK_GPS_SIZE];
 INT8U err;
 
 void GPS_Init(void) 
 {
 	ComDriverInit(GPS_CONFIG);
-
-	/*memset(GPSPosition.Latitude, 0x00, 10);
-	memset(GPSPosition.Longitude, 0x00, 10);
-	memset(GPSPosition.Altitude, 0x00, 10);*/
-
-	//strcpy(GPSPosition.Latitude, "1.000");
-	//strcpy(GPSPosition.Longitude, "2.000");
-	//strcpy(GPSPosition.Altitude, "3.000");
 
 	#if DEBUG
 		printf("Starting GPS update task\n\r");
@@ -39,9 +32,37 @@ void GPS_Init(void)
                 NULL,
                 OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR
 	);
+	OSTaskCreateExt(GPSSendDataTask,
+                NULL,
+                (OS_STK *)&GPSSendDataTaskTsk[TASK_GPS_SIZE-1],
+                TASK_GPS_SEND_PRIO,
+                TASK_GPS_SEND_PRIO,
+                (OS_STK *)&GPSSendDataTaskTsk[0],
+                TASK_GPS_SIZE,
+                NULL,
+                OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR
+	);
 	#if DEBUG
 		printf("Init done...GPS\n\r");
 	#endif
+}
+
+void GPSSendDataTask() 
+{
+	while (1) {
+		// Send GPS data to server every 2 minutes
+		OSTimeDlyHMSM(0,GPSDELAY,0,0);
+		char* latvalues = (char*)&(GPSPosition.Latitude);
+		char* longvalues = (char*)&(GPSPosition.Longitude);
+		char data[] = {COMMAND_GPSCOORD, 
+					latvalues[0], latvalues[1], 
+					latvalues[2], latvalues[3], 
+					longvalues[0], longvalues[1], 
+					longvalues[2], longvalues[3], 
+					COMMAND_EOL};
+
+		TransmitRfBuffer(data);
+	}
 }
 
 void GPSUpdateTask() 
@@ -55,14 +76,10 @@ void GPSUpdateTask()
 			&err);
 		while (*(RxBuff.ptrCurrent) != *(RxBuff.ptrEnd)) {
 			*(RxBuff.ptrCurrent) = (*(RxBuff.ptrCurrent)+1) % (int)SERIAL_BUFF_SIZE;
-			//printf("Current: %d - End: %d\n\r", *(RxBuff.ptrCurrent), *(RxBuff.ptrEnd));
-			//printf("--- Chars : %x \n\r", RxBuff.Buffer[*(RxBuff.ptrCurrent)]);
 			ptrGPSBuffEnd = (ptrGPSBuffEnd+1) % (int)TSIP_BUFF_SIZE;
 			GPSBuffer[ptrGPSBuffEnd] = RxBuff.Buffer[*(RxBuff.ptrCurrent)];
 		}
 		ReceivedTSIP();
-		//OSTimeDlyHMSM(0,0,0,10);
-		//printf("GPS Update Task\n\r");
 	}
 }
 
@@ -76,7 +93,7 @@ void ReceivedTSIP()
 	} else if (ptrGPSBuffCurr > ptrGPSBuffEnd) {
 		condition = ((int)TSIP_BUFF_SIZE - ptrGPSBuffCurr) + ptrGPSBuffEnd;
 	}
-	printf("Current: %d - End: %d - Condition: %d\n\r", ptrGPSBuffCurr, ptrGPSBuffEnd, condition);
+	//printf("Current: %d - End: %d - Condition: %d\n\r", ptrGPSBuffCurr, ptrGPSBuffEnd, condition);
 	while ((ptrGPSBuffCurr != ptrGPSBuffEnd) && (condition > 14)) {
 		
 		ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
@@ -99,7 +116,7 @@ void ReceivedTSIP()
 		} else if (ptrGPSBuffCurr > ptrGPSBuffEnd) {
 			condition = ((int)TSIP_BUFF_SIZE - ptrGPSBuffCurr) + ptrGPSBuffEnd;
 		}
-		printf("Current: %d - End: %d - Condition: %d\n\r", ptrGPSBuffCurr, ptrGPSBuffEnd, condition);
+		//printf("Current: %d - End: %d - Condition: %d\n\r", ptrGPSBuffCurr, ptrGPSBuffEnd, condition);
 	}
 }
 

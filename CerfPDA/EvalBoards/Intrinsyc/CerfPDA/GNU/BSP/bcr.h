@@ -1,7 +1,6 @@
 #ifndef BCR_H
 #define BCR_H
 
-#define TASK_BCR_PRIO 9
 #define TASK_BCR_SIZE 1024
 
 #define MAX_BARCODE_LENGTH 11

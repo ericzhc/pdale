@@ -2,7 +2,6 @@
 #define GPS_H
 
 #define TSIP_BUFF_SIZE 1024
-#define TASK_GPS_PRIO 8
 #define TASK_GPS_SIZE 1024
 
 #define GPS_DLE 0x10
@@ -10,6 +9,7 @@
 #define GPS_TIME 0x41
 #define	GPS_ETX 0x03
 
+#define GPSDELAY 2 // Time to update the GPS position on the remote server in minutes
 #define SECONDS_IN_ONE_DAY 60*60*24
 
 typedef struct {
@@ -32,6 +32,7 @@ GPSTime GPSTimeValue;
 
 void GPS_Init();
 void GPSUpdateTask();
+void GPSSendDataTask();
 void ReadPosition();
 void ReadTime();
 void GPS_Disable();
