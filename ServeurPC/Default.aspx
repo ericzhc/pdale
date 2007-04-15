@@ -175,6 +175,8 @@
                                 Visible="False" Width="205px"></asp:Label></td>
                             <td><asp:Button ID="cmdAjouterCamion" runat="server" BackColor="#FF8000" BorderColor="Black"
                                                     Font-Bold="True" OnClick="cmdAjouterCamion_Click" Text="Ajouter ce camion" Width="200px" /></td>
+                            <td><asp:Button ID="cmdDeterminationItineraire" runat="server" BackColor="#FF8000" BorderColor="Black"
+                                                    Font-Bold="True" OnClick="cmdDeterminationItineraire_Click" Text="Déterminer les itinéraires" Width="200px" /></td>
                         </tr>
                     </table></td>
                 
@@ -185,6 +187,8 @@
                         <tr><td><asp:DropDownList ID="dropRetirer" width="200px" runat="server"></asp:DropDownList></td>
                             <td><asp:Button ID="cmdRetirerCamion" runat="server" BackColor="#FF8000" BorderColor="Black"
                                                     Font-Bold="True" OnClick="cmdRetirerCamion_Click" Text="Retirer ce camion" Width="200px" /></td>
+                            <td><asp:Button ID="cmdFinJournee" runat="server" BackColor="#FF8000" BorderColor="Black"
+                                                    Font-Bold="True" OnClick="cmdFinJournee_Click" Text="Fin de la journée" Width="200px" /></td>
                         </tr>
                     </table></td>
                 
