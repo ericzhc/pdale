@@ -124,7 +124,6 @@
                         </table>
                     </td><td></td><td></td>
                 </tr>                    
-                <tr><td style="width: 70px" bgcolor="#800">Assigner à : </td><td><asp:DropDownList ID="dropAssign" Width="200px" runat="server"></asp:DropDownList></td></tr>
                 <tr><td style="width: 70px">
                     <asp:Button ID="cmdValiderAjout" runat="server" BackColor="#FF8000" BorderColor="Black"
                         Font-Bold="True" OnClick="cmdValiderAjout_Click" Text="Ajouter ce colis" Width="200px" /></td>
