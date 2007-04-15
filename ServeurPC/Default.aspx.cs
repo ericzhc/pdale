@@ -58,7 +58,7 @@ public partial class _Default : System.Web.UI.Page
         lblErrorCam.Visible = false;
         divListe.Visible = false;
 
-        Timer2_Tick(null, null);
+        //Timer2_Tick(null, null);
 
         // Ce code est roulé lors du premier chargement de la page web
         if (!IsPostBack)
@@ -245,7 +245,6 @@ public partial class _Default : System.Web.UI.Page
             string str_PlageDebutDest = "";
             string str_PlageFinDest = "";
             string str_EtatColis = "0";
-            string str_Long = "";
             string str_Address = "";
             string[] str_LongLat = new string[2];
             MySqlConnection MyConnection = GetConnection();
@@ -263,15 +262,17 @@ public partial class _Default : System.Web.UI.Page
             {
                 lblError.Text = "Le colis existe déjà!";
                 lblError.Visible = true;
+                MyReader.Close();
             }
             else
             {
+                MyReader.Close();
                 if (rdb_Etat3.Checked == true)
                 {
                     lblError.Text = "État initial invalide";
                     lblError.Visible = true;
                 }
-                else if (rdb_Etat3.Checked == true)
+                else if (rdb_Etat4.Checked == true)
                 {
                     lblError.Text = "État initial invalide";
                     lblError.Visible = true;
@@ -301,7 +302,7 @@ public partial class _Default : System.Web.UI.Page
                     str_PlageFinDest = txt_PlageDest2.Text + ":00";
 
                     str_Address = txt_AdresseDest.Text + ";" + txt_VilleDest.Text + ";";
-                    str_Address = "QC;" + txt_CodePostalDest.Text + ";CA";
+                    str_Address += "QC;" + txt_CodePostalDest.Text + ";CA";
                     str_LongLat = GetGPSFromAdress(str_Address);
 
                     string str_CamionName = "";  
@@ -311,13 +312,13 @@ public partial class _Default : System.Web.UI.Page
                     }
 
                     str_Sql = "INSERT INTO colis (col_noident, col_nomcli, col_adrcli, col_villecli, col_cpcli, col_hrdebutcli, col_hrfincli, ";
-                    str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest, col_villecli, col_cpcli, col_hrdebutdest, col_hrfindest, ";
-                    str_Sql += "col_remarquedest, cam_nom, col_gpslong, col_gpslat) VALUES ('" + txt_Ident.Text + "', '" + txt_NomClient.Text + "', '" + txt_AdresseClient.Text;
+                    str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest, col_villedest, col_cpdest, col_hrdebutdest, col_hrfindest, ";
+                    str_Sql += "col_remarquedest, cam_nom, col_gpslong, col_gpslat, col_ordre) VALUES ('" + txt_Ident.Text + "', '" + txt_NomClient.Text + "', '" + txt_AdresseClient.Text;
                     str_Sql += "', '" + txt_VilleClient.Text + "', '" + txt_CodePostalClient.Text + "', '" + str_PlageDebutCli + "', '" + str_PlageFinCli + "', '";
                     str_Sql += txt_RemarquesClient1.Text + "', '" + str_EtatColis + "', '" + txt_NomDest.Text + "', '";
-                    str_Sql += txt_AdresseDest.Text + "', '" + txt_VilleDest.Text + "', '" + txt_CodePostalDest + "', '" + str_PlageDebutDest + "', '" + str_PlageFinDest;
+                    str_Sql += txt_AdresseDest.Text + "', '" + txt_VilleDest.Text + "', '" + txt_CodePostalDest.Text + "', '" + str_PlageDebutDest + "', '" + str_PlageFinDest;
                     str_Sql += "', '" + txt_RemarquesDest1.Text + "', '" + str_CamionName + "', '" + str_LongLat[0];
-                    str_Sql += "', '" + str_LongLat[1] + "')";
+                    str_Sql += "', '" + str_LongLat[1] + "', '-1" + "')";
 
                     MyCommand = new MySqlCommand(str_Sql, MyConnection);
                     MyCommand.ExecuteNonQuery();
