@@ -51,7 +51,7 @@ namespace Socket.MapPoint {
         
         /// <remarks/>
         public CommonServiceSoap() {
-            this.Url = global::Socket.Properties.Settings.Default.Socket_MapPoint_CommonService;
+            this.Url = global::Socket.Properties.Settings.Default.Socket_net_mappoint_staging_CommonService;
             if ((this.IsLocalFileSystemWebService(this.Url) == true)) {
                 this.UseDefaultCredentials = true;
                 this.useDefaultCredentialsSetExplicitly = false;
@@ -359,7 +359,7 @@ namespace Socket.MapPoint {
         
         /// <remarks/>
         public FindServiceSoap() {
-            this.Url = "http://findv3.staging.mappoint.net/Find-30/FindService.asmx";
+            this.Url = "http://findv3.mappoint.net/Find-30/FindService.asmx";
             if ((this.IsLocalFileSystemWebService(this.Url) == true)) {
                 this.UseDefaultCredentials = true;
                 this.useDefaultCredentialsSetExplicitly = false;
@@ -763,7 +763,7 @@ namespace Socket.MapPoint {
         
         /// <remarks/>
         public RouteServiceSoap() {
-            this.Url = "http://routev3.staging.mappoint.net/Route-30/RouteService.asmx";
+            this.Url = "http://routev3.mappoint.net/Route-30/RouteService.asmx";
             if ((this.IsLocalFileSystemWebService(this.Url) == true)) {
                 this.UseDefaultCredentials = true;
                 this.useDefaultCredentialsSetExplicitly = false;
@@ -933,7 +933,7 @@ namespace Socket.MapPoint {
         
         /// <remarks/>
         public RenderServiceSoap() {
-            this.Url = "http://renderv3.staging.mappoint.net/Render-30/RenderService.asmx";
+            this.Url = "http://renderv3.mappoint.net/Render-30/RenderService.asmx";
             if ((this.IsLocalFileSystemWebService(this.Url) == true)) {
                 this.UseDefaultCredentials = true;
                 this.useDefaultCredentialsSetExplicitly = false;
