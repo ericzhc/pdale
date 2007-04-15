@@ -30,6 +30,13 @@ public partial class _Default : System.Web.UI.Page
     static bool onMsgDiv;
     static bool onListeDiv;
 
+    const char COMMAND_DELIMITER = ';';
+    const int COMMAND_GETMSGS = 0x35;
+    const int COMMAND_MSGFROMPDA = 0x36;
+    const int COMMAND_MSGTOPDA = 0x37;
+
+    static TestSemaphore.Semaphore usingSocket = new TestSemaphore.Semaphore(2);
+    
     /*
     *********************************************************************************************************
     *                                              Page_Load()
@@ -524,17 +531,19 @@ public partial class _Default : System.Web.UI.Page
         //Envoi du message par socket TCP
         Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
-        const int remotePort = 216999;
+        const int remotePort = 2160;
         IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
-        
+
+        usingSocket.Wait();
         sendSocket.Connect(connectTo);
         byte[] buf = new byte[200];
-        buf = System.Text.Encoding.ASCII.GetBytes(TextEnvoiMsg.Text + "\0");
+        buf = System.Text.Encoding.ASCII.GetBytes(TextEnvoiMsg.Text + ";");
         int bufferUsed = buf.Length;
         sendSocket.Send(buf);
         sendSocket.Close();
+        usingSocket.Release();
 
-        LabelMsgRecus.Text = "";
+        TextEnvoiMsg.Text = "";
         divMsg.Visible = true;
     }
 
@@ -734,55 +743,70 @@ public partial class _Default : System.Web.UI.Page
     protected void Timer1_Tick(object sender, EventArgs e)
     {
         byte[] bufMsg = new byte[1000];
-        string[] receivedMsg = new string[5];
-        int bufMsgLength = 1;
+        //string[] receivedMsg = new string[5];
+        int bufMsgLength;
+        char[] delimiter = COMMAND_DELIMITER.ToString().ToCharArray();
 
-        try {
+        try
+        {
             Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
             const int remotePort = 2160;
             IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
 
+            usingSocket.Wait();
             sendSocket.Connect(connectTo);
             byte[] bufSignal = new byte[7];
-            bufSignal = System.Text.Encoding.ASCII.GetBytes("update\0");
+            bufSignal = System.Text.Encoding.ASCII.GetBytes(COMMAND_GETMSGS.ToString());
             sendSocket.Send(bufSignal);
 
-            string myCurrentStr = "";
+            //string myCurrentStr = "";
 
-            while (bufMsgLength > 0) {
-                bufMsgLength = sendSocket.Receive(bufMsg);
-                if (bufMsgLength > 0)
-                    myCurrentStr += System.Text.Encoding.ASCII.GetString(bufMsg, 0, bufMsgLength + 1);
-            }
+            //while (bufMsgLength > 0) {
+            
+            bufMsgLength = sendSocket.Receive(bufMsg);
 
-            int i = 0;
+            if (bufMsgLength > 0)
+            {
+                string[] strReceivedData = bufMsg.ToString().Split(delimiter, 10);
 
-            while (myCurrentStr != "") {
-                if (myCurrentStr.IndexOf(';') != -1) {
-                    receivedMsg[i] = myCurrentStr.Substring(0, myCurrentStr.IndexOf(';'));
-
-                    try {
-                        myCurrentStr = myCurrentStr.Substring(myCurrentStr.IndexOf(';') + 2, ((int)myCurrentStr.Length - (myCurrentStr.IndexOf(';') + 2)));
-                    } catch {
-                        break;
-                    }
-                } else {
-                    myCurrentStr = "";
+                for (int j = 0; j < strReceivedData.GetLength(0); j++)
+                {
+                    LabelMsgRecus.Text = strReceivedData[j] + "\n" + LabelMsgRecus.Text;
                 }
-                i++;
+
             }
 
-            for (int j = 0; j < i; j++) {
-                LabelMsgRecus.Text = receivedMsg[j] + "\n" + LabelMsgRecus.Text;
-            }
+            //    if (bufMsgLength > 0)
+            //        myCurrentStr += System.Text.Encoding.ASCII.GetString(bufMsg, 0, bufMsgLength + 1);
+            //}
 
+            //int i = 0;
+
+            //while (myCurrentStr != "") {
+            //    if (myCurrentStr.IndexOf(';') != -1) {
+            //        receivedMsg[i] = myCurrentStr.Substring(0, myCurrentStr.IndexOf(';'));
+
+            //        try {
+            //            myCurrentStr = myCurrentStr.Substring(myCurrentStr.IndexOf(';') + 2, ((int)myCurrentStr.Length - (myCurrentStr.IndexOf(';') + 2)));
+            //        } catch {
+            //            break;
+            //        }
+            //    } else {
+            //        myCurrentStr = "";
+            //    }
+            //    i++;
+            
+
+            
             sendSocket.Close();
+            usingSocket.Release();
 
             if (onMsgDiv)
                 divMsg.Visible = true;
 
-        } catch (SocketException exp) {
+        }
+        catch (SocketException exp) {
             receivedMsg[0] = "Could not connect to message server" + exp.Message;
         }
     }
