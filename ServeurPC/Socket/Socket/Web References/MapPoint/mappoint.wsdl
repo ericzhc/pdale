@@ -1837,25 +1837,25 @@
   <wsdl:service name="CommonService">
     <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">The common service contains classes, methods, and properties that are common to the find, route, and render services.  The common service also provides basic utility functions that can be used in the Microsoft MapPoint Web Service applications.&lt;/p&gt;&lt;p class="intro"&gt;Read the &lt;a href="default.htm"&gt;formal description&lt;/a&gt; of the MapPoint Web Service for more information.</documentation>
     <wsdl:port name="CommonServiceSoap" binding="tns:CommonServiceSoap">
-      <soap:address location="http://findv3.staging.mappoint.net/Find-30/Common.asmx" />
+      <soap:address location="http://findv3.mappoint.net/Find-30/Common.asmx" />
     </wsdl:port>
   </wsdl:service>
   <wsdl:service name="FindService">
     <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">The Find service allows you to locate addresses, places, latitude/longitude coordinates, and points of interest (from either MapPoint Web Service data or your data that we host for your use).</documentation>
     <wsdl:port name="FindServiceSoap" binding="tns:FindServiceSoap">
-      <soap:address location="http://findv3.staging.mappoint.net/Find-30/FindService.asmx" />
+      <soap:address location="http://findv3.mappoint.net/Find-30/FindService.asmx" />
     </wsdl:port>
   </wsdl:service>
   <wsdl:service name="RouteService">
     <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">The route service allows you to generate routes, driving directions, and calculated route representations (used to render a highlighted route on the map) based on locations or waypoints, set segment and route preferences, and generate map views of segments and directions.</documentation>
     <wsdl:port name="RouteServiceSoap" binding="tns:RouteServiceSoap">
-      <soap:address location="http://routev3.staging.mappoint.net/Route-30/RouteService.asmx" />
+      <soap:address location="http://routev3.mappoint.net/Route-30/RouteService.asmx" />
     </wsdl:port>
   </wsdl:service>
   <wsdl:service name="RenderService">
     <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">The render service allows you to render maps of routes and found locations, place pushpins (using the MapPoint Web Service stock set of icons or your icons that we host for your use), set the map size and map view, select points on a map, get location information about points on a map, pan and zoom a rendered map, and create clickable maps.</documentation>
     <wsdl:port name="RenderServiceSoap" binding="tns:RenderServiceSoap">
-      <soap:address location="http://renderv3.staging.mappoint.net/Render-30/RenderService.asmx" />
+      <soap:address location="http://renderv3.mappoint.net/Render-30/RenderService.asmx" />
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>
