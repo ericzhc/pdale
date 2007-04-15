@@ -20,8 +20,6 @@
 #include <math.h>
 //#include "COMM.h" SERVER
 #include "GUI.h"
-//#include "GUI_X.h"
-#include "GUI_Utilities.h"
 #include "FRAMEWIN.h"
 #include "MULTIPAGE.h"
 #include "LISTVIEW.h"
@@ -138,7 +136,7 @@ void    ShowMap(void);
 void    ShowMessage(void);
 void	ShowListColis(void);
 
-void    TheEnd(void);
+void    StringCopy(char*, char*);
 WM_HWIN ShowLoadingDialog();
 
 /*********************************************************************
@@ -673,7 +671,7 @@ static void ListColisCallback(WM_MESSAGE * pMsg)
 
 		case WM_NOTIFY_PARENT:
 			
-			//Vérification si 5minutes ont passées
+			//Vérification si 5 minutes ont passées
 			if ((NewTimer - OldTimer) > 300000)
 			{
 				NewTimer = GUI_GetTime();
@@ -1046,16 +1044,26 @@ void GetIdColis(int ipLigne, char* ColisID)
 }
 
 /*
-*********************************************************************************************************
-* GetIdColis()
+*********************************************************************
+* StringCopy()
 *
 * Description : Cette fonction regarde l'état des 4 buttons principaux (PDA TAB)
 *
-* Argument(s) : 
+* Argument(s) : opString1 : String dans lequel le string2 sera copié
+*				ipString2 : String qui sera copié dans le string1
 *
 * Return(s)   : 
 *********************************************************************************************************
 */
+void StringCopy(char* opString1, char* ipString2)
+{
+	int i;
+	for(i = 0; ipString2[i] != '\0'; i++)
+	{
+		opString1[i] = ipString2[i];
+	}
+}
+
 static void CheckButtonState(void)
 {
 	int Key;
