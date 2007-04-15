@@ -16,6 +16,8 @@ void TransmitRfBuffer(char*);
 void BufferRfTransmissionTask();
 int open_socket(char* port,char* ipaddress);
 int DonneeRecue(char* buffer, INT16U timeout);
+void checkNetwork();
+int cell_init();
 
 /*
 *********************************************************************************************************

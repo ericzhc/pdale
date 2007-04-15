@@ -52,6 +52,11 @@ void RFDriverInit()
 	setInterruptHandle_rf(ISR_Serial_RF);
 	init_serial_rf(SERIAL_BAUD_115200);
 	
+	checkNetwork();
+	while(cell_init()==0);
+	while(open_socket("2166","skaber.mine.nu")==0);
+	//while(open_socket("2166","24.202.172.91")==0);
+
 	printf("RF driver init...done\n\r");
 }
 
