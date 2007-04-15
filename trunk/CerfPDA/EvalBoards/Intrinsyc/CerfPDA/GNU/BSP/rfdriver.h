@@ -2,8 +2,6 @@
 #define RFDRIVER_H
 
 #define RFSERIAL_BUFF_SIZE 1024
-
-#define TASK_RFSERIAL_PRIO 10
 #define TASK_RFSERIAL_SIZE 1024
 
 /*
