@@ -1,7 +1,7 @@
 /*
 *********************************************************************************************************
 * Fichier : Default.aspx.cs
-* Par     : Marc-Étienne Lebeau, Julien Beaumier-Ethier, Richard Labonté, Francis Robichaud
+* Par     : Marc-Étienne Lebeau, Julien Beaumier-Ethier, Richard Labonté, Francis Robichaud, Julien Marchand
 * Date    : 2007/04/12
 *********************************************************************************************************
 */
@@ -576,7 +576,7 @@ public partial class _Default : System.Web.UI.Page
             MySqlCommand MyCommand = null;
             MySqlDataReader MyReader = null;
 
-            // Verification de la presence d'un numero de colis dans la BD
+            // Verification de la presence d'un nom de camion dans la BD
             str_Sql = "SELECT * FROM camion WHERE cam_nom='" + txt_AjoutCamion.Text + "'";
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
@@ -605,18 +605,17 @@ public partial class _Default : System.Web.UI.Page
         {
         }       
     }
-
     /*
-    *********************************************************************************************************
-    *                                              cmdRetirerCamion_Click()
-    *
-    * Description : Cette fonction est appelée lorsque l'utilisateur clique sur le bouton "Retirer ce camion"
-    *               du tab Gestion des camions
-    *
-    * Notes		  : La fonction effectue une requête SQL "DELETE FROM" permettant de supprimer une entrée
-    *               de la table "camion" de la BD. Elle met ensuite à jour les menus déroulant.
-    *********************************************************************************************************
-    */
+   *********************************************************************************************************
+   *                                              cmdRetirerCamion_Click()
+   *
+   * Description : Cette fonction est appelée lorsque l'utilisateur clique sur le bouton "Retirer ce camion"
+   *               du tab Gestion des camions
+   *
+   * Notes		  : La fonction effectue une requête SQL "DELETE FROM" permettant de supprimer une entrée
+   *               de la table "camion" de la BD. Elle met ensuite à jour les menus déroulant.
+   *********************************************************************************************************
+   */
     protected void cmdRetirerCamion_Click(object sender, EventArgs e)
     {
         divCamion.Visible = true;
@@ -626,7 +625,7 @@ public partial class _Default : System.Web.UI.Page
             string str_Sql = "";
             MySqlConnection MyConnection = GetConnection();
             MySqlCommand MyCommand = null;
-     
+
             str_Sql = "DELETE FROM camion WHERE cam_nom='" + dropRetirer.SelectedValue + "'";
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
@@ -638,8 +637,88 @@ public partial class _Default : System.Web.UI.Page
         }
         catch (MySqlException myEx)
         {
-        }  
+        }
 
+    }
+
+    /*
+    *********************************************************************************************************
+    *                                              cmdDeterminationItineraire_Click()
+    *
+    * Description : Cette fonction est appelée lorsque l'utilisateur clique sur le bouton "Déterminer les 
+    *              itinéraires" du tab Gestion des camions
+    *
+    * Notes		  : La fonction effectue une requête de tous les colis et leur lieu de livraison (ou 
+    *               ceuillette) et les attribue entre tous les camions existant dans la BD.
+    *********************************************************************************************************
+    */
+    protected void cmdDeterminationItineraire_Click(object sender, EventArgs e)
+    {
+        divCamion.Visible = true;
+
+        try
+        {
+            ArrayList ColisList = new ArrayList();
+            GetColisForItt(ref ColisList);
+            int CamionQuantity = 0;
+            GetCamionQuantity(ref CamionQuantity);
+            UpdateBDItt(DetermineItinerary(ColisList, CamionQuantity));
+        }
+        catch (MySqlException myEx)
+        {
+        }
+    }
+
+    /*
+    *********************************************************************************************************
+    *                                              cmdFinJournee_Click()
+    *
+    * Description : Cette fonction est appelée lorsque l'utilisateur clique sur le bouton "Fin de la journée" 
+    *               du tab Gestion des camions
+    *
+    * Notes		  : La fonction prend tous les colis de la BD dont l'état est encore à "En livraison" et 
+    *               les remet à l'état cueilli.
+    *********************************************************************************************************
+    */
+    protected void cmdFinJournee_Click(object sender, EventArgs e)
+    {
+        divCamion.Visible = true;
+
+        try
+        {
+            string str_Sql = "";
+            MySqlConnection MyConnection = GetConnection();
+            MySqlCommand MyCommand = null;
+            MySqlDataReader MyReader = null;
+
+            // Verification de la presence d'un numero de colis dans la BD
+            str_Sql = "SELECT * FROM camion WHERE cam_nom='" + txt_AjoutCamion.Text + "'";
+
+            MyCommand = new MySqlCommand(str_Sql, MyConnection);
+            MyReader = MyCommand.ExecuteReader();
+
+            if (MyReader.Read())
+            {
+                lblErrorCam.Visible = true;
+            }
+            else
+            {
+                str_Sql = "INSERT INTO camion (cam_nom) VALUES ('" + txt_AjoutCamion.Text + "')";
+
+                MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                MyCommand.ExecuteNonQuery();
+
+                dropAssign.Items.Add(txt_AjoutCamion.Text);
+                dropCamion.Items.Add(txt_AjoutCamion.Text);
+                dropRetirer.Items.Add(txt_AjoutCamion.Text);
+
+                txt_AjoutCamion.Text = "";
+            }
+            MyReader.Close();
+        }
+        catch (MySqlException myEx)
+        {
+        }
     }
 
     /*
@@ -863,17 +942,15 @@ public partial class _Default : System.Web.UI.Page
     }
 
     /*
-    *********************************************************************************************************
-    *                                              GetColisForItt()
-    *
-    * Description : Cette fonction selectionne tous les colis de la bd ayant comme état 0 ou 1 et insère leur
-    *               id et coordonnées gps dans un ArrayList 
-    *
-    *
-    * Retourne    : ArrayList        ArrayList contenant tous les colis correspondant
-    *********************************************************************************************************
-    */
-    public static ArrayList GetColisForItt()
+   *********************************************************************************************************
+   *                                              GetCamionQuantity()
+   *
+   * Description : Cette fonction fournit le nombre  de camion se retrouvant dans la BD.
+   *
+   * Argument    : CamionQuantity  int représentant le nombre de camion dans la BD
+   *********************************************************************************************************
+   */
+    public void GetCamionQuantity(ref int CamionQuantity)
     {
         try
         {
@@ -881,7 +958,81 @@ public partial class _Default : System.Web.UI.Page
             MySqlConnection MyConnection = GetConnection();
             MySqlCommand MyCommand = null;
             MySqlDataReader MyReader = null;
-            ArrayList arr_ColisToReturn = new ArrayList();
+            CamionQuantity = 0;
+
+            // Verification de la presence d'un numero de colis dans la BD
+            str_Sql = "SELECT ALL cam_id FROM camion";
+
+            MyCommand = new MySqlCommand(str_Sql, MyConnection);
+            MyReader = MyCommand.ExecuteReader();
+
+            while (MyReader.Read())
+            {
+                CamionQuantity++;
+            }
+            MyReader.Close();
+        }
+        catch (MySqlException myEx)
+        {
+        }
+    }
+
+    /*
+   *********************************************************************************************************
+   *                                              GetCamionNameFromID()
+   *
+   * Description : Cette fonction fournit le nom d'un camion associé à son ID dans la BD.
+   *
+   * Argument    : CamionID    int représentant le ID du camion dans la BD
+   *               CamionName  string représentant le nom du camion dans la BD
+   *********************************************************************************************************
+   */
+    public void GetCamionNameFromID(int CamionID, ref string CamionName)
+    {
+        try
+        {
+            string str_Sql = "";
+            MySqlConnection MyConnection = GetConnection();
+            MySqlCommand MyCommand = null;
+            MySqlDataReader MyReader = null;
+
+            // Verification de la presence d'un numero de colis dans la BD
+            str_Sql = "SELECT cam_nom FROM camion WHERE cam_id = '" + CamionID + "'"; ;
+
+            MyCommand = new MySqlCommand(str_Sql, MyConnection);
+            MyReader = MyCommand.ExecuteReader();
+
+            while (MyReader.Read())
+            {
+                CamionName = MyReader.ToString();
+            }
+            MyReader.Close();
+        }
+        catch (MySqlException myEx)
+        {
+        }
+    }
+
+    /*
+    *********************************************************************************************************
+    *                                              GetColisForItt()
+    *
+    * Description : Cette fonction selectionne tous les colis de la bd ayant comme état 0 ou 1 et insère leur
+    *               id et coordonnées gps dans un ArrayList 
+    *
+    *
+    * Argument    : arr_ColisToReturn  ArrayList contenant tous les colis correspondant
+    *********************************************************************************************************
+    */
+    public void GetColisForItt(ref ArrayList arr_ColisToReturn)
+    {
+        try
+        {
+            string str_Sql = "";
+            MySqlConnection MyConnection = GetConnection();
+            MySqlCommand MyCommand = null;
+            MySqlDataReader MyReader = null;
+            arr_ColisToReturn = new ArrayList();
 
             // Verification de la presence d'un numero de colis dans la BD
             str_Sql = "SELECT col_gpslong, col_gpslat, col_noident FROM colis WHERE col_etat='0' OR col_etat='1'";
@@ -898,8 +1049,6 @@ public partial class _Default : System.Web.UI.Page
                 arr_ColisToReturn.Add(arr_Colis);
             }
             MyReader.Close();
-
-            return arr_ColisToReturn;
         }
         catch (MySqlException myEx)
         {
@@ -922,16 +1071,18 @@ public partial class _Default : System.Web.UI.Page
         {
             string str_Sql = "";
             string str_Ordre = "";
+            string str_CamionName = "";
             MySqlConnection MyConnection = GetConnection();
             MySqlCommand MyCommand = null;
 
-            for (int i=0; i<arr_ColCam.Count; i++)
+            for (int i = 0; i < arr_ColCam.Count/2; i++)
             {
-                 str_Ordre = (i+1).ToString();
-                 str_Sql = "UPDATE colis SET cam_nom = '" + arr_ColCam[i][1] + "', col_ordre = '" +  str_Ordre + "' ";
-                 str_Sql += "WHERE col_noident = '" + arr_ColCam[i][0] + "'"; 
-                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
-                 MyCommand.ExecuteNonQuery();
+                GetCamionNameFromID(Int32.Parse(((ArrayList)arr_ColCam[i])[1].ToString()) , ref str_CamionName);
+                str_Ordre = (i+1).ToString();
+                str_Sql = "UPDATE colis SET cam_nom = '" + str_CamionName + "', col_ordre = '" + str_Ordre + "' ";
+                str_Sql += "WHERE col_noident = '" + ((ArrayList)arr_ColCam[i])[0] + "'"; 
+                MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                MyCommand.ExecuteNonQuery();
             }  
         }
         catch (MySqlException myEx)
@@ -943,7 +1094,7 @@ public partial class _Default : System.Web.UI.Page
     *********************************************************************************************************
     *                                              UpdateBDFinJournee()
     *
-    * Description : Cette fonction met à jour le camion affecté à un colis
+    * Description : Cette fonction met à jour le camion affecté à un colis. THIS IS GOING TO BUG
     *
     *********************************************************************************************************
     */
@@ -952,10 +1103,13 @@ public partial class _Default : System.Web.UI.Page
         try
         {
             string str_Sql = "";
-            ArrayList arr_Colis = new ArrayList();
+            MySqlCommand MyCommand = null;
+            MySqlDataReader MyReader = null;
             MySqlConnection MyConnection = GetConnection();
 
-            str_Sql = "SELECT col_noident FROM colis WHERE col_etat='2'";
+            ArrayList arr_Colis = new ArrayList();
+
+            str_Sql = "SELECT ALL col_noident FROM colis";
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyReader = MyCommand.ExecuteReader();
@@ -968,9 +1122,24 @@ public partial class _Default : System.Web.UI.Page
 
             for (int i = 0; i < arr_Colis.Count; i++)
             {
-                str_Sql = "UPDATE colis SET cam_nom = '', col_ordre = '0', col_etat = '1'";
-                str_Sql += " WHERE col_noident = '" + arr_Colis[i].ToString() + "'";
+                str_Sql = "UPDATE colis SET cam_nom = '' WHERE col_noident = '" + arr_Colis[i].ToString() + "'";                
+                MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                MyCommand.ExecuteNonQuery();
+            }
 
+            str_Sql = "SELECT col_noident FROM colis WHERE col_etat='2'";
+            MyCommand = new MySqlCommand(str_Sql, MyConnection);
+            MyReader = MyCommand.ExecuteReader();
+
+            while (MyReader.Read())
+            {
+                arr_Colis.Add(MyReader[0].ToString());
+            }
+            MyReader.Close();
+
+            for (int i = 0; i < arr_Colis.Count; i++)
+            {
+                str_Sql = "UPDATE colis SET col_etat = '1' WHERE col_noident = '" + arr_Colis[i].ToString() + "'";
                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
                 MyCommand.ExecuteNonQuery();
             }
@@ -979,4 +1148,113 @@ public partial class _Default : System.Web.UI.Page
         {
         }
     }
+
+    /*
+    *********************************************************************************************************
+    *                                              DetermineItinerary()
+    *
+    * Description : Cette fonction determine litineraire de chaque camion au début de la journée.
+    * 
+    * Arguments   : CoordsList      Arraylist contenant les colis de la BD et leur position GPS
+    *               TrucksQuantity  Le nombre de camions dans la BD
+    *
+    * Return      : Arraylist d'association entre le ID d'un colis et son camion
+    *
+    *********************************************************************************************************
+    */
+    private ArrayList DetermineItinerary(ArrayList CoordsList, int TrucksQuantity)
+    {
+        // initialisation des variables locales
+        double CentralCoordLong = 0.0;
+        double CentralCoordLat  = 0.0;
+        ArrayList ReturnList = new ArrayList();
+        ArrayList OnePair = new ArrayList();
+
+        double[,] TrucksCurrentState = new double[TrucksQuantity, 3];
+        for (int i = 0; i < TrucksQuantity; i++)
+        {
+            TrucksCurrentState[i, 0] = CentralCoordLong; // Position X actuel
+            TrucksCurrentState[i, 1] = CentralCoordLat;  // Position Y actuel
+            TrucksCurrentState[i, 2] = 0.0;              // Distance totale parcourue
+        }
+
+        int    CurrentTruck     = 0;
+        double CurrentCoordLong = 0.0;
+        double CurrentCoordLat  = 0.0;
+        int    ClosestPackage   = 0;
+        for (int j = 0; j < CoordsList.Count/3; j++)
+        {
+            // Cerner le prochain camion qui se verra attribuer un colis
+            // Ce sera le camion qui aura parcouru la plus petite distance jusqua date
+            double SmallestTotalDistance = 0.0;
+            double TotalDistance = 0.0;
+            for (int k = 0; k < TrucksQuantity; k++)
+            {
+                TotalDistance = TrucksCurrentState[k, 2];
+                if (k == 0 || TotalDistance < SmallestTotalDistance)
+                {
+                    SmallestTotalDistance = TotalDistance;
+                    CurrentTruck = k;
+                }
+            }
+
+            CurrentCoordLong = TrucksCurrentState[CurrentTruck, 0];
+            CurrentCoordLat  = TrucksCurrentState[CurrentTruck, 1];
+
+            // Trouver le colis le plus pres
+            double DistanceToAdd = 0.0;
+            ClosestPackage = FindClosestPackage(CoordsList, CurrentCoordLong, CurrentCoordLat, ref DistanceToAdd);
+
+            // Mettre le camion a cette position et mettre a jour la distance parcourue
+            TrucksCurrentState[CurrentTruck, 0] = (double)(((ArrayList)CoordsList[ClosestPackage])[0]);
+            TrucksCurrentState[CurrentTruck, 1] = (double)(((ArrayList)CoordsList[ClosestPackage])[1]);
+            TrucksCurrentState[CurrentTruck, 2] = TrucksCurrentState[CurrentTruck, 2] + DistanceToAdd;
+
+            // Batir la liste dassociation colis-camion pour le retour 
+            OnePair.Add(((ArrayList)CoordsList[ClosestPackage])[2].ToString()); // Package ID
+            OnePair.Add(CurrentTruck.ToString()); // Truck ID
+            ReturnList.Add(OnePair);
+
+            // Eliminer le colis retenu de la liste
+            CoordsList.RemoveAt(ClosestPackage);
+        }
+
+        return ReturnList;
+    }
+
+    /*
+    *********************************************************************************************************
+    *                                              FindClosestPackage()
+    *
+    * Description : Cette fonction trouve le colis le plus près d'un camion
+    * 
+    * Arguments   : CoordsList        Arraylist contenant les colis de la BD et leur position GPS
+    *               CurrentCoordLong  La longitude du camion en cours
+    *               CurrentCoordLat   La latitude du camion en cours 
+    *               ClosestDistance   La distance du colis le plus près
+    *
+    * Return      : L'indice de CoordsList correspondant au colis le plus près 
+    *
+    *********************************************************************************************************
+    */
+    private int FindClosestPackage(ArrayList CoordsList, double CurrentCoordLong, double CurrentCoordLat, ref double ClosestDistance)
+    {
+        // Initialisation des variables locales
+        int ReturnClosest = 0;
+        double Distance   = 0.0;
+
+        // Algorithme conservant le colis le plus pres du camion en cours
+        for (int i = 0; i < CoordsList.Count/3; i++)
+        {
+            Distance = System.Math.Abs(CurrentCoordLong - (double)(((ArrayList)CoordsList[i])[0])) + System.Math.Abs(CurrentCoordLat - (double)(((ArrayList)CoordsList[i])[1]));
+            if (i == 0 || Distance < ClosestDistance)
+            {
+                ClosestDistance = Distance;
+                ReturnClosest = i;
+            }
+        }
+
+        return ReturnClosest;
+    }
+ 
 }
