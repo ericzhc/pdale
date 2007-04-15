@@ -59,12 +59,15 @@
                     <asp:TextBox ID="txt_NomClient" Width="200px"  runat="server"></asp:TextBox></td><td bgcolor="#800">Nom</td><td>
                         <asp:TextBox ID="txt_NomDest" Width="200px" runat="server"></asp:TextBox></td></tr>        
                 <tr><td style="width: 70px" bgcolor="#800">Adresse</td><td>
-                    <asp:TextBox ID="txt_AdresseClient1" Width="200px" runat="server"></asp:TextBox></td><td bgcolor="#800">
+                    <asp:TextBox ID="txt_AdresseClient" Width="200px" runat="server"></asp:TextBox></td><td bgcolor="#800">
                         Adresse</td><td>
-                        <asp:TextBox ID="txt_AdresseDest1" Width="200px" runat="server"></asp:TextBox></td></tr>
-                <tr><td style="width: 70px" bgcolor="#800"></td><td>
-                    <asp:TextBox ID="txt_AdresseClient2" Width="200px" runat="server"></asp:TextBox></td><td bgcolor="#800"></td><td>
-                        <asp:TextBox ID="txt_AdresseDest2" Width="200px" runat="server"></asp:TextBox></td></tr>
+                        <asp:TextBox ID="txt_AdresseDest" Width="200px" runat="server"></asp:TextBox></td></tr>
+                <tr><td style="width: 70px" bgcolor="#800">Ville</td><td>
+                    <asp:TextBox ID="txt_VilleClient" Width="200px" runat="server"></asp:TextBox></td><td bgcolor="#800">Ville</td><td>
+                        <asp:TextBox ID="txt_VilleDest" Width="200px" runat="server"></asp:TextBox></td></tr>
+                <tr><td style="width: 70px" bgcolor="#800">Code postal</td><td>
+                    <asp:TextBox ID="txt_CodePostalClient" Width="200px" runat="server"></asp:TextBox></td><td bgcolor="#800">Code postal</td><td>
+                        <asp:TextBox ID="txt_CodePostalDest" Width="200px" runat="server"></asp:TextBox></td></tr>
                 <tr><td style="width: 70px" bgcolor="#800">Plage horaire &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
                     De:</td><td>
                     <asp:TextBox ID="txt_PlageClient1" Width="200px" runat="server"></asp:TextBox></td><td bgcolor="#800">Plage horaire &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;
