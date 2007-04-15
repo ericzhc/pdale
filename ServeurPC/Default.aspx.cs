@@ -517,7 +517,7 @@ public partial class _Default : System.Web.UI.Page
     *********************************************************************************************************
     */
     protected void cmdEnvoyerMsg_Click(object sender, EventArgs e)
-    {
+    {/*
         int hour = DateTime.Now.Hour;
         int min = DateTime.Now.Minute;
         string minStr;
@@ -543,7 +543,7 @@ public partial class _Default : System.Web.UI.Page
         usingSocket.Release();
 
         TextEnvoiMsg.Text = "";
-        divMsg.Visible = true;
+        divMsg.Visible = true;*/
     }
 
     /*
