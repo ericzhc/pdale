@@ -5,6 +5,7 @@
 * Date    : 2007/04/12
 *********************************************************************************************************
 */
+using net.mappoint.staging;
 using System;
 using System.Collections;
 using System.Data;
@@ -299,7 +300,10 @@ public partial class _Default : System.Web.UI.Page
                     str_PlageDebutDest = txt_PlageDest1.Text + ":00";
                     str_PlageFinDest = txt_PlageDest2.Text + ":00";
 
-                  //  str_LongLat = GetGPSFromAdress(str_Address);
+                    str_Address = txt_AdresseDest.Text + ";" + txt_VilleDest.Text + ";";
+                    str_Address = "QC;" + txt_CodePostalDest.Text + ";CA";
+                    str_LongLat = GetGPSFromAdress(str_Address);
+
                     string str_CamionName = "";  
                     if (str_EtatColis == "0" && JourneeFlag)
                     {
@@ -858,21 +862,21 @@ public partial class _Default : System.Web.UI.Page
             m_SqlConnection.Close();
         }
     }
-/*
+
     /*
-        *********************************************************************************************************
-        *                                              GetGPSFromAdress()
-        *
-        * Description : Cette fonction converti une adresse en coordonnées GPS
-        *
-        * Argument(s) : strOrigAddress  L'adresse de départ 
-        * 
-        * Note        : Le format du string à passer en argument à la fonction est celui-ci:
-        *               "ADRESSE;VILLE;PROVINCE;CODE POSTAL;PAYS"  
-        *               ex: strOrigAddress = "1408 RUE DE L'EGLISE;SAINT-LAURENT;QC;H4L2H3;CA";
-        *********************************************************************************************************
-        */
-  /*  public static string[] GetGPSFromAdress(string strOrigAddress)
+    *********************************************************************************************************
+    *                                              GetGPSFromAdress()
+    *
+    * Description : Cette fonction converti une adresse en coordonnées GPS
+    *
+    * Argument(s) : strOrigAddress  L'adresse de départ 
+    * 
+    * Note        : Le format du string à passer en argument à la fonction est celui-ci:
+    *               "ADRESSE;VILLE;PROVINCE;CODE POSTAL;PAYS"  
+    *               ex: strOrigAddress = "1408 RUE DE L'EGLISE;SAINT-LAURENT;QC;H4L2H3;CA";
+    *********************************************************************************************************
+    */
+    public static string[] GetGPSFromAdress(string strOrigAddress)
     {
         FindServiceSoap findService = new FindServiceSoap();
         findService.Credentials = new System.Net.NetworkCredential("124624", "PDALE_projets5");
@@ -917,7 +921,6 @@ public partial class _Default : System.Web.UI.Page
             if (startResults.NumberFound == 0)
             {
                 Console.WriteLine("Originating Address not found.");
-                return;
             }
         }
 
@@ -927,7 +930,7 @@ public partial class _Default : System.Web.UI.Page
 
         return strLongLat;
 
-    }*/
+    }
     
     /*
    *********************************************************************************************************
