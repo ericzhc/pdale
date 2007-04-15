@@ -165,12 +165,13 @@ namespace TCPServerReceiver
             messagesReceived[3] = "Salut marc voici le quatrieme message;";
             messagesReceived[4] = "Salut marc voici le sixieme message (mais non cetait le cinqueieme hihihihi);";*/
             
-
+            
             string OrigAddress = "1408 RUE DE L'EGLISE;SAINT-LAURENT;QC;H4L2H3";
             string DestAddress = "8105 BOULEVARD DECARIE;MONTREAL;QC;H4P2H5";
 
-            //GetDirectionsFromAdress(OrigAddress, DestAddress);
-            GetRouteFromGps(45.40391131, -71.88929146, 46.34018682, -72.54498962);
+            GetDirectionsFromAdress(OrigAddress, DestAddress);
+           
+           // GetRouteFromGps(45.40391131, -71.88929146, 46.34018682, -72.54498962);
         }
 
         static private void TCPSenderPDA()
@@ -633,7 +634,7 @@ namespace TCPServerReceiver
             myOrigAddress.PrimaryCity = strTemp[1];
             myOrigAddress.Subdivision = strTemp[2];
             myOrigAddress.PostalCode = strTemp[3];
-            myOrigAddress.CountryRegion = strTemp[4];
+            myOrigAddress.CountryRegion = "CA";
 
             FindAddressSpecification findOrigAddressSpec = new FindAddressSpecification();
             findOrigAddressSpec.InputAddress = myOrigAddress;
@@ -657,7 +658,7 @@ namespace TCPServerReceiver
             myDestAddress.PrimaryCity = strTemp[1];
             myDestAddress.Subdivision = strTemp[2];
             myDestAddress.PostalCode = strTemp[3];
-            myDestAddress.CountryRegion = strTemp[4];
+            myDestAddress.CountryRegion = "CA";
 
             FindAddressSpecification findDestAddressSpec = new FindAddressSpecification();
             findDestAddressSpec.InputAddress = myDestAddress;
