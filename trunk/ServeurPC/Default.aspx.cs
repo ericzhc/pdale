@@ -306,12 +306,12 @@ public partial class _Default : System.Web.UI.Page
                         AssignClosestCamion(str_LongLat, ref str_CamionName);
                     }
 
-                    str_Sql = "INSERT INTO colis (col_noident, col_nomcli, col_adrcli1, col_adrcli2, col_hrdebutcli, col_hrfincli, ";
-                    str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest1, col_adrdest2, col_hrdebutdest, col_hrfindest, ";
-                    str_Sql += "col_remarquedest, cam_nom, col_gpslong, col_gpslat) VALUES ('" + txt_Ident.Text + "', '" + txt_NomClient.Text + "', '" + txt_AdresseClient1.Text;
-                    str_Sql += "', '" + txt_AdresseClient2.Text + "', '" + str_PlageDebutCli + "', '" + str_PlageFinCli + "', '";
+                    str_Sql = "INSERT INTO colis (col_noident, col_nomcli, col_adrcli, col_villecli, col_cpcli, col_hrdebutcli, col_hrfincli, ";
+                    str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest, col_villecli, col_cpcli, col_hrdebutdest, col_hrfindest, ";
+                    str_Sql += "col_remarquedest, cam_nom, col_gpslong, col_gpslat) VALUES ('" + txt_Ident.Text + "', '" + txt_NomClient.Text + "', '" + txt_AdresseClient.Text;
+                    str_Sql += "', '" + txt_VilleClient.Text + "', '" + txt_CodePostalClient.Text + "', '" + str_PlageDebutCli + "', '" + str_PlageFinCli + "', '";
                     str_Sql += txt_RemarquesClient1.Text + "', '" + str_EtatColis + "', '" + txt_NomDest.Text + "', '";
-                    str_Sql += txt_AdresseDest1.Text + "', '" + txt_AdresseDest2.Text + "', '" + str_PlageDebutDest + "', '" + str_PlageFinDest;
+                    str_Sql += txt_AdresseDest.Text + "', '" + txt_VilleDest.Text + "', '" + txt_CodePostalDest + "', '" + str_PlageDebutDest + "', '" + str_PlageFinDest;
                     str_Sql += "', '" + txt_RemarquesDest1.Text + "', '" + str_CamionName + "', '" + str_LongLat[0];
                     str_Sql += "', '" + str_LongLat[1] + "')";
 
@@ -355,35 +355,36 @@ public partial class _Default : System.Web.UI.Page
             {
                 txt_Ident.Text = MyReader[1].ToString();
                 txt_NomClient.Text = MyReader[2].ToString();
-                txt_AdresseClient1.Text = MyReader[3].ToString();
-                txt_AdresseClient2.Text = MyReader[4].ToString();
-                txt_PlageClient1.Text = MyReader[5].ToString().Substring(0, 5);
-                txt_PlageClient2.Text = MyReader[6].ToString().Substring(0, 5);
-                txt_RemarquesClient1.Text = MyReader[7].ToString();
+                txt_AdresseClient.Text = MyReader[3].ToString();
+                txt_VilleClient.Text = MyReader[4].ToString();
+                txt_CodePostalClient.Text = MyReader[5].ToString();
+                txt_PlageClient1.Text = MyReader[6].ToString().Substring(0, 5);
+                txt_PlageClient2.Text = MyReader[7].ToString().Substring(0, 5);
+                txt_RemarquesClient1.Text = MyReader[8].ToString();
 
                 // Gestion des "radio buttons"
-                if (MyReader[8].ToString() == "0")
+                if (MyReader[9].ToString() == "0")
                 {
                     rdb_Etat1.Checked = true;
                     rdb_Etat2.Checked = false;
                     rdb_Etat3.Checked = false;
                     rdb_Etat4.Checked = false;
                 }
-                else if (MyReader[8].ToString() == "1")
+                else if (MyReader[9].ToString() == "1")
                 {
                     rdb_Etat1.Checked = false;
                     rdb_Etat2.Checked = true;
                     rdb_Etat3.Checked = false;
                     rdb_Etat4.Checked = false;
                 }
-                else if (MyReader[8].ToString() == "2")
+                else if (MyReader[9].ToString() == "2")
                 {
                     rdb_Etat1.Checked = false;
                     rdb_Etat2.Checked = false;
                     rdb_Etat3.Checked = true;
                     rdb_Etat4.Checked = false;
                 }
-                else if (MyReader[8].ToString() == "3")
+                else if (MyReader[9].ToString() == "3")
                 {
                     rdb_Etat1.Checked = false;
                     rdb_Etat2.Checked = false;
@@ -391,12 +392,13 @@ public partial class _Default : System.Web.UI.Page
                     rdb_Etat4.Checked = true;
                 }
                 
-                txt_NomDest.Text = MyReader[9].ToString();
-                txt_AdresseDest1.Text = MyReader[10].ToString();
-                txt_AdresseDest2.Text = MyReader[11].ToString();
-                txt_PlageDest1.Text = MyReader[12].ToString().Substring(0, 5);
-                txt_PlageDest2.Text = MyReader[13].ToString().Substring(0, 5);
-                txt_RemarquesDest1.Text = MyReader[14].ToString();
+                txt_NomDest.Text = MyReader[10].ToString();
+                txt_AdresseDest.Text = MyReader[11].ToString();
+                txt_VilleDest.Text = MyReader[12].ToString();
+                txt_CodePostalDest.Text = MyReader[13].ToString();
+                txt_PlageDest1.Text = MyReader[14].ToString().Substring(0, 5);
+                txt_PlageDest2.Text = MyReader[15].ToString().Substring(0, 5);
+                txt_RemarquesDest1.Text = MyReader[16].ToString();
             }
             MyReader.Close();
         }
@@ -451,10 +453,10 @@ public partial class _Default : System.Web.UI.Page
             str_PlageFinDest = txt_PlageDest2.Text + ":00";
 
             str_Sql = "UPDATE colis SET col_noident = '" + txt_Ident.Text + "', col_nomcli = '" + txt_NomClient.Text;
-            str_Sql += "', col_adrcli1 = '" + txt_AdresseClient1.Text + "', col_adrcli2 = '" + txt_AdresseClient2.Text + "', col_hrdebutcli = '";
+            str_Sql += "', col_adrcli = '" + txt_AdresseClient.Text + "', col_villecli = '" + txt_VilleClient.Text + "', col_cpcli = '" + txt_CodePostalClient.Text + "', col_hrdebutcli = '";
             str_Sql += str_PlageDebutCli + "', col_hrfincli = '" + str_PlageFinCli + "', col_remarquecli = '" + txt_RemarquesClient1.Text;
-            str_Sql += "', col_etat = '" + str_EtatColis + "', col_nomdest = '" + txt_NomDest.Text + "', col_adrdest1 = '";
-            str_Sql += txt_AdresseDest1.Text + "', col_adrdest2 = '" + txt_AdresseDest2.Text + "', col_hrdebutdest = '" + str_PlageDebutDest;
+            str_Sql += "', col_etat = '" + str_EtatColis + "', col_nomdest = '" + txt_NomDest.Text + "', col_adrdest = '";
+            str_Sql += txt_AdresseDest.Text + "', col_villedest = '" + txt_VilleDest.Text + "', col_cpdest = '" + txt_CodePostalDest.Text + "', col_hrdebutdest = '" + str_PlageDebutDest;
             str_Sql += "', col_hrfindest = '" + str_PlageFinDest + "', col_remarquedest ='" + txt_RemarquesDest1.Text;
             str_Sql += "' WHERE col_noident = '" + txt_Ident.Text + "'";
 
@@ -480,10 +482,12 @@ public partial class _Default : System.Web.UI.Page
         txt_Ident.Text = "";
         txt_NomClient.Text = "";
         txt_NomDest.Text = "";
-        txt_AdresseClient1.Text = "";        
-        txt_AdresseClient2.Text = "";
-        txt_AdresseDest1.Text = "";
-        txt_AdresseDest2.Text = "";
+        txt_AdresseClient.Text = "";        
+        txt_VilleClient.Text = "";
+        txt_CodePostalClient.Text = "";
+        txt_AdresseDest.Text = "";
+        txt_VilleDest.Text = "";
+        txt_CodePostalDest.Text = "";
         txt_PlageClient1.Text = "";
         txt_PlageClient2.Text = "";
         txt_PlageDest1.Text = "";        
@@ -767,7 +771,7 @@ public partial class _Default : System.Web.UI.Page
 
         }
         catch (SocketException exp) {
-            receivedMsg[0] = "Could not connect to message server" + exp.Message;
+            //receivedMsg[0] = "Could not connect to message server" + exp.Message;
         }
     }
 
