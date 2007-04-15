@@ -56,43 +56,104 @@ void RFDriverInit()
 }
 
 
-void cell_init()
+int cell_init()
 {
-		char buffer[200];
+		char buffer[50];
 	
-		OSTimeDly(1000);
+		//OSTimeDly(1000);
 		
 		TransmitRfBuffer("at\n\r\0"); 
-		OSTimeDly(1000);
-		DonneeRecue(buffer);
-		
-		
-		TransmitRfBuffer("AT+CGDCONT=1,\"IP\",\"internet.fido.ca\",\"0.0.0.0\",0,0\n\r\0"); 
-		OSTimeDly(1000);
-		TransmitRfBuffer("AT#USERID=\"fido\"\n\r\0");
-		OSTimeDly(1000);
-		TransmitRfBuffer("AT#PASSW=\"fido\"\n\r\0");
-		OSTimeDly(1000);
-		TransmitRfBuffer("AT#SKTSAV\n\r\0");
-		OSTimeDly(1000);
-		TransmitRfBuffer("AT#GPRS=1\n\r\0");						// Activate GPRS connection (wait for connect)
-		OSTimeDly(1000);
+		do{
+			DonneeRecue(buffer);
 
+			if(strstr(buffer,"ERROR") != NULL)
+			{
+				printf("ERROR -----------------------------------------------");
+				return 0;			
+			}
+		}while(strstr(buffer,"OK")==NULL);	
+
+		TransmitRfBuffer("AT+CGDCONT=1,\"IP\",\"internet.fido.ca\",\"0.0.0.0\",0,0\n\r\0"); 
+			do{
+			DonneeRecue(buffer);
+
+			if(strstr(buffer,"ERROR") != NULL)
+			{
+				printf("ERROR -----------------------------------------------");
+				return 0;			
+			}
+		}while(strstr(buffer,"OK")==NULL);	
+
+		TransmitRfBuffer("AT#USERID=\"fido\"\n\r\0");
+		do{
+			DonneeRecue(buffer);
+
+			if(strstr(buffer,"ERROR") != NULL)
+			{
+				printf("ERROR -----------------------------------------------");
+				return 0;			
+			}
+		}while(strstr(buffer,"OK")==NULL);	
+		TransmitRfBuffer("AT#PASSW=\"fido\"\n\r\0");
+		do{
+			DonneeRecue(buffer);
+
+			if(strstr(buffer,"ERROR") != NULL)
+			{
+				printf("ERROR -----------------------------------------------");
+				return 0;			
+			}
+		}while(strstr(buffer,"OK")==NULL);	
+		TransmitRfBuffer("AT#SKTSAV\n\r\0");
+		do{
+			DonneeRecue(buffer);
+			printf("--------------------------  SKTSAV: %s ",buffer);
+			if((strstr(buffer,"ERROR") != NULL))
+			{
+				printf("ERROR -----------------------------------------------");
+				return 0;			
+			}
+		}while(strstr(buffer,"OK")==NULL);	
+		TransmitRfBuffer("AT#GPRS=1\n\r\0");						// Activate GPRS connection (wait for connect)
+		do{
+			DonneeRecue(buffer);
+
+			if(strstr(buffer,"ERROR") != NULL)
+			{
+				printf("ERROR -----------------------------------------------");
+				return 0;			
+			}
+		}while(strstr(buffer,"+IP")==NULL);	
+		
+
+		return 1;
 }
 
-void open_socket(char* port,char* ipaddress)
+int open_socket(char* port,char* ipaddress)
 {
-	OSTimeDly(2000);
+	
 	//char command[400];
+	char buffer[50];
 
 	//sprintf(command,"AT#SKTD=0,%s,\"%s\",0,0\n\r\0",port,ipaddress);
 	//TransmitRfBuffer(command);
-	TransmitRfBuffer("AT#SKTD=0,2166,\"skaber.mine.nu\",0,0\n\r\0");
-	
-	OSTimeDly(8000);
-	OSTimeDly(8000);
-}
+	TransmitRfBuffer("AT#SKTD=0,2166,\"24.202.172.91\",0,0\n\r\0");
+	do{
+		DonneeRecue(buffer);
+		printf("--------------------- AT#SKTD %s \n\r",	buffer);	
 
+		if(strstr(buffer,"ERROR") != NULL)
+		{
+			printf("ERROR -----------------------------------------------");
+			return 0;			
+		}
+	}while(strstr(buffer,"CONNECT")==NULL);	
+
+	printf("--------------------------------------- Connected \n\r");
+
+	return 1;
+}
+	
 void close_socket()
 {
 	TransmitRfBuffer("+++\n\r\0");
@@ -103,16 +164,15 @@ void DonneeRecue(char* buffer)
 	INT8U err;
 
 	
-	//memset(buffer,0x00,50);
+	memset(buffer,0x00,50);
 	// Wait for the data to be received
-	printf("la\n\r");
-	//OSFlagPend(RfFlag, TCP_TRANSFER_RECEIVED, OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 0,&err);
-	printf("ici\n\r");
-		if((ptrRfRxBuffCurr != ptrRfRxBuffEnd)) {
+	
+	OSFlagPend(RfFlag, TCP_TRANSFER_RECEIVED, OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 0,&err);
+			if((ptrRfRxBuffCurr != ptrRfRxBuffEnd)) {
 		int i = 0;
-		printf("ptrRfRxBuffCurr %d ptrRfRxBuffEnd %d RxRfSerialBuffer[ptrRfRxBuffCurr] %s \n\r ",ptrRfRxBuffCurr,ptrRfRxBuffEnd,RxRfSerialBuffer[ptrRfRxBuffCurr]);
+		//printf("ptrRfRxBuffCurr %d ptrRfRxBuffEnd %d RxRfSerialBuffer[ptrRfRxBuffCurr] %s \n\r ",ptrRfRxBuffCurr,ptrRfRxBuffEnd,RxRfSerialBuffer[ptrRfRxBuffCurr]);
 		while((ptrRfRxBuffCurr != ptrRfRxBuffEnd)) {
-			printf("ici2 : %c \n\r",RxRfSerialBuffer[ptrRfRxBuffCurr]);
+			//printf("ici2 : %c \n\r",RxRfSerialBuffer[ptrRfRxBuffCurr]);
 			ptrRfRxBuffCurr = (ptrRfRxBuffCurr + 1) % (int) SERIAL_BUFF_SIZE;
 			buffer[i] = RxRfSerialBuffer[ptrRfRxBuffCurr];
 			i++;
@@ -122,20 +182,20 @@ void DonneeRecue(char* buffer)
 	}
 }
 
-int checkNetwork()
+void checkNetwork()
 {
 	char buffer[50];
 
 	
-	//do
-	//{
+	do
+	{
 		TransmitRfBuffer("AT+CREG\n\r\0");
 		//printf("Command send:\n\r");
 		DonneeRecue(buffer);
-		//printf("Data received:%s \n\r", buffer);
+		printf("Data received:%s \n\r", buffer);
 		
 
-	//}while(strstr(buffer,"+CREG: 0,5")!=NULL);
+	}while(strstr(buffer,"+CREG: 0,5")!=NULL);
 
 	//printf("Find Network:");
 
@@ -153,14 +213,17 @@ void ISR_Serial_RF()
 	unsigned char ucSource;
 	INT8U err;
 	
-	ucSource = SERIAL_RF_UTSR0;
+	//
 
-	//while (1) {
+	while (1) {
 	
 	   //erD_sndValHWrdLbl("Hey un interrrupt!",ucSource);
 	   // erD_snd_cr();
+		ucSource = SERIAL_RF_UTSR0;
 		printf("Int source: %x  \n\r",ucSource);
-		                                                       /* Rx is set                                      */
+	
+
+															/* Rx is set                                      */
 		if ((ucSource & (0x00000002 | 0x00000004)) != 0) {
 	
 			if (ucSource & 0x00000004) {
@@ -181,17 +244,17 @@ void ISR_Serial_RF()
 				TCP_TRANSFER_RECEIVED, 
 				OS_FLAG_SET, 
 				&err);
-			//continue;
+			continue;
 		}
                                                                 /* Rbb is set                                     */
 		if (ucSource & 0x00000008) {
 			SERIAL_RF_UTSR0 |= 0x00000008;                    /* Clear interrupt                                */
-			//continue;
+			continue;
 		}
 		                                                        /* Reb is set                                     */
 		if (ucSource & 0x00000010) {
 			SERIAL_RF_UTSR0 |= 0x00000010;                    /* Clear interrupt                                */
-			//continue;
+			continue;
 		}
                                                                 /* Eif is set                                     */
 		if (ucSource & 0x00000020) {
@@ -199,10 +262,10 @@ void ISR_Serial_RF()
 				ucErreur = SERIAL_RF_UTSR1;
 				ucData = SERIAL_RF_UTDR;
 			} while (SERIAL_RF_UTSR0 & 0x00000020);
-			//continue;
+			continue;
 		}
-		//break;
-	//}
+		break;
+	}
 	
 	 SERIAL_UTSR0 = 0xff;
 }
@@ -284,6 +347,21 @@ void BufferRfTransmissionTask()
 	}
 }
 
+void boucle()
+{
+		TransmitRfBuffer("AYE BEGIN TES LACETS SONT DETACHES\n\r\0");
+		//printf("Lat: %f - Long: %f - Alt: %f\n\r", GPSPosition.Latitude, GPSPosition.Longitude, GPSPosition.Altitude);
+		//printf("Time : %d:%d:%d\n\r", GPSTimeValue.Hours, GPSTimeValue.Minutes, GPSTimeValue.Seconds);
+		//TransmitBuffer("testing 123\n\r\0"); 
+		//output_byte_serial('a');
+		//output_byte_serial('t');
+		//output_byte_serial('a');
+
+
+		OSTimeDly(1000);
+
+
+}
 COM_BUFF_INFO GetTaskRxRfBuff() 
 {
 	COM_BUFF_INFO buffprot;
