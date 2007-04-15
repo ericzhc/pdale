@@ -22,14 +22,45 @@ namespace TCPServerReceiver
 {
     class Program
     { 
+        //Constantes qui remplacent les #define de comm.h
+        const int STATE_UNPICKED = 0;
+        const int STATE_PICKED = 1;
+        const int STATE_UNDELIVERED = 2;
+        const int STATE_DELIVERED = 3;
+
+        const int MAX_MSG_SIZE = 100;
+
+        const char COMMAND_EOL = '\0';
+        const char COMMAND_DELIMITER = ';';
+        const int COMMAND_TRUCKNAMES  = 0x30;
+        const int COMMAND_VALIDPACKAGE  = 0x31;
+        const int COMMAND_PACKETINFOS  = 0x32;
+        const int COMMAND_SETPACKETSTATE = 0x33;
+        const int COMMAND_GETPACKAGES = 0x34;
+        const int COMMAND_GETMSGS = 0x35;
+        const int COMMAND_MSGFROMPDA = 0x36;
+        const int COMMAND_MSGTOPDA = 0x37;
+
         /* Socket global pour le PDA */
         static IPEndPoint ipep;
         static System.Net.Sockets.Socket newsock;
         static System.Net.Sockets.Socket client;
 
-        private static Semaphore dataAvailable;
-        static string[] messagesReceived = new string[5];
-        static string[] messagesToSend = new string[100];
+        //Semaphores
+        static TestSemaphore.Semaphore msgSendSem;
+        static TestSemaphore.Semaphore msgReceivedSem;
+        static TestSemaphore.Semaphore sendSem;
+        //static TestSemaphore.Semaphore recvSem;
+
+        //static string[] messagesReceived = new string[5];
+        //static string[] messagesToSend = new string[100];
+
+        //Buffer partages entre les threads
+        static byte[] msgSendData = new byte[1024];
+        static byte[] msgReceivedData = new byte[1024];
+        static byte[] receivedData = new byte[1024];
+        static byte[] webReceivedData = new byte[1024];
+        static byte[] toSendData = new byte[1024];
 
         private static MySqlConnection m_SqlConnection;
         private static string str_ConnString =
@@ -101,7 +132,13 @@ namespace TCPServerReceiver
 
         public static void Main()
         {
-            /*dataAvailable = new Semaphore(0, 1);
+            msgSendSem = new TestSemaphore.Semaphore(2);
+            msgReceivedSem = new TestSemaphore.Semaphore(2);
+            sendSem = new TestSemaphore.Semaphore(2);
+            
+            msgSendData = Encoding.ASCII.GetBytes(COMMAND_EOL.ToString());
+            msgReceivedData = Encoding.ASCII.GetBytes(COMMAND_EOL.ToString());
+            toSendData = Encoding.ASCII.GetBytes(COMMAND_EOL.ToString());
 
             ipep = new IPEndPoint(IPAddress.Any, 2166);
 
@@ -122,12 +159,12 @@ namespace TCPServerReceiver
             ReceiverPdaThread.Start();
             WebThread.Start();
 
-            messagesReceived[0] = "Salut marc voici le premier message;";
+            /*messagesReceived[0] = "Salut marc voici le premier message;";
             messagesReceived[1] = "Salut marc voici le 222deuxieme message;";
             messagesReceived[2] = "Salut marc voici le troisieme message;";
             messagesReceived[3] = "Salut marc voici le quatrieme message;";
-            messagesReceived[4] = "Salut marc voici le sixieme message (mais non cetait le cinqueieme hihihihi);";
-            */
+            messagesReceived[4] = "Salut marc voici le sixieme message (mais non cetait le cinqueieme hihihihi);";*/
+            
 
             string OrigAddress = "1408 RUE DE L'EGLISE;SAINT-LAURENT;QC;H4L2H3";
             string DestAddress = "8105 BOULEVARD DECARIE;MONTREAL;QC;H4P2H5";
@@ -138,37 +175,91 @@ namespace TCPServerReceiver
 
         static private void TCPSenderPDA()
         {
-
-
-            byte[] data = new byte[1024];
-
-
             while (true)
             {
-                dataAvailable.WaitOne();
-                //data = Encoding.ASCII.GetBytes(msgSend);
-                client.Send(data);
-                dataAvailable.Release();
+                msgSendSem.Wait();
+                if (msgSendData[0].ToString() != COMMAND_EOL.ToString())
+                {
+                    
+                        if (msgSendData[0].ToString() == COMMAND_MSGTOPDA.ToString())
+                        {
+                            Console.WriteLine("-----Sending message to PDA----");
+                            client.Send(msgSendData);
+                            msgSendData = new byte[1024];
+                            msgSendData = Encoding.ASCII.GetBytes(COMMAND_EOL.ToString());
+                        }
+                        else
+                        {
+                            Console.WriteLine("X-----Memory probably corrupted (TCPSenderPDA)----X");
+                        }
+                }
+                msgSendSem.Release();
+
+                sendSem.Wait();
+
+
+
             }
         }
 
         static private void TCPReceiverPDA()
         {
-
-            newsock.Bind(ipep);
-            newsock.Listen(10);
-
-            Console.WriteLine("Waiting for a connexion on port 2166");
-
-
-            byte[] data = new byte[1024];
             while (true)
             {
-                client.Receive(data);
-                string strData = Encoding.ASCII.GetString(data);
-                strData = strData.Remove(strData.IndexOf("\0"));
-                Console.WriteLine("Message received: " + strData + "\n");
-                data = new byte[1024];
+                receivedData = new byte[1024];
+                client.Receive(receivedData);
+
+                char[] delimiter = COMMAND_DELIMITER.ToString().ToCharArray();
+                receivedData.ToString().Remove(receivedData.ToString().IndexOf('\0'), 1);
+                string[] strReceivedData = receivedData.ToString().Split(delimiter, 10);
+
+                for (int idxStr = 0; idxStr < strReceivedData.GetLength(0); idxStr++)
+                {
+                    if (strReceivedData[idxStr][0].ToString() == COMMAND_MSGFROMPDA.ToString())
+                    {
+                        msgSendSem.Wait();
+
+                        if (msgReceivedData[0].ToString() != COMMAND_EOL.ToString())
+                        {
+                            string message = msgReceivedData.ToString() + strReceivedData[idxStr];
+                            msgReceivedData = Encoding.ASCII.GetBytes(message);
+                        }
+                        else
+                        {
+                            msgReceivedData = Encoding.ASCII.GetBytes(strReceivedData[idxStr]);
+                        }
+                        
+                        msgSendSem.Release();
+                    }
+                    else if (strReceivedData[idxStr][0].ToString() == COMMAND_TRUCKNAMES.ToString())
+                    {
+                        string listeCamions = GetCamionList();
+
+                        sendSem.Wait();
+
+
+                    }
+                    else if (strReceivedData[idxStr][0].ToString() == COMMAND_VALIDPACKAGE.ToString())
+                    {
+
+                    }
+                    else if (strReceivedData[idxStr][0].ToString() == COMMAND_SETPACKETSTATE.ToString())
+                    {
+
+                    }
+                    else if (strReceivedData[idxStr][0].ToString() == COMMAND_GETPACKAGES.ToString())
+                    {
+
+                    }
+                    else if (strReceivedData[idxStr][0].ToString() == COMMAND_PACKETINFOS.ToString())
+                    {
+
+                    }
+                    else
+                    {
+                        Console.WriteLine("X-----Invalid message tag (TCPReceiverPDA)-----X\n");
+                    }
+                }
             }
         }
 
@@ -187,32 +278,58 @@ namespace TCPServerReceiver
             System.Net.Sockets.Socket client;
             IPEndPoint newclient;
 
-            byte[] data = new byte[1024];
             while (true)
             {
                 client = newsock.Accept();
+                
+                webReceivedData = new byte[1024];                
+
                 if (client != null)
                 {
                     newclient = (IPEndPoint)client.RemoteEndPoint;
-                    Console.WriteLine("Connected with {0} at port {1}", newclient.Address, newclient.Port);
-                    client.Receive(data);
-                    string strData = Encoding.ASCII.GetString(data);
-                    strData = strData.Remove(strData.IndexOf("\0"));
-                    Console.WriteLine("Message received: " + strData + "\n");
-                    if (strData == "update")
+                    client.Receive(webReceivedData);
+                    
+                    if (webReceivedData[0].ToString() == COMMAND_GETMSGS.ToString())
                     {
-                        int i = 0;
-                        data = new byte[1024];
-                        while ((i < 5) && (messagesReceived[i] != null))
-                        {
+                        msgReceivedSem.Wait();
 
-                            data = Encoding.ASCII.GetBytes(messagesReceived[i]);
-                            client.Send(data);
-                            //messagesReceived[i] = "";
-                            i++;
-                            data = new byte[1024];
+                        if (msgReceivedData[0].ToString() != COMMAND_EOL.ToString())
+                        {
+                            if (msgReceivedData[0].ToString() == COMMAND_MSGFROMPDA.ToString())
+                            {   
+                                    client.Send(msgReceivedData);
+                                    msgReceivedData = new byte[1024];
+                                    msgReceivedData = Encoding.ASCII.GetBytes(COMMAND_EOL.ToString());
+                            }
+                            else
+                            {
+                                Console.WriteLine("X-----Memory probably corrupted (TCPWeb)-----X");
+                            }                             
                         }
+
+                        msgReceivedSem.Release();                            
                     }
+                    else if (webReceivedData[0].ToString() == COMMAND_MSGTOPDA.ToString())
+                    {
+                        msgSendSem.Wait();
+
+                        if (msgSendData[0].ToString() != COMMAND_EOL.ToString())
+                        {
+                            string message = msgSendData.ToString() + webReceivedData.ToString();
+                            msgSendData = Encoding.ASCII.GetBytes(message);
+                        }
+                        else
+                        {
+                            msgSendData = Encoding.ASCII.GetBytes(webReceivedData.ToString());
+                        }
+
+                        msgSendSem.Release();
+                    }
+                    else
+                    {
+                        Console.WriteLine("X-----Invalid message tag (TCPWeb)-----X\n");
+                    }
+
                 }
                 client.Close();
             }
@@ -277,7 +394,7 @@ namespace TCPServerReceiver
         * Return(s)   : string          La liste des camions séparés par un ";"
         *********************************************************************************************************
         */
-        public string GetCamionList()
+        public static string GetCamionList()
         {
             try
             {
@@ -316,7 +433,7 @@ namespace TCPServerReceiver
         * Return(s)   : string          Le nombre de camion contenu dans la BD
         *********************************************************************************************************
         */
-        public string GetNbrCamion()
+        public static string GetNbrCamion()
         {
             try
             {
@@ -355,7 +472,7 @@ namespace TCPServerReceiver
         * Return(s)   : string          Le nom du camion
         *********************************************************************************************************
         */
-        public string GetNomCamionFromIndex(string str_IdCamion)
+        public static string GetNomCamionFromIndex(string str_IdCamion)
         {
             try
             {
@@ -399,7 +516,7 @@ namespace TCPServerReceiver
         *
         *********************************************************************************************************
         */
-        public void SaveEtatColis(string str_IdColis, string str_EtatColis)
+        public static void SaveEtatColis(string str_IdColis, string str_EtatColis)
         {
             try
             {
@@ -428,7 +545,7 @@ namespace TCPServerReceiver
         * Return(s)   : string          La liste des colis et de leur état tous séparés par un ";"
         *********************************************************************************************************
         */
-        public string GetColisList(string str_NomCamion)
+        public static string GetColisList(string str_NomCamion)
         {
             try
             {
