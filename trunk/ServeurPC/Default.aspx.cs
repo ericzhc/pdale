@@ -2,7 +2,7 @@
 *********************************************************************************************************
 * Fichier : Default.aspx.cs
 * Par     : Marc-Étienne Lebeau, Julien Beaumier-Ethier, Richard Labonté, Francis Robichaud, Julien Marchand
-* Date    : 2007/04/12
+* Date    : 2007/04/13
 *********************************************************************************************************
 */
 using net.mappoint.staging;
