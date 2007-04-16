@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Drawing;
 using System.Collections.Generic;
 using System.Text;
 using System.Net.Sockets;
@@ -29,6 +31,7 @@ namespace PDACommSim
         5 - GetAllPackages
         6 - GetMessages
         7 - SendMessage
+        8 - GetMap (saved in c:\Map.jpg)
         Selection:";
 
         private static Socket sock;
@@ -63,6 +66,9 @@ namespace PDACommSim
                         break;
                     case "7":
                         SendMessage();
+                        break;
+                    case "8":
+                        GetMap();
                         break;
                     default:
                         Console.Out.WriteLine("Invalid menu selection");
@@ -137,7 +143,7 @@ namespace PDACommSim
             byte[] data = new byte[message.Length + 3];
             int i;
 	        data[0] = COMMAND_SENDMSG;
-            data[1] = 49;
+            data[1] = 49;   
 
             for (i = 0; i < message.Length; i++) {
 		        data[i+2] = message[i];
@@ -146,6 +152,26 @@ namespace PDACommSim
 
             sock.Send(data);
             Console.WriteLine("Sent messages");
+        }
+
+        private static void GetMap()
+        {
+            Console.WriteLine("Get map");
+            byte[] data = new byte[2];
+            data[0] = COMMAND_GETMAP;
+            data[1] = COMMAND_EOL;
+            sock.Send(data);
+
+            char[] delimiter = new char[1];
+            delimiter[0] = (char)COMMAND_EOL;
+
+            byte[] image = new byte[50 * 1024];
+            int imageLength = sock.Receive(image);
+
+            Stream stream = new MemoryStream(image);
+            Bitmap bitmap = new Bitmap(stream);
+            bitmap.Save("c:\\map.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
+            //string[] strMessage = Encoding.ASCII.GetString(messages).Split(delimiter, 10);
         }
     }
 }
