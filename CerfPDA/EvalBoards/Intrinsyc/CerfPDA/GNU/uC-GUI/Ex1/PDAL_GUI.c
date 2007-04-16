@@ -18,6 +18,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+#include <includes.h>
 //#include "COMM.h" SERVER
 #include "GUI.h"
 #include "FRAMEWIN.h"
@@ -119,14 +120,32 @@
 #define MESSAGE_MSG1 "Messages reçus"
 #define MESSAGE_MSG2 "Envoi d'un message (Max 50 char)"
 
+/*
+*********************************************************************************************************
+*                                               CONSTANTS
+*********************************************************************************************************
+*/
+
+#define  TASK_START_APP_PRIO     5
+#define  TASK_STK_SIZE        2048
+
+/*
+*********************************************************************************************************
+*                                               VARIABLES
+***************************************«******************************************************************
+*/
+
+OS_STK  AppStartTaskStk[TASK_STK_SIZE];
 /*********************************************************************
 *
 *       Prototype de Fonctions
 *		
 **********************************************************************/
+static void AppStartTask(void*);
+
 void	GetIdColis(int, char*);
 void	BuildTable(void);
-void	BuildList();
+void	BuildList(WM_HWIN, int);
 
 void	PdaleInterface(void);
 
@@ -745,6 +764,11 @@ static void MessageCallback(WM_MESSAGE * pMsg)
 	int NCode, Id;
 	char MessagesRecus[400];
 	char MessageToSend[51];
+	char key;
+	char EditText[51];
+	char TempBuf[51];
+	memset(EditText, 0x00, 51);
+	
 	WM_HWIN hWin = pMsg->hWin;
 	WM_HWIN LoadingDialog;
 	WM_HWIN Edit_Envoi, Text_Recu;
@@ -763,14 +787,70 @@ static void MessageCallback(WM_MESSAGE * pMsg)
 			LoadingDialog = ShowLoadingDialog();
 			//GetMessages(CAMIONCOURANT, MessagesRecus); SERVER REQUEST
 			GUI_EndDialog(LoadingDialog, 0);
-			TEXT_SetText(Text_Recu, MessagesRecus); 
+			TEXT_SetText(Text_Recu, MessagesRecus);
+			EDIT_SetText(Edit_Envoi, "test");
 			break;
 
 		case WM_NOTIFY_PARENT:
+			printf("Notif");
 			Id = WM_GetId(pMsg->hWinSrc); /* Id of widget */
 			NCode = pMsg->Data.v; /* Notification code */
 			switch (NCode) 
 			{
+				case WM_NOTIFICATION_CLICKED:
+					printf("clicked");
+					if (Id == EDIT_MESSAGE_ENVOI_ID) 
+					{
+						printf("InEdit");
+
+						while ((key != ENTER)) 
+						{
+							printf("InWhile");
+
+							key = ReadFromKeyboard();
+							switch (key)
+							{
+								case F1:
+									break;
+								case F2:
+									break;
+								case SHIFT:
+									break;
+								case ESCAPE:
+									break;
+								case ENTER:
+									break;
+								case CAPSCTRL:
+									break;
+								case NUMCUR:
+									break;
+								case UP:
+									break;
+								case DOWN:
+									break;
+								case LEFT:
+									break;
+								case RIGHT:
+									break;
+								case POWER:
+									break;
+								case TAB:
+									break;
+								case BACKSPACE:
+									memset(TempBuf, 0x00, 51);
+									strncpy(TempBuf,EditText,strlen(EditText)-1);
+									StringCopy(EditText,TempBuf);
+									EDIT_SetText(Edit_Envoi, EditText);
+									break;
+
+								default:	
+									strcat(EditText, &key);
+									EDIT_SetText(Edit_Envoi, EditText);
+									break;
+							}
+						}
+					}
+
 				case WM_NOTIFICATION_RELEASED: /* React only if released */
 					if (Id == PB_MESSAGE_ENVOYER_ID) 
 					{
@@ -1062,9 +1142,10 @@ void StringCopy(char* opString1, char* ipString2)
 	{
 		opString1[i] = ipString2[i];
 	}
+	opString1[i] = '\0';
 }
 
-static void CheckButtonState(void)
+void CheckButtonState(void)
 {
 	int Key;
 	BUTTON_Handle ModifColisButton;
@@ -1127,7 +1208,7 @@ static void CheckButtonState(void)
 * Return(s)   : 
 *********************************************************************************************************
 */
-static void PdaleInterface(void) 
+void PdaleInterface(void) 
 {
 	//LOGO
 	GUI_SetBkColor(GUI_BROWN);
@@ -1140,7 +1221,7 @@ static void PdaleInterface(void)
 
 /*
 *********************************************************************************************************
-* MainTask()
+* main()
 *
 * Description : Base d'initialisation du programme (PDA TAB)
 *
@@ -1149,16 +1230,20 @@ static void PdaleInterface(void)
 * Return(s)   : 
 *********************************************************************************************************
 */
-void MainTask(void) 
+
+void MainTask (void *p_arg)
 {
 	// Initialisation d'un GUI
 	GUI_Init();
+
 	PdaleInterface();
 
 	// Montre le dialog d'initialisation
 	ShowInitDialog();
 	while (1) 
 	{
+		//GUI_TOUCH_Exec();
+		//GUI_Exec();
 		CheckButtonState(); // Regarde l'état des boutons constamment
 	}
 }
