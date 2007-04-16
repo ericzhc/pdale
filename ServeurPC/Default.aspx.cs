@@ -197,6 +197,8 @@ public partial class _Default : System.Web.UI.Page
         divMsg.Visible = true;
         divCamion.Visible = false;
 
+        Timer1_Tick(null, null);
+
         onMsgDiv = true;
         onListeDiv = false;
     }
