@@ -1,4 +1,4 @@
-using Socket.MapPoint;
+using Socket.net.mappoint.staging;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
@@ -9,19 +9,20 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Collections;
 
 namespace Socket.Data
 {
+public class GPSCoord {
+    public float Latitude = 45.3821264306392F;
+    public float Longitude = -71.9287836211068F;
+}
 
 public class DataManager
 {
-    #region COMBINAISON
-        
-    
-
-    #endregion
-
-    #region SQL
+    public GPSCoord[] GpsData;
+    private MemoryStream[] m_GPSMaps;
+    public Hashtable TrucksMapping;
 
     private static MySqlConnection m_SqlConnection;
     private static string str_ConnString =
@@ -30,12 +31,38 @@ public class DataManager
             "User ID=pdale;" +
             "Password=projets5;";
 
-
     // Open a sql connection with the database
-    public DataManager() 
+    public DataManager()
     {
         m_SqlConnection = GetConnection();
+        TrucksMapping = new Hashtable();
+        string[] trucks = GetTruckList().Split(';');
+
+        for (int i = 0; i < trucks.Length; i++ ) {
+            if (trucks[i] != string.Empty) {
+                TrucksMapping.Add(i, trucks[i]);
+            }
+        }
+        GpsData = new GPSCoord[TrucksMapping.Count];
+        GpsData[0] = new GPSCoord();
+        
+        m_GPSMaps = new MemoryStream[TrucksMapping.Count];
+
+        Thread mapgenerator = new Thread(new ThreadStart(GenerateMaps));
+        mapgenerator.Start();
     }
+
+    #region COMBINAISON
+        
+    public MemoryStream GetCurrentMap() 
+    {
+        MemoryStream tempstream = m_GPSMaps[0];
+        return tempstream;
+    }
+
+    #endregion
+
+    #region SQL
     
     /*
     *********************************************************************************************************
@@ -89,6 +116,51 @@ public class DataManager
 
     /*
     *********************************************************************************************************
+    *                                              GetColisCoordonnes()
+    *
+    * Description : Cette fonction retourne les champs d'un colis séparés par un ";" dans un string
+    *
+    * Argument(s) : str_ColIdent    Le numéro d'identification du colis
+    *
+    * Return(s)   : string          La variable string contenant les champs d'un colis
+    *********************************************************************************************************
+    */
+    public string GetColisCoord(string str_ColIdent)
+    {
+        try
+        {
+            string str_Sql = "";
+            string str_DonneesColis = "";
+            MySqlConnection MyConnection = GetConnection();
+            MySqlCommand MyCommand = null;
+            MySqlDataReader MyReader = null;
+
+            str_Sql = "SELECT col_etat, col_gpslatcli, col_gpslongcli, col_gpslongdest, col_gpslatdest FROM colis WHERE col_noident=" + str_ColIdent + " ORDER BY col_ordre ASC LIMIT 1";
+
+            MyCommand = new MySqlCommand(str_Sql, MyConnection);
+            MyReader = MyCommand.ExecuteReader();
+
+            MyReader.Read();
+            
+            if (MyReader[0].ToString() == "0") {
+                str_DonneesColis += MyReader[1].ToString() + ";";
+                str_DonneesColis += MyReader[2].ToString() + ";";
+            } else {
+                str_DonneesColis += MyReader[3].ToString() + ";";
+                str_DonneesColis += MyReader[4].ToString() + ";";
+            }
+
+            MyReader.Close();
+            return str_DonneesColis;
+        }
+        catch (MySqlException myEx)
+        {
+            return "";
+        }
+    }
+
+    /*
+    *********************************************************************************************************
     *                                              GetCamionList()
     *
     * Description : Cette fonction retourne la liste des camions
@@ -96,7 +168,7 @@ public class DataManager
     * Return(s)   : string          La liste des camions séparés par un ";"
     *********************************************************************************************************
     */
-    public static string GetCamionList()
+    public static string GetTruckList()
     {
         try
         {
@@ -258,7 +330,7 @@ public class DataManager
             MySqlCommand MyCommand = null;
             MySqlDataReader MyReader = null;
 
-            str_Sql = "SELECT col_noident, col_etat FROM colis WHERE cam_nom='" + str_NomCamion + "'";
+            str_Sql = "SELECT col_noident, col_etat FROM colis WHERE cam_nom='" + str_NomCamion + "' ORDER BY col_ordre";
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyReader = MyCommand.ExecuteReader();
@@ -305,6 +377,33 @@ public class DataManager
     #endregion
 
     #region MAPPOINT
+
+    /*
+     * Generate a map and keeps it in a buffer for each truck
+     */
+    public void GenerateMaps()
+    {
+        while (true) {
+            m_SqlConnection = GetConnection();
+            
+            //for(int i=0; i<TrucksMapping.Count; i++) {
+                string colis = GetColisList((string)TrucksMapping[0]);
+                if (colis != null) {
+                    string colisinfo = GetColisCoord(colis.Split(';')[0]);
+                    double colislong = double.Parse(colisinfo.Replace(',', '.').Split(';')[0]);
+                    double colislat = double.Parse(colisinfo.Replace(',', '.').Split(';')[1]);
+                    MemoryStream tempstream = GetRouteFromGps(GpsData[0].Latitude, GpsData[0].Longitude, colislat, colislong);
+                    Console.WriteLine("First map loaded");
+                    if (m_GPSMaps[0] != null) {
+                        m_GPSMaps[0].Close();
+                    }
+                    m_GPSMaps[0] = tempstream;
+                }
+            //}
+            Thread.Sleep(5000);
+        }
+    }
+
     /*
     *********************************************************************************************************
     *                                              GetDirectionsFromAdress()
@@ -501,7 +600,7 @@ public class DataManager
     * 
     *********************************************************************************************************
     */
-    public static void GetRouteFromGps(double OrigLat, double OrigLong, double DestLat, double DestLong)
+    public static MemoryStream GetRouteFromGps(double OrigLat, double OrigLong, double DestLat, double DestLong)
     {
         Location LocDepart = new Location();
         LocDepart.LatLong = new LatLong();
@@ -554,28 +653,25 @@ public class DataManager
 
         mapSpec.Route = route;
 
-        try
-        {
-            // Get the map image
-            RenderServiceSoap renderService = new RenderServiceSoap();
-            renderService.Credentials = new System.Net.NetworkCredential("124624", "PDALE_projets5");
-            MapImage tempImage = renderService.GetMap(mapSpec)[0];
+        MemoryStream stream;
 
-            Bitmap myMap = new Bitmap(new MemoryStream(tempImage.MimeData.Bits, false), true);
+        // Get the map image
+        RenderServiceSoap renderService = new RenderServiceSoap();
+        renderService.Credentials = new System.Net.NetworkCredential("124624", "PDALE_projets5");
+        MapImage tempImage = renderService.GetMap(mapSpec)[0];
 
-            FileStream stream = new FileStream("c:\\map\\map.bmp", FileMode.OpenOrCreate);
-            myMap.Save(stream, System.Drawing.Imaging.ImageFormat.Bmp);
-            stream.Close();
+        Bitmap myMap = new Bitmap(new MemoryStream(tempImage.MimeData.Bits, false), true);
 
-            System.Threading.Thread.Sleep(1000);
-            //System.Diagnostics.Process.Start("c:\\map\\bmpcvt.exe","c:\\map\\map.bmp -convertintobestpalette -saveasmap,3 -exit");
-            System.Diagnostics.Process.Start("c:\\map\\bmpcvt.exe", "c:\\map\\map.bmp -convertintobestpalette -saveasc:\\map\\toto.c,1 -exit");
-            //stsMain.Text = "Done";//BmpCvt logo.bmp -convertintobestpalette -saveaslogo,1 -exit
-        }
-        catch (Exception e)
-        {
-            //MessageBox.Show(e.ToString());
-        }
+        stream = new MemoryStream();
+        myMap.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
+
+        return stream;
+
+        //System.Threading.Thread.Sleep(1000);
+        //System.Diagnostics.Process.Start("c:\\map\\bmpcvt.exe","c:\\map\\map.bmp -convertintobestpalette -saveasmap,3 -exit");
+        //System.Diagnostics.Process.Start("c:\\map\\bmpcvt.exe", "c:\\map\\map.bmp -convertintobestpalette -saveasc:\\map\\toto.c,1 -exit");
+        //stsMain.Text = "Done";//BmpCvt logo.bmp -convertintobestpalette -saveaslogo,1 -exit
+
     }
 
     #endregion

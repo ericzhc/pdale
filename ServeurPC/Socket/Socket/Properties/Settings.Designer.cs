@@ -27,11 +27,9 @@ namespace Socket.Properties {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.WebServiceUrl)]
         [global::System.Configuration.DefaultSettingValueAttribute("http://findv3.staging.mappoint.net/Find-30/Common.asmx")]
-        public string Socket_MapPoint_CommonService
-        {
-            get
-            {
-                return ((string)(this["Socket_MapPoint_CommonService"]));
+        public string Socket_net_mappoint_staging_CommonService {
+            get {
+                return ((string)(this["Socket_net_mappoint_staging_CommonService"]));
             }
         }
     }

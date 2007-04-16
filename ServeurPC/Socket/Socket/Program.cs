@@ -5,7 +5,7 @@
 * Date    : 2007/04/12
 *********************************************************************************************************
 */
-using Socket.MapPoint;
+using Socket.net.mappoint.staging;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
@@ -227,19 +227,19 @@ namespace Socket.TCPServerReceiver
                 }
                 else if (receivedData[0] == COMMAND_TRUCKNAMES)
                 {
-                    string listeCamions = GetCamionList();
+                    //string listeCamions = GetCamionList();
 
-                    sendSem.Wait();
-                    if (toSendData[0] != COMMAND_DELIMITER)
-                    {
-                        string data = toSendData.ToString() + listeCamions;
-                        toSendData = Encoding.ASCII.GetBytes(data);
-                    }
-                    else
-                    {
-                        toSendData = Encoding.ASCII.GetBytes(strReceivedData[idxStr]);
-                    }
-                    sendSem.Release();
+                    //sendSem.Wait();
+                    //if (toSendData[0] != COMMAND_DELIMITER)
+                    //{
+                    //    string data = toSendData.ToString() + listeCamions;
+                    //    toSendData = Encoding.ASCII.GetBytes(data);
+                    //}
+                    //else
+                    //{
+                    //    toSendData = Encoding.ASCII.GetBytes(strReceivedData[idxStr]);
+                    //}
+                    //sendSem.Release();
                 }
                 else if (receivedData[0] == COMMAND_VALIDPACKAGE)
                 {
@@ -259,11 +259,32 @@ namespace Socket.TCPServerReceiver
                 }
                 else if (receivedData[0] == COMMAND_GPSCOORD) 
                 {
-                    
+                    if (receivedData.Length == 11) {
+                        int temp = (int)receivedData[1];
+                        byte[] tempvalue = new byte[4];
+                        tempvalue[0] = receivedData[2];
+                        tempvalue[1] = receivedData[3];
+                        tempvalue[2] = receivedData[4];
+                        tempvalue[3] = receivedData[5];
+
+                        m_DataManager.GpsData[0].Latitude = BitConverter.ToSingle(tempvalue, 0);
+
+                        tempvalue[0] = receivedData[6];
+                        tempvalue[1] = receivedData[7];
+                        tempvalue[2] = receivedData[8];
+                        tempvalue[3] = receivedData[9];
+                        m_DataManager.GpsData[0].Longitude = BitConverter.ToSingle(tempvalue, 0);
+                    }
                 }
                 else if (receivedData[0] == COMMAND_GETMAP) 
                 {
-                    
+                    MemoryStream stream = m_DataManager.GetCurrentMap();
+                    if (stream != null) {
+                        byte[] maparray = new byte[stream.Length];
+                        stream.Position = 0;
+                        stream.Read(maparray, 0, (int)stream.Length);
+                        client.Send(maparray);
+                    }
                 }
                 else
                 {

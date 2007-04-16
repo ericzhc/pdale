@@ -67,7 +67,7 @@
     </Compile>
     <Compile Include="Semaphore.cs" />
     <Compile Include="DataManager.cs" />
-    <Compile Include="Web References\MapPoint\Reference.cs">
+    <Compile Include="Web References\net.mappoint.staging\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.map</DependentUpon>
@@ -77,67 +77,54 @@
     <WebReferences Include="Web References\" />
   </ItemGroup>
   <ItemGroup>
-    <WebReferenceUrl Include="http://staging.mappoint.net/standard-30/mappoint.wsdl">
-      <UrlBehavior>Dynamic</UrlBehavior>
-      <RelPath>Web References\MapPoint\</RelPath>
-      <UpdateFromURL>http://staging.mappoint.net/standard-30/mappoint.wsdl</UpdateFromURL>
-      <ServiceLocationURL>
-      </ServiceLocationURL>
-      <CachedDynamicPropName>
-      </CachedDynamicPropName>
-      <CachedAppSettingsObjectName>Settings</CachedAppSettingsObjectName>
-      <CachedSettingsPropName>Socket_net_mappoint_staging_CommonService</CachedSettingsPropName>
-    </WebReferenceUrl>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <None Include="Socket_TemporaryKey.pfx" />
-    <None Include="Web References\MapPoint\Address1.datasource">
+    <None Include="Web References\net.mappoint.staging\Address.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </None>
-    <None Include="Web References\MapPoint\CountryRegionInfo1.datasource">
+    <None Include="Web References\net.mappoint.staging\CountryRegionInfo.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </None>
-    <None Include="Web References\MapPoint\DataSource1.datasource">
+    <None Include="Web References\net.mappoint.staging\DataSource.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </None>
-    <None Include="Web References\MapPoint\EntityType1.datasource">
+    <None Include="Web References\net.mappoint.staging\EntityType.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </None>
-    <None Include="Web References\MapPoint\FindResults1.datasource">
+    <None Include="Web References\net.mappoint.staging\FindResults.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </None>
-    <None Include="Web References\MapPoint\LatLong1.datasource">
+    <None Include="Web References\net.mappoint.staging\LatLong.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </None>
-    <None Include="Web References\MapPoint\LineDriveMapImage1.datasource">
+    <None Include="Web References\net.mappoint.staging\LineDriveMapImage.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </None>
-    <None Include="Web References\MapPoint\Location1.datasource">
+    <None Include="Web References\net.mappoint.staging\Location.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </None>
-    <None Include="Web References\MapPoint\MapImage1.datasource">
+    <None Include="Web References\net.mappoint.staging\MapImage.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </None>
-    <None Include="Web References\MapPoint\mappoint.wsdl" />
-    <None Include="Web References\MapPoint\MapViewRepresentations1.datasource">
+    <None Include="Web References\net.mappoint.staging\MapPoint.wsdl" />
+    <None Include="Web References\net.mappoint.staging\MapViewRepresentations.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </None>
-    <None Include="Web References\MapPoint\PixelCoord1.datasource">
+    <None Include="Web References\net.mappoint.staging\PixelCoord.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </None>
-    <None Include="Web References\MapPoint\Reference.map">
+    <None Include="Web References\net.mappoint.staging\Reference.map">
       <Generator>MSDiscoCodeGenerator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
-    <None Include="Web References\MapPoint\Route1.datasource">
+    <None Include="Web References\net.mappoint.staging\Route.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </None>
-    <None Include="Web References\MapPoint\VersionInfo1.datasource">
+    <None Include="Web References\net.mappoint.staging\VersionInfo.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </None>
   </ItemGroup>
@@ -147,6 +134,19 @@
       <ProductName>.NET Framework 2.0</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <WebReferenceUrl Include="http://staging.mappoint.net/standard-30/MapPoint.wsdl">
+      <UrlBehavior>Dynamic</UrlBehavior>
+      <RelPath>Web References\net.mappoint.staging\</RelPath>
+      <UpdateFromURL>http://staging.mappoint.net/standard-30/MapPoint.wsdl</UpdateFromURL>
+      <ServiceLocationURL>
+      </ServiceLocationURL>
+      <CachedDynamicPropName>
+      </CachedDynamicPropName>
+      <CachedAppSettingsObjectName>Settings</CachedAppSettingsObjectName>
+      <CachedSettingsPropName>Socket_net_mappoint_staging_CommonService</CachedSettingsPropName>
+    </WebReferenceUrl>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
