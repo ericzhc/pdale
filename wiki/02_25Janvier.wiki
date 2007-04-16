@@ -1,0 +1,6 @@
+#summary Résumé de la rencontre du 25 janvier
+
+=Clarification des concepts de l'idée de projet choisie=
+
+Le projet consistera en un système de gestion pour une entreprise de livraison et cueillette de colis telle que UPS ou FedEx. Le CerfPDA sera l'outil de travail du conducteur du camion de livraison. Grâce au CerfPDA, le livreur peut consulter la liste des colis qu'il doit livrer ou ramasser, consulter l'information relative à un colis dans la base de données, consulter une carte lui indiquant l'itinéraire à suivre et communiquer avec la centrale grâce à un système de messages texte.
+
