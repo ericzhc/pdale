@@ -21,6 +21,7 @@ using System.Web.UI.HtmlControls;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Text;
 
 public partial class _Default : System.Web.UI.Page 
 {
@@ -33,11 +34,11 @@ public partial class _Default : System.Web.UI.Page
     bool JourneeFlag = false;
 
     const char COMMAND_DELIMITER = ';';
-    const int COMMAND_GETMSGS = 0x35;
-    const int COMMAND_MSGFROMPDA = 0x36;
-    const int COMMAND_MSGTOPDA = 0x37;
+    const byte COMMAND_GETMSGS = 53;
+    const byte COMMAND_MSGFROMPDA = 54;
+    const byte COMMAND_MSGTOPDA = 55;
 
-    static TestSemaphore.Semaphore usingSocket = new TestSemaphore.Semaphore(2);
+    //static TestSemaphore.Semaphore usingSocket = new TestSemaphore.Semaphore(2);
     
     /*
     *********************************************************************************************************
@@ -529,18 +530,27 @@ public partial class _Default : System.Web.UI.Page
         
         //Envoi du message par socket TCP
         Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+        //IPAddress remoteIP = (System.Net.IPAddress)Dns.GetHostAddresses("skaber.mine.nu").GetValue(0);
         IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
+        
         const int remotePort = 2160;
         IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
-
-        usingSocket.Wait();
+        
+        //usingSocket.Wait();
         sendSocket.Connect(connectTo);
         byte[] buf = new byte[200];
-        buf = System.Text.Encoding.ASCII.GetBytes(TextEnvoiMsg.Text + ";");
+        buf[0] = (byte) COMMAND_MSGTOPDA;
+
+        for (int i = 0; i < TextEnvoiMsg.Text.Length; i++)
+        {
+            buf[i + 1] = Encoding.ASCII.GetBytes(TextEnvoiMsg.Text)[i];
+        }
+        buf[TextEnvoiMsg.Text.Length + 1] = (byte) COMMAND_DELIMITER;
         int bufferUsed = buf.Length;
         sendSocket.Send(buf);
         sendSocket.Close();
-        usingSocket.Release();
+        //usingSocket.Release();
 
         TextEnvoiMsg.Text = "";
         divMsg.Visible = true;*/
@@ -723,11 +733,13 @@ public partial class _Default : System.Web.UI.Page
             const int remotePort = 2160;
             IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
 
-            usingSocket.Wait();
+            //usingSocket.Wait();
             sendSocket.Connect(connectTo);
             byte[] bufSignal = new byte[7];
-            bufSignal = System.Text.Encoding.ASCII.GetBytes(COMMAND_GETMSGS.ToString());
+            bufSignal[0] = (byte) COMMAND_GETMSGS;
+            bufSignal[1] = (byte) COMMAND_DELIMITER;
             sendSocket.Send(bufSignal);
+            //usingSocket.Release();
 
             //string myCurrentStr = "";
 
@@ -735,13 +747,17 @@ public partial class _Default : System.Web.UI.Page
             
             bufMsgLength = sendSocket.Receive(bufMsg);
 
+            //usingSocket.Wait();
             if (bufMsgLength > 0)
             {
-                string[] strReceivedData = bufMsg.ToString().Split(delimiter, 10);
+                string[] strReceivedData = Encoding.ASCII.GetString(bufMsg).Split(delimiter, 10);
 
                 for (int j = 0; j < strReceivedData.GetLength(0); j++)
                 {
-                    LabelMsgRecus.Text = strReceivedData[j] + "\n" + LabelMsgRecus.Text;
+                    if (strReceivedData[j][0] != '\0')
+                    {
+                        LabelMsgRecus.Text = strReceivedData[j].Substring(2, strReceivedData[j].Length - 2) + "\n" + LabelMsgRecus.Text;
+                    }
                 }
 
             }
@@ -769,10 +785,13 @@ public partial class _Default : System.Web.UI.Page
 
             
             sendSocket.Close();
-            usingSocket.Release();
+            //usingSocket.Release();
 
             if (onMsgDiv)
+            {
                 divMsg.Visible = true;
+                TextEnvoiMsg.Focus();
+            }
 
         }
         catch (SocketException exp) {
