@@ -173,122 +173,101 @@ namespace Socket.TCPServerReceiver
             
             while (true)
             {
-                receivedData = new byte[1024];
-                client.Receive(receivedData);
-                
-                if (receivedData[0] == COMMAND_MSGFROMPDA)
-                {
-                    msgReceivedSem.Wait();
-                    if (msgReceivedData[0] != COMMAND_DELIMITER)
-                    {
-                        string messageCat = "";
-                        string[] message = Encoding.ASCII.GetString(msgReceivedData).Split(delimiter, 10);
+                try {
+                    receivedData = new byte[50 * 1024];
+                    client.Receive(receivedData);
 
-                        for (int i = 0; i < message.GetLength(0); i++)
-                        {
-                            if (message[i][0] != '\0')
-                            {
+                    if (receivedData[0] == COMMAND_MSGFROMPDA) {
+                        msgReceivedSem.Wait();
+                        if (msgReceivedData[0] != COMMAND_DELIMITER) {
+                            string messageCat = "";
+                            string[] message = Encoding.ASCII.GetString(msgReceivedData).Split(delimiter, 10);
+
+                            for (int i = 0; i < message.GetLength(0); i++) {
+                                if (message[i][0] != '\0') {
+                                    messageCat += message[i] + ";";
+                                }
+                            }
+
+                            messageCat += Encoding.ASCII.GetString(receivedData);
+                            msgReceivedData = Encoding.ASCII.GetBytes(messageCat);
+                        } else {
+                            string message = Encoding.ASCII.GetString(receivedData);
+                            msgReceivedData = Encoding.ASCII.GetBytes(message);
+                        }
+                        msgReceivedSem.Release();
+                    } else if (receivedData[0] == COMMAND_GETMSGS) {
+                        msgSendSem.Wait();
+
+                        string messageCat = "";
+                        string[] message = Encoding.ASCII.GetString(msgSendData).Split(delimiter, 10);
+
+                        for (int i = 0; i < message.GetLength(0); i++) {
+                            if (message[i][0] != '\0') {
                                 messageCat += message[i] + ";";
                             }
                         }
 
-                        messageCat += Encoding.ASCII.GetString(receivedData);
-                        msgReceivedData = Encoding.ASCII.GetBytes(messageCat);
-                    }
-                    else
-                    {
-                        string message = Encoding.ASCII.GetString(receivedData);
-                        msgReceivedData = Encoding.ASCII.GetBytes(message);
-                    }
-                    msgReceivedSem.Release();
-                }
-                else if (receivedData[0] == COMMAND_GETMSGS)
-                {
-                    msgSendSem.Wait();
-                    
-                    string messageCat = "";
-                    string[] message = Encoding.ASCII.GetString(msgSendData).Split(delimiter, 10);
+                        byte[] tempBuffer = new byte[messageCat.Length];
+                        tempBuffer = Encoding.ASCII.GetBytes(messageCat);
 
-                    for (int i = 0; i < message.GetLength(0); i++)
-                    {
-                        if (message[i][0] != '\0')
-                        {
-                            messageCat += message[i] + ";";
+                        client.Send(tempBuffer);
+                        msgSendData = new byte[1024];
+                        msgSendSem.Release();
+
+                    } else if (receivedData[0] == COMMAND_TRUCKNAMES) {
+                        //string listeCamions = GetCamionList();
+
+                        //sendSem.Wait();
+                        //if (toSendData[0] != COMMAND_DELIMITER)
+                        //{
+                        //    string data = toSendData.ToString() + listeCamions;
+                        //    toSendData = Encoding.ASCII.GetBytes(data);
+                        //}
+                        //else
+                        //{
+                        //    toSendData = Encoding.ASCII.GetBytes(strReceivedData[idxStr]);
+                        //}
+                        //sendSem.Release();
+                    } else if (receivedData[0] == COMMAND_VALIDPACKAGE) {
+
+                    } else if (receivedData[0] == COMMAND_SETPACKETSTATE) {
+
+                    } else if (receivedData[0] == COMMAND_GETPACKAGES) {
+
+                    } else if (receivedData[0] == COMMAND_PACKETINFOS) {
+
+                    } else if (receivedData[0] == COMMAND_GPSCOORD) {
+                        if (receivedData.Length == 11) {
+                            int temp = (int)receivedData[1];
+                            byte[] tempvalue = new byte[4];
+                            tempvalue[0] = receivedData[2];
+                            tempvalue[1] = receivedData[3];
+                            tempvalue[2] = receivedData[4];
+                            tempvalue[3] = receivedData[5];
+
+                            m_DataManager.GpsData[0].Latitude = BitConverter.ToSingle(tempvalue, 0);
+
+                            tempvalue[0] = receivedData[6];
+                            tempvalue[1] = receivedData[7];
+                            tempvalue[2] = receivedData[8];
+                            tempvalue[3] = receivedData[9];
+                            m_DataManager.GpsData[0].Longitude = BitConverter.ToSingle(tempvalue, 0);
                         }
+                    } else if (receivedData[0] == COMMAND_GETMAP) {
+                        MemoryStream stream = m_DataManager.GetCurrentMap();
+                        if (stream != null) {
+                            byte[] maparray = new byte[stream.Length];
+                            stream.Position = 0;
+                            stream.Read(maparray, 0, (int)stream.Length);
+                            client.Send(maparray);
+                        }
+                    } else {
+                        Console.WriteLine("X-----Invalid message tag (TCPReceiverPDA)-----X\n");
                     }
-
-                    byte[] tempBuffer = new byte[messageCat.Length];
-                    tempBuffer = Encoding.ASCII.GetBytes(messageCat);
-
-                    client.Send(tempBuffer);
-                    msgSendData = new byte[1024];
-                    msgSendSem.Release();
-
-                }
-                else if (receivedData[0] == COMMAND_TRUCKNAMES)
-                {
-                    //string listeCamions = GetCamionList();
-
-                    //sendSem.Wait();
-                    //if (toSendData[0] != COMMAND_DELIMITER)
-                    //{
-                    //    string data = toSendData.ToString() + listeCamions;
-                    //    toSendData = Encoding.ASCII.GetBytes(data);
-                    //}
-                    //else
-                    //{
-                    //    toSendData = Encoding.ASCII.GetBytes(strReceivedData[idxStr]);
-                    //}
-                    //sendSem.Release();
-                }
-                else if (receivedData[0] == COMMAND_VALIDPACKAGE)
-                {
-
-                }
-                else if (receivedData[0] == COMMAND_SETPACKETSTATE)
-                {
-
-                }
-                else if (receivedData[0] == COMMAND_GETPACKAGES)
-                {
-
-                }
-                else if (receivedData[0] == COMMAND_PACKETINFOS)
-                {
-
-                }
-                else if (receivedData[0] == COMMAND_GPSCOORD) 
-                {
-                    if (receivedData.Length == 11) {
-                        int temp = (int)receivedData[1];
-                        byte[] tempvalue = new byte[4];
-                        tempvalue[0] = receivedData[2];
-                        tempvalue[1] = receivedData[3];
-                        tempvalue[2] = receivedData[4];
-                        tempvalue[3] = receivedData[5];
-
-                        m_DataManager.GpsData[0].Latitude = BitConverter.ToSingle(tempvalue, 0);
-
-                        tempvalue[0] = receivedData[6];
-                        tempvalue[1] = receivedData[7];
-                        tempvalue[2] = receivedData[8];
-                        tempvalue[3] = receivedData[9];
-                        m_DataManager.GpsData[0].Longitude = BitConverter.ToSingle(tempvalue, 0);
-                    }
-                }
-                else if (receivedData[0] == COMMAND_GETMAP) 
-                {
-                    MemoryStream stream = m_DataManager.GetCurrentMap();
-                    if (stream != null) {
-                        byte[] maparray = new byte[stream.Length];
-                        stream.Position = 0;
-                        stream.Read(maparray, 0, (int)stream.Length);
-                        client.Send(maparray);
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("X-----Invalid message tag (TCPReceiverPDA)-----X\n");
+                } catch (SocketException) { 
+                    // PDA Disconnected
+                    client = newsock.Accept();
                 }
             }
         }
