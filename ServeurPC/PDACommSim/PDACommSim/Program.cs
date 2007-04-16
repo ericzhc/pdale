@@ -166,7 +166,23 @@ namespace PDACommSim
             delimiter[0] = (char)COMMAND_EOL;
 
             byte[] image = new byte[50 * 1024];
-            int imageLength = sock.Receive(image);
+            byte[] bufftemp = new byte[2048];
+            int imageLength = 0, compteur = 0;
+            sock.ReceiveTimeout = 1000;
+            while (true) {
+                try {
+                    imageLength = sock.Receive(bufftemp);
+                    if (imageLength == 0) {
+                        break;
+                    } else {
+                        bufftemp.CopyTo(image, compteur);
+                    }
+                    compteur += imageLength;
+                } catch (SocketException exp) {
+                    Console.WriteLine("Map received");
+                    break;
+                }
+            }
 
             Stream stream = new MemoryStream(image);
             Bitmap bitmap = new Bitmap(stream);
