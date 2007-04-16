@@ -246,8 +246,10 @@ public partial class _Default : System.Web.UI.Page
             string str_PlageDebutDest = "";
             string str_PlageFinDest = "";
             string str_EtatColis = "0";
-            string str_Address = "";
-            string[] str_LongLat = new string[2];
+            string str_AddressCli = "";
+            string str_AddressDest = "";
+            string[] str_LongLatCli = new string[2];
+            string[] str_LongLatDest = new string[2];
             MySqlConnection MyConnection = GetConnection();
             MySqlCommand MyCommand = null;
             MySqlDataReader MyReader = null;
@@ -302,24 +304,29 @@ public partial class _Default : System.Web.UI.Page
                     str_PlageDebutDest = txt_PlageDest1.Text + ":00";
                     str_PlageFinDest = txt_PlageDest2.Text + ":00";
 
-                    str_Address = txt_AdresseDest.Text + ";" + txt_VilleDest.Text + ";";
-                    str_Address += "QC;" + txt_CodePostalDest.Text + ";CA";
-                    str_LongLat = GetGPSFromAdress(str_Address);
+                    // Génération des coordonnées GPS
+                    str_AddressCli = txt_AdresseClient.Text + ";" + txt_VilleClient.Text + ";";
+                    str_AddressCli += "QC;" + txt_CodePostalClient.Text + ";CA";
+                    str_LongLatCli = GetGPSFromAdress(str_AddressCli);
+
+                    str_AddressDest = txt_AdresseDest.Text + ";" + txt_VilleDest.Text + ";";
+                    str_AddressDest += "QC;" + txt_CodePostalDest.Text + ";CA";
+                    str_LongLatDest = GetGPSFromAdress(str_AddressDest);
 
                     string str_CamionName = "";  
                     if (str_EtatColis == "0" && JourneeFlag)
                     {
-                        AssignClosestCamion(str_LongLat, ref str_CamionName);
+                        AssignClosestCamion(str_LongLatDest, ref str_CamionName);
                     }
 
                     str_Sql = "INSERT INTO colis (col_noident, col_nomcli, col_adrcli, col_villecli, col_cpcli, col_hrdebutcli, col_hrfincli, ";
                     str_Sql += "col_remarquecli, col_etat, col_nomdest, col_adrdest, col_villedest, col_cpdest, col_hrdebutdest, col_hrfindest, ";
-                    str_Sql += "col_remarquedest, cam_nom, col_gpslong, col_gpslat, col_ordre) VALUES ('" + txt_Ident.Text + "', '" + txt_NomClient.Text + "', '" + txt_AdresseClient.Text;
+                    str_Sql += "col_remarquedest, cam_nom, col_gpslongcli, col_gpslatcli, col_gpslongdest, col_gpslatdest, col_ordre) VALUES ('" + txt_Ident.Text + "', '" + txt_NomClient.Text + "', '" + txt_AdresseClient.Text;
                     str_Sql += "', '" + txt_VilleClient.Text + "', '" + txt_CodePostalClient.Text + "', '" + str_PlageDebutCli + "', '" + str_PlageFinCli + "', '";
                     str_Sql += txt_RemarquesClient1.Text + "', '" + str_EtatColis + "', '" + txt_NomDest.Text + "', '";
                     str_Sql += txt_AdresseDest.Text + "', '" + txt_VilleDest.Text + "', '" + txt_CodePostalDest.Text + "', '" + str_PlageDebutDest + "', '" + str_PlageFinDest;
-                    str_Sql += "', '" + txt_RemarquesDest1.Text + "', '" + str_CamionName + "', '" + str_LongLat[0];
-                    str_Sql += "', '" + str_LongLat[1] + "', '-1" + "')";
+                    str_Sql += "', '" + txt_RemarquesDest1.Text + "', '" + str_CamionName + "', '" + str_LongLatCli[0] + "', '" + str_LongLatCli[1];
+                    str_Sql += "', '" + str_LongLatDest[1] + "', '" + str_LongLatDest[1] + "', '-1" + "')";
 
                     MyCommand = new MySqlCommand(str_Sql, MyConnection);
                     MyCommand.ExecuteNonQuery();
