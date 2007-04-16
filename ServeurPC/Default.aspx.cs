@@ -1115,7 +1115,7 @@ public partial class _Default : System.Web.UI.Page
     *********************************************************************************************************
     *                                              UpdateBDFinJournee()
     *
-    * Description : Cette fonction met à jour le camion affecté à un colis. THIS IS GOING TO BUG
+    * Description : Cette fonction met à jour le camion affecté à un colis.
     *
     *********************************************************************************************************
     */
@@ -1148,6 +1148,7 @@ public partial class _Default : System.Web.UI.Page
                 MyCommand.ExecuteNonQuery();
             }
 
+            arr_Colis.Clear();
             str_Sql = "SELECT col_noident FROM colis WHERE col_etat='2'";
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyReader = MyCommand.ExecuteReader();
@@ -1286,12 +1287,12 @@ public partial class _Default : System.Web.UI.Page
     * 
     * Arguments   : str_LongLat       Tableau de string avec la position du nouveau colis
     *               str_CamionName    Le nom du camion qui sera assigné au colis
-    *
+    *               str_Ordre         L'ordre que prendra le nouveau colis
     * Return      : 
     *
     *********************************************************************************************************
     */
-    private void AssignClosestCamion(string[] str_LongLat, ref string str_CamionName)
+    private void AssignClosestCamion(string[] str_LongLat, ref string str_CamionName, ref string str_Ordre)
     {
         try
         {
@@ -1305,14 +1306,37 @@ public partial class _Default : System.Web.UI.Page
             double Distance = 0;
             int ClosestPackage = FindClosestPackage(ColisList, double.Parse(str_LongLat[0]), double.Parse(str_LongLat[1]), ref Distance);
 
-            str_Sql = "SELECT col_cam FROM colis WHERE col_noident = '" + ((ArrayList)ColisList[ClosestPackage])[2].ToString() + "'"; // PackageID
+            str_Sql = "SELECT col_cam, col_ordre FROM colis WHERE col_noident = '" + ((ArrayList)ColisList[ClosestPackage])[2].ToString() + "'"; // PackageID
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyReader = MyCommand.ExecuteReader();
 
             while (MyReader.Read())
             {
-                str_CamionName = str_Sql;
+                str_CamionName = MyReader[0].ToString();
+                str_Ordre = MyReader[1].ToString();
+            }
+            MyReader.Close();
+            str_Ordre = (Int32.Parse(str_Ordre) + 1).ToString();
+
+            str_Sql = "SELECT col_noident FROM colis WHERE col_ordre >= '" + str_Ordre + "'";
+            MyCommand = new MySqlCommand(str_Sql, MyConnection);
+            MyReader = MyCommand.ExecuteReader();
+
+            ArrayList Colis = new ArrayList();
+            int NombreColisApres = 0;
+            while (MyReader.Read())
+            {
+                Colis.Add(MyReader.ToString());
+                NombreColisApres++;
+            }
+            MyReader.Close();
+
+            for (int j = 0; j < NombreColisApres; j++)
+            {
+                str_Sql = "UPDATE colis SET col_ordre = '" + str_Ordre + j + 1 + "' WHERE col_noident = '" + Colis[j] + "'";
+                MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                MyCommand.ExecuteNonQuery();
             }
         }
         catch (MySqlException myEx)
