@@ -75,7 +75,7 @@ public class DataManager
     * Return(s)   : string          La variable string contenant les champs d'un colis
     *********************************************************************************************************
     */
-    public string GetColis(string str_ColIdent)
+    public static string GetColis(string str_ColIdent)
     {
         try
         {
