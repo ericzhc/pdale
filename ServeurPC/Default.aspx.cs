@@ -23,8 +23,9 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Text;
 
-public partial class _Default : System.Web.UI.Page 
+public partial class _Default : System.Web.UI.Page
 {
+    #region VARIABLES GLOBALES
     // Chargement du "connection string" définit dans le fichier web.config
     private string str_ConnString = ConfigurationSettings.AppSettings["ConnectionString"];
 
@@ -33,13 +34,18 @@ public partial class _Default : System.Web.UI.Page
     static bool onListeDiv;
     bool JourneeFlag = false;
 
+    double CentralCoordLat = -71.9287836211068;
+    double CentralCoordLong = 45.3821264306392;
+
     const char COMMAND_DELIMITER = ';';
     const byte COMMAND_GETMSGS = 53;
     const byte COMMAND_MSGFROMPDA = 54;
     const byte COMMAND_MSGTOPDA = 55;
 
     //static TestSemaphore.Semaphore usingSocket = new TestSemaphore.Semaphore(2);
-    
+    #endregion
+
+    #region PAGE LOAD/UNLOAD
     /*
     *********************************************************************************************************
     *                                              Page_Load()
@@ -59,7 +65,7 @@ public partial class _Default : System.Web.UI.Page
         lblErrorCam.Visible = false;
         divListe.Visible = false;
 
-        //Timer2_Tick(null, null);
+        Timer2_Tick(null, null);
 
         // Ce code est roulé lors du premier chargement de la page web
         if (!IsPostBack)
@@ -89,6 +95,7 @@ public partial class _Default : System.Web.UI.Page
             {
             }
             onMsgDiv = false;
+            cmdFinJournee.Enabled = false;
         }
     }
 
@@ -106,7 +113,9 @@ public partial class _Default : System.Web.UI.Page
         CloseConnection();
         base.OnUnload(e);
     }
+    #endregion
 
+    #region GESTION TABS
     /*
     *********************************************************************************************************
     *                                              cmd_Ajout_Click()
@@ -226,7 +235,9 @@ public partial class _Default : System.Web.UI.Page
 
         onMsgDiv = false;
     }
+    #endregion
 
+    #region TAB AJOUT COLIS
     /*
     *********************************************************************************************************
     *                                              cmdValiderAjout_Click()
@@ -315,10 +326,11 @@ public partial class _Default : System.Web.UI.Page
                     str_AddressDest += "QC;" + txt_CodePostalDest.Text + ";CA";
                     str_LongLatDest = GetGPSFromAdress(str_AddressDest);
 
-                    string str_CamionName = "";  
+                    string str_CamionName = "";
+                    string str_Ordre = "-1";
                     if (str_EtatColis == "0" && JourneeFlag)
                     {
-                        AssignClosestCamion(str_LongLatDest, ref str_CamionName);
+                        AssignClosestCamion(str_LongLatDest, ref str_CamionName, ref str_Ordre);
                     }
 
                     str_Sql = "INSERT INTO colis (col_noident, col_nomcli, col_adrcli, col_villecli, col_cpcli, col_hrdebutcli, col_hrfincli, ";
@@ -328,7 +340,7 @@ public partial class _Default : System.Web.UI.Page
                     str_Sql += txt_RemarquesClient1.Text + "', '" + str_EtatColis + "', '" + txt_NomDest.Text + "', '";
                     str_Sql += txt_AdresseDest.Text + "', '" + txt_VilleDest.Text + "', '" + txt_CodePostalDest.Text + "', '" + str_PlageDebutDest + "', '" + str_PlageFinDest;
                     str_Sql += "', '" + txt_RemarquesDest1.Text + "', '" + str_CamionName + "', '" + str_LongLatCli[0] + "', '" + str_LongLatCli[1];
-                    str_Sql += "', '" + str_LongLatDest[1] + "', '" + str_LongLatDest[1] + "', '-1" + "')";
+                    str_Sql += "', '" + str_LongLatDest[1] + "', '" + str_LongLatDest[1] + "', '" + str_Ordre + "')";
 
                     MyCommand = new MySqlCommand(str_Sql, MyConnection);
                     MyCommand.ExecuteNonQuery();
@@ -514,7 +526,9 @@ public partial class _Default : System.Web.UI.Page
         rdb_Etat3.Checked = false;
         rdb_Etat4.Checked = false;
     }
+#endregion
 
+    #region TAB MESSAGE
     /*
     *********************************************************************************************************
     *                                              cmdEnvoyerMsg_Click()
@@ -527,7 +541,7 @@ public partial class _Default : System.Web.UI.Page
     *********************************************************************************************************
     */
     protected void cmdEnvoyerMsg_Click(object sender, EventArgs e)
-    {/*
+    {
         int hour = DateTime.Now.Hour;
         int min = DateTime.Now.Minute;
         string minStr;
@@ -562,7 +576,7 @@ public partial class _Default : System.Web.UI.Page
         //usingSocket.Release();
 
         TextEnvoiMsg.Text = "";
-        divMsg.Visible = true;*/
+        divMsg.Visible = true;
     }
 
     /*
@@ -581,6 +595,99 @@ public partial class _Default : System.Web.UI.Page
         LabelMsgRecus.Text = "";
     }
 
+    /*
+    *********************************************************************************************************
+    *                                              Timer1_Tick()
+    *
+    * Description : Cette fonction ouvre un socket de communication afin de permettre l'envoie et la
+    *               réception de messages avec un PDA 
+    *
+    * Notes		  : La fonction est appelée par un module AJAX
+    *********************************************************************************************************
+    */
+    protected void Timer1_Tick(object sender, EventArgs e)
+    {
+        byte[] bufMsg = new byte[1000];
+        //string[] receivedMsg = new string[5];
+        int bufMsgLength;
+        char[] delimiter = COMMAND_DELIMITER.ToString().ToCharArray();
+
+        try
+        {
+            Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
+            const int remotePort = 2160;
+            IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
+
+            //usingSocket.Wait();
+            sendSocket.Connect(connectTo);
+            byte[] bufSignal = new byte[7];
+            bufSignal[0] = (byte)COMMAND_GETMSGS;
+            bufSignal[1] = (byte)COMMAND_DELIMITER;
+            sendSocket.Send(bufSignal);
+            //usingSocket.Release();
+
+            //string myCurrentStr = "";
+
+            //while (bufMsgLength > 0) {
+
+            bufMsgLength = sendSocket.Receive(bufMsg);
+
+            //usingSocket.Wait();
+            if (bufMsgLength > 0)
+            {
+                string[] strReceivedData = Encoding.ASCII.GetString(bufMsg).Split(delimiter, 10);
+
+                for (int j = 0; j < strReceivedData.GetLength(0); j++)
+                {
+                    if (strReceivedData[j][0] != '\0')
+                    {
+                        LabelMsgRecus.Text = strReceivedData[j].Substring(2, strReceivedData[j].Length - 2) + "\n" + LabelMsgRecus.Text;
+                    }
+                }
+
+            }
+
+            //    if (bufMsgLength > 0)
+            //        myCurrentStr += System.Text.Encoding.ASCII.GetString(bufMsg, 0, bufMsgLength + 1);
+            //}
+
+            //int i = 0;
+
+            //while (myCurrentStr != "") {
+            //    if (myCurrentStr.IndexOf(';') != -1) {
+            //        receivedMsg[i] = myCurrentStr.Substring(0, myCurrentStr.IndexOf(';'));
+
+            //        try {
+            //            myCurrentStr = myCurrentStr.Substring(myCurrentStr.IndexOf(';') + 2, ((int)myCurrentStr.Length - (myCurrentStr.IndexOf(';') + 2)));
+            //        } catch {
+            //            break;
+            //        }
+            //    } else {
+            //        myCurrentStr = "";
+            //    }
+            //    i++;
+
+
+
+            sendSocket.Close();
+            //usingSocket.Release();
+
+            if (onMsgDiv)
+            {
+                divMsg.Visible = true;
+                TextEnvoiMsg.Focus();
+            }
+
+        }
+        catch (SocketException exp)
+        {
+            //receivedMsg[0] = "Could not connect to message server" + exp.Message;
+        }
+    }
+    #endregion
+
+    #region TAB CAMION
     /*
     *********************************************************************************************************
     *                                              cmdAjouterCamion_Click()
@@ -681,13 +788,16 @@ public partial class _Default : System.Web.UI.Page
     {
         divCamion.Visible = true;
         JourneeFlag = true;
+        ArrayList ResultList = new ArrayList();
         try
         {
             ArrayList ColisList = new ArrayList();
             GetColisForItt(ref ColisList, 1);
             int CamionQuantity = 0;
             GetCamionQuantity(ref CamionQuantity);
-            UpdateBDItt(DetermineItinerary(ColisList, CamionQuantity));
+            ResultList = DetermineItinerary(ColisList, CamionQuantity);
+            UpdateBDItt(ResultList);
+            cmdFinJournee.Enabled = true;
         }
         catch (MySqlException myEx)
         {
@@ -716,98 +826,11 @@ public partial class _Default : System.Web.UI.Page
         catch (MySqlException myEx)
         {
         }
+        cmdFinJournee.Enabled = false;
     }
+    #endregion
 
-    /*
-    *********************************************************************************************************
-    *                                              Timer1_Tick()
-    *
-    * Description : Cette fonction ouvre un socket de communication afin de permettre l'envoie et la
-    *               réception de messages avec un PDA 
-    *
-    * Notes		  : La fonction est appelée par un module AJAX
-    *********************************************************************************************************
-    */
-    protected void Timer1_Tick(object sender, EventArgs e)
-    {
-        byte[] bufMsg = new byte[1000];
-        //string[] receivedMsg = new string[5];
-        int bufMsgLength;
-        char[] delimiter = COMMAND_DELIMITER.ToString().ToCharArray();
-
-        try
-        {
-            Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
-            const int remotePort = 2160;
-            IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
-
-            //usingSocket.Wait();
-            sendSocket.Connect(connectTo);
-            byte[] bufSignal = new byte[7];
-            bufSignal[0] = (byte) COMMAND_GETMSGS;
-            bufSignal[1] = (byte) COMMAND_DELIMITER;
-            sendSocket.Send(bufSignal);
-            //usingSocket.Release();
-
-            //string myCurrentStr = "";
-
-            //while (bufMsgLength > 0) {
-            
-            bufMsgLength = sendSocket.Receive(bufMsg);
-
-            //usingSocket.Wait();
-            if (bufMsgLength > 0)
-            {
-                string[] strReceivedData = Encoding.ASCII.GetString(bufMsg).Split(delimiter, 10);
-
-                for (int j = 0; j < strReceivedData.GetLength(0); j++)
-                {
-                    if (strReceivedData[j][0] != '\0')
-                    {
-                        LabelMsgRecus.Text = strReceivedData[j].Substring(2, strReceivedData[j].Length - 2) + "\n" + LabelMsgRecus.Text;
-                    }
-                }
-
-            }
-
-            //    if (bufMsgLength > 0)
-            //        myCurrentStr += System.Text.Encoding.ASCII.GetString(bufMsg, 0, bufMsgLength + 1);
-            //}
-
-            //int i = 0;
-
-            //while (myCurrentStr != "") {
-            //    if (myCurrentStr.IndexOf(';') != -1) {
-            //        receivedMsg[i] = myCurrentStr.Substring(0, myCurrentStr.IndexOf(';'));
-
-            //        try {
-            //            myCurrentStr = myCurrentStr.Substring(myCurrentStr.IndexOf(';') + 2, ((int)myCurrentStr.Length - (myCurrentStr.IndexOf(';') + 2)));
-            //        } catch {
-            //            break;
-            //        }
-            //    } else {
-            //        myCurrentStr = "";
-            //    }
-            //    i++;
-            
-
-            
-            sendSocket.Close();
-            //usingSocket.Release();
-
-            if (onMsgDiv)
-            {
-                divMsg.Visible = true;
-                TextEnvoiMsg.Focus();
-            }
-
-        }
-        catch (SocketException exp) {
-            //receivedMsg[0] = "Could not connect to message server" + exp.Message;
-        }
-    }
-
+    #region TAB LISTE COLIS
     /*
     *********************************************************************************************************
     *                                              Timer2_Tick()
@@ -854,7 +877,9 @@ public partial class _Default : System.Web.UI.Page
         if (onListeDiv)
             divListe.Visible = true;
     }
+    #endregion
 
+    #region GESTION BD
     /*
     *********************************************************************************************************
     *                                              GetConnection()
@@ -891,7 +916,9 @@ public partial class _Default : System.Web.UI.Page
             m_SqlConnection.Close();
         }
     }
+    #endregion
 
+    #region MAPPOINT
     /*
     *********************************************************************************************************
     *                                              GetGPSFromAdress()
@@ -958,9 +985,10 @@ public partial class _Default : System.Web.UI.Page
         strLongLat[1] = startResults.Results[0].FoundLocation.LatLong.Latitude.ToString();
 
         return strLongLat;
-
     }
-    
+    #endregion
+
+    #region GESTION ITTINERAIRE
     /*
    *********************************************************************************************************
    *                                              GetCamionQuantity()
@@ -1015,16 +1043,18 @@ public partial class _Default : System.Web.UI.Page
             MySqlConnection MyConnection = GetConnection();
             MySqlCommand MyCommand = null;
             MySqlDataReader MyReader = null;
+            int temp = CamionID+1;
+            string str_CamionID = temp.ToString();
 
             // Verification de la presence d'un numero de colis dans la BD
-            str_Sql = "SELECT cam_nom FROM camion WHERE cam_numero = '" + CamionID + "'"; ;
+            str_Sql = "SELECT cam_nom FROM camion WHERE cam_numero = '" + str_CamionID + "'"; ;
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyReader = MyCommand.ExecuteReader();
 
             while (MyReader.Read())
             {
-                CamionName = MyReader.ToString();
+                CamionName = MyReader[0].ToString();
             }
             MyReader.Close();
         }
@@ -1056,7 +1086,22 @@ public partial class _Default : System.Web.UI.Page
             MySqlDataReader MyReader = null;
             arr_ColisToReturn = new ArrayList();
 
-            str_Sql = "SELECT col_gpslong, col_gpslat, col_noident FROM colis WHERE col_etat='0' OR col_etat='" + NewCueiletteFlag + "'";
+            str_Sql = "SELECT col_gpslongcli, col_gpslatcli, col_noident FROM colis WHERE col_etat='0'";
+
+            MyCommand = new MySqlCommand(str_Sql, MyConnection);
+            MyReader = MyCommand.ExecuteReader();
+
+            while (MyReader.Read())
+            {
+                ArrayList arr_Colis = new ArrayList();
+                arr_Colis.Add(MyReader[0].ToString());
+                arr_Colis.Add(MyReader[1].ToString());
+                arr_Colis.Add(MyReader[2].ToString());
+                arr_ColisToReturn.Add(arr_Colis);
+            }
+            MyReader.Close();
+
+            str_Sql = "SELECT col_gpslongdest, col_gpslatdest, col_noident FROM colis WHERE col_etat='" + NewCueiletteFlag + "'";
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyReader = MyCommand.ExecuteReader();
@@ -1093,17 +1138,45 @@ public partial class _Default : System.Web.UI.Page
             string str_Sql = "";
             string str_Ordre = "";
             string str_CamionName = "";
+            string str_Etat = "";
             MySqlConnection MyConnection = GetConnection();
             MySqlCommand MyCommand = null;
+            MySqlDataReader MyReader = null;
+           
 
-            for (int i = 0; i < arr_ColCam.Count/2; i++)
+            for (int i = 0; i < arr_ColCam.Count; i++)
             {
-                GetCamionNameFromID(Int32.Parse(((ArrayList)arr_ColCam[i])[1].ToString()) , ref str_CamionName);
-                str_Ordre = (i+1).ToString();
-                str_Sql = "UPDATE colis SET cam_nom = '" + str_CamionName + "', col_ordre = '" + str_Ordre + "' ";
-                str_Sql += "WHERE col_noident = '" + ((ArrayList)arr_ColCam[i])[0] + "'"; 
+                GetCamionNameFromID(Int32.Parse(((ArrayList)arr_ColCam[i])[1].ToString()), ref str_CamionName);
+                str_Ordre = (i + 1).ToString();
+
+                // Selection de l'etat du colis courant
+                str_Sql = "SELECT col_etat FROM colis WHERE col_noident='" + ((ArrayList)arr_ColCam[i])[0] + "'";
                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
-                MyCommand.ExecuteNonQuery();
+                MyReader = MyCommand.ExecuteReader();
+
+                while (MyReader.Read())
+                {
+                    str_Etat = MyReader[0].ToString();
+                }
+                MyReader.Close();
+
+                // Si l'état du colis était non cueilli, son état reste le même
+                if (str_Etat == "0")
+                {
+                    str_Sql = "UPDATE colis SET cam_nom = '" + str_CamionName + "', col_ordre = '" + str_Ordre + "' ";
+                    str_Sql += "WHERE col_noident = '" + ((ArrayList)arr_ColCam[i])[0] + "'";
+                    MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                    MyCommand.ExecuteNonQuery();
+                }
+
+                // Si l'état du colis était cueilli, son état devient "en livraison"
+                else if (str_Etat == "1")
+                {
+                    str_Sql = "UPDATE colis SET cam_nom = '" + str_CamionName + "', col_ordre = '" + str_Ordre + "', ";
+                    str_Sql += "col_etat = '2' WHERE col_noident = '" + ((ArrayList)arr_ColCam[i])[0] + "'";
+                    MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                    MyCommand.ExecuteNonQuery();
+                }
             }  
         }
         catch (MySqlException myEx)
@@ -1187,10 +1260,8 @@ public partial class _Default : System.Web.UI.Page
     private ArrayList DetermineItinerary(ArrayList CoordsList, int TrucksQuantity)
     {
         // initialisation des variables locales
-        double CentralCoordLong = 0.0;
-        double CentralCoordLat  = 0.0;
         ArrayList ReturnList = new ArrayList();
-        ArrayList OnePair = new ArrayList();
+        ArrayList OnePair = new ArrayList();     
 
         double[,] TrucksCurrentState = new double[TrucksQuantity, 3];
         for (int i = 0; i < TrucksQuantity; i++)
@@ -1200,11 +1271,13 @@ public partial class _Default : System.Web.UI.Page
             TrucksCurrentState[i, 2] = 0.0;              // Distance totale parcourue
         }
 
+        int    count = 0;
         int    CurrentTruck     = 0;
         double CurrentCoordLong = 0.0;
         double CurrentCoordLat  = 0.0;
         int    ClosestPackage   = 0;
-        for (int j = 0; j < CoordsList.Count/3; j++)
+        int    nbrColis = CoordsList.Count;
+        for (int j = 0; j < nbrColis; j++)
         {
             // Cerner le prochain camion qui se verra attribuer un colis
             // Ce sera le camion qui aura parcouru la plus petite distance jusqua date
@@ -1228,11 +1301,12 @@ public partial class _Default : System.Web.UI.Page
             ClosestPackage = FindClosestPackage(CoordsList, CurrentCoordLong, CurrentCoordLat, ref DistanceToAdd);
 
             // Mettre le camion a cette position et mettre a jour la distance parcourue
-            TrucksCurrentState[CurrentTruck, 0] = (double)(((ArrayList)CoordsList[ClosestPackage])[0]);
-            TrucksCurrentState[CurrentTruck, 1] = (double)(((ArrayList)CoordsList[ClosestPackage])[1]);
+            TrucksCurrentState[CurrentTruck, 0] = Convert.ToDouble((((ArrayList)CoordsList[ClosestPackage])[0]));
+            TrucksCurrentState[CurrentTruck, 1] = Convert.ToDouble((((ArrayList)CoordsList[ClosestPackage])[1]));
             TrucksCurrentState[CurrentTruck, 2] = TrucksCurrentState[CurrentTruck, 2] + DistanceToAdd;
 
-            // Batir la liste dassociation colis-camion pour le retour 
+            // Batir la liste dassociation colis-camion pour le retour
+            OnePair = new ArrayList();
             OnePair.Add(((ArrayList)CoordsList[ClosestPackage])[2].ToString()); // Package ID
             OnePair.Add(CurrentTruck.ToString()); // Truck ID
             ReturnList.Add(OnePair);
@@ -1266,9 +1340,9 @@ public partial class _Default : System.Web.UI.Page
         double Distance   = 0.0;
 
         // Algorithme conservant le colis le plus pres du camion en cours
-        for (int i = 0; i < CoordsList.Count/3; i++)
+        for (int i = 0; i < CoordsList.Count; i++)
         {
-            Distance = System.Math.Abs(CurrentCoordLong - (double)(((ArrayList)CoordsList[i])[0])) + System.Math.Abs(CurrentCoordLat - (double)(((ArrayList)CoordsList[i])[1]));
+            Distance = System.Math.Abs(CurrentCoordLong - Convert.ToDouble((((ArrayList)CoordsList[i])[0]))) + System.Math.Abs(CurrentCoordLat - Convert.ToDouble(((ArrayList)CoordsList[i])[1]));
             if (i == 0 || Distance < ClosestDistance)
             {
                 ClosestDistance = Distance;
@@ -1343,4 +1417,5 @@ public partial class _Default : System.Web.UI.Page
         {
         }
     }
+#endregion
 }
