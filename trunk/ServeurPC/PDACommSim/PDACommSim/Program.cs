@@ -15,8 +15,8 @@ namespace PDACommSim
         private const byte COMMAND_GETPACKAGES = 52;
         private const byte COMMAND_GETMSGS = 53;
         private const byte COMMAND_SENDMSG = 54;
-        private const byte COMMAND_GPSCOORD = 55;
-        private const byte COMMAND_GETMAP = 56;
+        private const byte COMMAND_GPSCOORD = 60;
+        private const byte COMMAND_GETMAP = 61;
 
         private const string MARC_IP = "127.0.0.1";
         private const int MARC_PORT = 2166;

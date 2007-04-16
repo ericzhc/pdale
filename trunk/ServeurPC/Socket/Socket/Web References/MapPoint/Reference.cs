@@ -51,7 +51,7 @@ namespace Socket.MapPoint {
         
         /// <remarks/>
         public CommonServiceSoap() {
-            this.Url = global::Socket.Properties.Settings.Default.Socket_net_mappoint_staging_CommonService;
+            this.Url = global::Socket.Properties.Settings.Default.Socket_MapPoint_CommonService;
             if ((this.IsLocalFileSystemWebService(this.Url) == true)) {
                 this.UseDefaultCredentials = true;
                 this.useDefaultCredentialsSetExplicitly = false;

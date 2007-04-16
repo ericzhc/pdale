@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 
-namespace TestSemaphore
+namespace Socket.TestSemaphore
 {
 	public class Semaphore
 	{
