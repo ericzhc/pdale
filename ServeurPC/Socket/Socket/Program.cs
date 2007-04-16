@@ -32,14 +32,14 @@ namespace TCPServerReceiver
 
         const char COMMAND_EOL = '\0';
         const char COMMAND_DELIMITER = ';';
-        const int COMMAND_TRUCKNAMES  = 0x30;
-        const int COMMAND_VALIDPACKAGE  = 0x31;
-        const int COMMAND_PACKETINFOS  = 0x32;
-        const int COMMAND_SETPACKETSTATE = 0x33;
-        const int COMMAND_GETPACKAGES = 0x34;
-        const int COMMAND_GETMSGS = 0x35;
-        const int COMMAND_MSGFROMPDA = 0x36;
-        const int COMMAND_MSGTOPDA = 0x37;
+        const byte COMMAND_TRUCKNAMES  = 48;
+        const byte COMMAND_VALIDPACKAGE = 49;
+        const byte COMMAND_PACKETINFOS = 50;
+        const byte COMMAND_SETPACKETSTATE = 51;
+        const byte COMMAND_GETPACKAGES = 52;
+        const byte COMMAND_GETMSGS = 53;
+        const byte COMMAND_MSGFROMPDA = 54;
+        const byte COMMAND_MSGTOPDA = 55;
 
         /* Socket global pour le PDA */
         static IPEndPoint ipep;
@@ -135,10 +135,10 @@ namespace TCPServerReceiver
             msgSendSem = new TestSemaphore.Semaphore(2);
             msgReceivedSem = new TestSemaphore.Semaphore(2);
             sendSem = new TestSemaphore.Semaphore(2);
-            
-            msgSendData = Encoding.ASCII.GetBytes(COMMAND_EOL.ToString());
-            msgReceivedData = Encoding.ASCII.GetBytes(COMMAND_EOL.ToString());
-            toSendData = Encoding.ASCII.GetBytes(COMMAND_EOL.ToString());
+
+            msgSendData[0] = (byte) COMMAND_DELIMITER;
+            msgReceivedData[0] = (byte) COMMAND_DELIMITER;
+            toSendData[0] = (byte) COMMAND_DELIMITER;
 
             ipep = new IPEndPoint(IPAddress.Any, 2166);
 
@@ -147,18 +147,19 @@ namespace TCPServerReceiver
             newsock.Bind(ipep);
             newsock.Listen(10);
 
+            Thread WebThread = new Thread(new ThreadStart(TCPWeb));
+            WebThread.Start();
+
             client = newsock.Accept();
             IPEndPoint newclient = (IPEndPoint)client.RemoteEndPoint;
             Console.WriteLine("Connected with {0} at port {1}", newclient.Address, newclient.Port);
 
             Thread SenderPdaThread = new Thread(new ThreadStart(TCPSenderPDA));
             Thread ReceiverPdaThread = new Thread(new ThreadStart(TCPReceiverPDA));
-            Thread WebThread = new Thread(new ThreadStart(TCPWeb));
-
+            
             SenderPdaThread.Start();
             ReceiverPdaThread.Start();
-            WebThread.Start();
-
+            
             /*messagesReceived[0] = "Salut marc voici le premier message;";
             messagesReceived[1] = "Salut marc voici le 222deuxieme message;";
             messagesReceived[2] = "Salut marc voici le troisieme message;";
@@ -169,98 +170,152 @@ namespace TCPServerReceiver
             string OrigAddress = "1408 RUE DE L'EGLISE;SAINT-LAURENT;QC;H4L2H3";
             string DestAddress = "8105 BOULEVARD DECARIE;MONTREAL;QC;H4P2H5";
 
-            GetDirectionsFromAdress(OrigAddress, DestAddress);
-           
-           // GetRouteFromGps(45.40391131, -71.88929146, 46.34018682, -72.54498962);
+            //GetDirectionsFromAdress(OrigAddress, DestAddress);
+            //GetRouteFromGps(45.40391131, -71.88929146, 46.34018682, -72.54498962);
         }
 
         static private void TCPSenderPDA()
         {
+            char[] delimiter = COMMAND_DELIMITER.ToString().ToCharArray();
+
             while (true)
             {
-                msgSendSem.Wait();
-                if (msgSendData[0].ToString() != COMMAND_EOL.ToString())
+                /*msgSendSem.Wait();
+                if (msgSendData[0] != COMMAND_DELIMITER)
                 {
-                    
-                        if (msgSendData[0].ToString() == COMMAND_MSGTOPDA.ToString())
-                        {
-                            Console.WriteLine("-----Sending message to PDA----");
-                            client.Send(msgSendData);
-                            msgSendData = new byte[1024];
-                            msgSendData = Encoding.ASCII.GetBytes(COMMAND_EOL.ToString());
-                        }
-                        else
-                        {
-                            Console.WriteLine("X-----Memory probably corrupted (TCPSenderPDA)----X");
-                        }
+
+                    if (msgSendData[0] == COMMAND_MSGTOPDA)
+                    {
+                        Console.WriteLine("-----Sending message to PDA----");
+                        client.Send(msgSendData);
+                        msgSendData = new byte[1024];
+                        msgSendData[0] = (byte) COMMAND_DELIMITER;
+                    }
+                    else
+                    {
+                        Console.WriteLine("X-----Memory probably corrupted (TCPSenderPDA)----X");
+                    }
                 }
                 msgSendSem.Release();
 
                 sendSem.Wait();
+                if (toSendData[0] != COMMAND_DELIMITER)
+                {
+                    string[] strToSendData = Encoding.ASCII.GetString(toSendData).Split(delimiter, 10);
 
-
-
+                    for (int idxStr = 0; idxStr < strToSendData.GetLength(0); idxStr++)
+                    {
+                        if (strToSendData[idxStr][0] != '\0')
+                        {
+                            client.Send(Encoding.ASCII.GetBytes(strToSendData[idxStr]));
+                        }
+                    }
+                }
+                sendSem.Release();*/
             }
         }
 
         static private void TCPReceiverPDA()
         {
+            char[] delimiter = new char[1];
+            delimiter[0] = (char)COMMAND_DELIMITER;
+            
             while (true)
             {
                 receivedData = new byte[1024];
                 client.Receive(receivedData);
 
-                char[] delimiter = COMMAND_DELIMITER.ToString().ToCharArray();
-                receivedData.ToString().Remove(receivedData.ToString().IndexOf('\0'), 1);
-                string[] strReceivedData = receivedData.ToString().Split(delimiter, 10);
+                //receivedData.ToString().Remove(receivedData.ToString().IndexOf('\0'), 1);
+                //string[] strReceivedData = Encoding.ASCII.GetString(receivedData).Split(delimiter, 10);
 
-                for (int idxStr = 0; idxStr < strReceivedData.GetLength(0); idxStr++)
-                {
-                    if (strReceivedData[idxStr][0].ToString() == COMMAND_MSGFROMPDA.ToString())
+                //for (int idxStr = 0; idxStr < strReceivedData.GetLength(0); idxStr++)
+                //{
+                    if (receivedData[0] == COMMAND_MSGFROMPDA)
                     {
-                        msgSendSem.Wait();
-
-                        if (msgReceivedData[0].ToString() != COMMAND_EOL.ToString())
+                        msgReceivedSem.Wait();
+                        if (msgReceivedData[0] != COMMAND_DELIMITER)
                         {
-                            string message = msgReceivedData.ToString() + strReceivedData[idxStr];
-                            msgReceivedData = Encoding.ASCII.GetBytes(message);
+                            string messageCat = "";
+                            string[] message = Encoding.ASCII.GetString(msgReceivedData).Split(delimiter, 10);
+
+                            for (int i = 0; i < message.GetLength(0); i++)
+                            {
+                                if (message[i][0] != '\0')
+                                {
+                                    messageCat += message[i] + ";";
+                                }
+                            }
+
+                            messageCat += Encoding.ASCII.GetString(receivedData);
+                            msgReceivedData = Encoding.ASCII.GetBytes(messageCat);
                         }
                         else
                         {
-                            msgReceivedData = Encoding.ASCII.GetBytes(strReceivedData[idxStr]);
+                            string message = Encoding.ASCII.GetString(receivedData);
+                            msgReceivedData = Encoding.ASCII.GetBytes(message);
                         }
+                        msgReceivedSem.Release();
+                    }
+                    else if (receivedData[0] == COMMAND_GETMSGS)
+                    {
+                        msgSendSem.Wait();
                         
+                        string messageCat = "";
+                        string[] message = Encoding.ASCII.GetString(msgSendData).Split(delimiter, 10);
+
+                        for (int i = 0; i < message.GetLength(0); i++)
+                        {
+                            if (message[i][0] != '\0')
+                            {
+                                messageCat += message[i] + ";";
+                            }
+                        }
+
+                        byte[] tempBuffer = new byte[messageCat.Length];
+                        tempBuffer = Encoding.ASCII.GetBytes(messageCat);
+
+                        client.Send(tempBuffer);
+                        msgSendData = new byte[1024];
                         msgSendSem.Release();
-                    }
-                    else if (strReceivedData[idxStr][0].ToString() == COMMAND_TRUCKNAMES.ToString())
-                    {
-                        string listeCamions = GetCamionList();
-
-                        sendSem.Wait();
-
 
                     }
-                    else if (strReceivedData[idxStr][0].ToString() == COMMAND_VALIDPACKAGE.ToString())
-                    {
+                    //else if (receivedData[0] == COMMAND_TRUCKNAMES)
+                    //{
+                    //    string listeCamions = GetCamionList();
 
-                    }
-                    else if (strReceivedData[idxStr][0].ToString() == COMMAND_SETPACKETSTATE.ToString())
-                    {
+                    //    sendSem.Wait();
+                    //    if (toSendData[0] != COMMAND_DELIMITER)
+                    //    {
+                    //        string data = toSendData.ToString() + listeCamions;
+                    //        toSendData = Encoding.ASCII.GetBytes(data);
+                    //    }
+                    //    else
+                    //    {
+                    //        toSendData = Encoding.ASCII.GetBytes(strReceivedData[idxStr]);
+                    //    }
+                    //    sendSem.Release();
+                    //}
+                    //else if (strReceivedData[idxStr][0].ToString() == COMMAND_VALIDPACKAGE.ToString())
+                    //{
 
-                    }
-                    else if (strReceivedData[idxStr][0].ToString() == COMMAND_GETPACKAGES.ToString())
-                    {
+                    //}
+                    //else if (strReceivedData[idxStr][0].ToString() == COMMAND_SETPACKETSTATE.ToString())
+                    //{
 
-                    }
-                    else if (strReceivedData[idxStr][0].ToString() == COMMAND_PACKETINFOS.ToString())
-                    {
+                    //}
+                    //else if (strReceivedData[idxStr][0].ToString() == COMMAND_GETPACKAGES.ToString())
+                    //{
 
-                    }
+                    //}
+                    //else if (strReceivedData[idxStr][0].ToString() == COMMAND_PACKETINFOS.ToString())
+                    //{
+
+                    //}
                     else
                     {
                         Console.WriteLine("X-----Invalid message tag (TCPReceiverPDA)-----X\n");
                     }
-                }
+                //}
             }
         }
 
@@ -279,6 +334,9 @@ namespace TCPServerReceiver
             System.Net.Sockets.Socket client;
             IPEndPoint newclient;
 
+            char[] delimiter = new char[1];
+            delimiter[0] = (char)COMMAND_DELIMITER;
+
             while (true)
             {
                 client = newsock.Accept();
@@ -290,38 +348,50 @@ namespace TCPServerReceiver
                     newclient = (IPEndPoint)client.RemoteEndPoint;
                     client.Receive(webReceivedData);
                     
-                    if (webReceivedData[0].ToString() == COMMAND_GETMSGS.ToString())
+                    if (webReceivedData[0] == COMMAND_GETMSGS)
                     {
                         msgReceivedSem.Wait();
 
-                        if (msgReceivedData[0].ToString() != COMMAND_EOL.ToString())
+                        if (msgReceivedData[0] != COMMAND_DELIMITER)
                         {
-                            if (msgReceivedData[0].ToString() == COMMAND_MSGFROMPDA.ToString())
+                            if (msgReceivedData[0] == COMMAND_MSGFROMPDA)
                             {   
                                     client.Send(msgReceivedData);
                                     msgReceivedData = new byte[1024];
-                                    msgReceivedData = Encoding.ASCII.GetBytes(COMMAND_EOL.ToString());
+                                    msgReceivedData[0] = (byte) COMMAND_DELIMITER;
                             }
                             else
                             {
-                                Console.WriteLine("X-----Memory probably corrupted (TCPWeb)-----X");
+                                Console.WriteLine("X-----Memory probably corrupted (TCPWeb)-----X");                                
                             }                             
                         }
 
                         msgReceivedSem.Release();                            
                     }
-                    else if (webReceivedData[0].ToString() == COMMAND_MSGTOPDA.ToString())
+                    else if (webReceivedData[0] == COMMAND_MSGTOPDA)
                     {
                         msgSendSem.Wait();
 
-                        if (msgSendData[0].ToString() != COMMAND_EOL.ToString())
+                        if (msgSendData[0] != COMMAND_DELIMITER)
                         {
-                            string message = msgSendData.ToString() + webReceivedData.ToString();
-                            msgSendData = Encoding.ASCII.GetBytes(message);
+                            string messageCat = "";
+                            string[] message = Encoding.ASCII.GetString(msgSendData).Split(delimiter, 10);
+
+                            for (int i = 0; i < message.GetLength(0); i++)
+                            {
+                                if (message[i][0] != '\0')
+                                {
+                                    messageCat += message[i] + ";";
+                                }
+                            }   
+                            
+                            messageCat += Encoding.ASCII.GetString(webReceivedData);
+                            msgSendData = Encoding.ASCII.GetBytes(messageCat);
                         }
                         else
                         {
-                            msgSendData = Encoding.ASCII.GetBytes(webReceivedData.ToString());
+                            string message = Encoding.ASCII.GetString(webReceivedData);
+                            msgSendData = Encoding.ASCII.GetBytes(message);
                         }
 
                         msgSendSem.Release();
