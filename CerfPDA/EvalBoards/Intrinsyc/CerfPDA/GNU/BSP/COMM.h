@@ -16,8 +16,8 @@
 #define COMMAND_GETPACKAGES 0x34
 #define COMMAND_GETMSGS 0x35
 #define COMMAND_SENDMSG 0x36
-#define COMMAND_GPSCOORD 0x37
-#define COMMAND_GETMAP 0x38
+#define COMMAND_GPSCOORD 0x3C
+#define COMMAND_GETMAP 0x3D
 
 void ReceiveData(char, char*);
 void GetTruckNames(char*); // Fills parameter pointer

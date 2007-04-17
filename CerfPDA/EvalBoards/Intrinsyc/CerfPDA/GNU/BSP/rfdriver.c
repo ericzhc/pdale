@@ -78,7 +78,7 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-
+		OSTimeDlyHMSM(0,0,2,0);
 		TransmitRfBuffer("AT+CGDCONT=1,\"IP\",\"internet.fido.ca\",\"0.0.0.0\",0,0\n\r\0"); 
 			do{
 			err = DonneeRecue(buffer,8000);
@@ -89,7 +89,7 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-
+		OSTimeDlyHMSM(0,0,2,0);
 		TransmitRfBuffer("AT#USERID=\"fido\"\n\r\0");
 		do{
 			err = DonneeRecue(buffer,8000);
@@ -100,6 +100,7 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
+		OSTimeDlyHMSM(0,0,2,0);
 		TransmitRfBuffer("AT#PASSW=\"fido\"\n\r\0");
 		do{
 			err = DonneeRecue(buffer,8000);
@@ -110,6 +111,7 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
+		OSTimeDlyHMSM(0,0,2,0);
 		TransmitRfBuffer("AT#SKTSAV\n\r\0");
 		do{
 			err = DonneeRecue(buffer,8000);
@@ -120,6 +122,7 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
+		OSTimeDlyHMSM(0,0,5,0);
 		TransmitRfBuffer("AT#GPRS=1\n\r\0");						// Activate GPRS connection (wait for connect)
 		do{
 			err = DonneeRecue(buffer,8000);
@@ -130,7 +133,7 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"+IP")==NULL);	
-		
+		OSTimeDlyHMSM(0,0,2,0);
 
 		return 1;
 }

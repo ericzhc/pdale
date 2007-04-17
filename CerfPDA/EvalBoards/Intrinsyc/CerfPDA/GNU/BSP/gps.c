@@ -42,6 +42,7 @@ void GPS_Init(void)
                 NULL,
                 OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR
 	);
+	gpsFlag = OSFlagCreate(0x00, &err);
 	#if DEBUG
 		printf("Init done...GPS\n\r");
 	#endif
@@ -49,18 +50,26 @@ void GPS_Init(void)
 
 void GPSSendDataTask() 
 {
+	printf("GPSSendDataTask started...");
 	while (1) {
+		//OSFlagPend(gpsFlag, 
+		//	GPS_READY_TO_SEND, 
+		//	OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 
+		//	0,
+		//	&err);
+		
 		// Send GPS data to server every 2 minutes
-		OSTimeDlyHMSM(0,GPSDELAY,0,0);
+		OSTimeDlyHMSM(0,/*GPSDELAY*/0,15,0);
+		printf("Long: %f Lat: %f\n\r", GPSPosition.Longitude, GPSPosition.Latitude);
 		char* latvalues = (char*)&(GPSPosition.Latitude);
 		char* longvalues = (char*)&(GPSPosition.Longitude);
-		char data[] = {COMMAND_GPSCOORD, 
+		char data[] = {COMMAND_GPSCOORD, 0,
 					latvalues[0], latvalues[1], 
 					latvalues[2], latvalues[3], 
 					longvalues[0], longvalues[1], 
 					longvalues[2], longvalues[3], 
-					COMMAND_EOL};
-
+					';', COMMAND_EOL};
+		printf("Avant ransmituffer %s", data);
 		TransmitRfBuffer(data);
 	}
 }
@@ -80,6 +89,10 @@ void GPSUpdateTask()
 			GPSBuffer[ptrGPSBuffEnd] = RxBuff.Buffer[*(RxBuff.ptrCurrent)];
 		}
 		ReceivedTSIP();
+		OSFlagPost(gpsFlag, 
+			GPS_READY_TO_SEND, 
+			OS_FLAG_SET, 
+			&err);
 	}
 }
 

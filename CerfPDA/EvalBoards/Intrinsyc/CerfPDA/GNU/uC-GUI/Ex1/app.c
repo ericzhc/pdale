@@ -25,7 +25,7 @@
 *********************************************************************************************************
 */
 
-#define  TASK_STK_SIZE        2048
+#define  TASK_STK_SIZE        4096
 
 /*
 *********************************************************************************************************
@@ -113,29 +113,33 @@ static void  AppStartTask (void *p_arg)
     OSStatInit();                               /* Start stats task                                    */
 #endif
 
-    printf("\r\nStarting uC/GUI demo...\n");
+    //printf("\r\nStarting uC/GUI demo...\n");
 
-    OSTaskCreateExt(GuiTask,
-                    NULL,
-                    (OS_STK *)&GuiTaskStk[TASK_STK_SIZE-1],
-                    TASK_GUI_PRIO,
-                    TASK_GUI_PRIO,
-                    (OS_STK *)&GuiTaskStk[0],
-                    TASK_GUI_PRIO,
-                    NULL,
-                    OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
+    //OSTaskCreateExt(GuiTask,
+    //                NULL,
+    //                (OS_STK *)&GuiTaskStk[TASK_STK_SIZE-1],
+    //                TASK_GUI_PRIO,
+    //                TASK_GUI_PRIO,
+    //                (OS_STK *)&GuiTaskStk[0],
+    //                TASK_GUI_PRIO,
+    //                NULL,
+    //                OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
 
                                                 /* Give a name to tasks                                */
 #if OS_TASK_NAME_SIZE > 10
-    OSTaskNameSet(TASK_GUI_PRIO,        "GUI task",  &err);
+    //OSTaskNameSet(TASK_GUI_PRIO,        "GUI task",  &err);
 #endif
 
-    MainTask();
+    //MainTask();
+
+	RFDriverInit();
+
+	GPS_Init();
+
     while (1) 
 	{                                 /* Task body, always written as an infinite loop.      */
                                                 /* Delay task execution for 500 ms                     */
-		OSTimeDly(300);
-		//OSTimeDly(500 * OS_TICKS_PER_SEC / 1000);
+		OSTimeDlyHMSM(0,0,10,0);
     }
 }
 
