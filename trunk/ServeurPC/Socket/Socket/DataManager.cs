@@ -393,10 +393,15 @@ public class DataManager
                     double colislong = double.Parse(colisinfo.Replace(',', '.').Split(';')[0]);
                     double colislat = double.Parse(colisinfo.Replace(',', '.').Split(';')[1]);
                     MemoryStream tempstream = GetRouteFromGps(GpsData[0].Latitude, GpsData[0].Longitude, colislat, colislong);
-                    Console.WriteLine("First map loaded");
+                    Console.WriteLine("New map loaded");
                     if (m_GPSMaps[0] != null) {
                         m_GPSMaps[0].Close();
                     }
+                    Bitmap bmp = new Bitmap(tempstream);
+                    tempstream.Position = 0;
+                    StreamWriter filestream = new StreamWriter("c:\\map0.jpg", false);
+                    bmp.Save(filestream.BaseStream, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    filestream.Close();
                     m_GPSMaps[0] = tempstream;
                 }
             //}

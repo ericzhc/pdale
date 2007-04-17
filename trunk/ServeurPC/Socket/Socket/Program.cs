@@ -240,25 +240,34 @@ namespace Socket.TCPServerReceiver
                         }
                         toSendData[2] = (byte) COMMAND_DELIMITER;
                         client.Send(toSendData);
-                    } else if (receivedData[0] == COMMAND_SETPACKETSTATE) {
-                    string command = Encoding.ASCII.GetString(receivedData);
-                    string packages = DataManager.GetColisList(command.Substring(1, 1));
+                    } 
+                    else if (receivedData[0] == COMMAND_SETPACKETSTATE) 
+                    {
+                        string command = Encoding.ASCII.GetString(receivedData);
+                        DataManager.SaveEtatColis(command.Substring(1, COMMAND_CODEBARLENGTH), command.Substring(COMMAND_CODEBARLENGTH + 1, 1));
+                        Console.WriteLine("The package {0} had its state set to {1}", command.Substring(1, COMMAND_CODEBARLENGTH), command.Substring(COMMAND_CODEBARLENGTH + 1, 1));
 
-                    toSendData = new byte[packages.Length];
-                    toSendData = Encoding.ASCII.GetBytes(packages);
-                    client.Send(toSendData);
+                    } 
+                    else if (receivedData[0] == COMMAND_GETPACKAGES) 
+                    {
+                        string command = Encoding.ASCII.GetString(receivedData);
+                        string packages = DataManager.GetColisList(command.Substring(1, 1));
 
-                    } else if (receivedData[0] == COMMAND_GETPACKAGES) {
-
-                    } else if (receivedData[0] == COMMAND_PACKETINFOS) {
-                    string command = Encoding.ASCII.GetString(receivedData);
-                    string package = DataManager.GetColis(command.Substring(1, COMMAND_CODEBARLENGTH));
-                    toSendData = new byte[package.Length];
-                    toSendData = Encoding.ASCII.GetBytes(package);
-                    client.Send(toSendData);
-                    } else if (receivedData[0] == COMMAND_GPSCOORD) {
+                        toSendData = new byte[packages.Length];
+                        toSendData = Encoding.ASCII.GetBytes(packages);
+                        client.Send(toSendData);
+                    } 
+                    else if (receivedData[0] == COMMAND_PACKETINFOS) 
+                    {
+                        string command = Encoding.ASCII.GetString(receivedData);
+                        string package = DataManager.GetColis(command.Substring(1, COMMAND_CODEBARLENGTH));
+                        toSendData = new byte[package.Length];
+                        toSendData = Encoding.ASCII.GetBytes(package);
+                        client.Send(toSendData);
+                    } 
+                    else if (receivedData[0] == COMMAND_GPSCOORD) {
                         if (receivedData.Length == 11) {
-                            int temp = (int)receivedData[1];
+                            int camion = (int)receivedData[1]; // could be used to substitue 
                             byte[] tempvalue = new byte[4];
                             tempvalue[0] = receivedData[2];
                             tempvalue[1] = receivedData[3];
@@ -276,7 +285,7 @@ namespace Socket.TCPServerReceiver
                     } else if (receivedData[0] == COMMAND_GETMAP) {
                         MemoryStream stream = m_DataManager.GetCurrentMap();
                         if (stream != null) {
-                            byte[] maparray = new byte[stream.Length];
+                            byte[] maparray = new byte[stream.Length+1];
                             stream.Position = 0;
                             stream.Read(maparray, 0, (int)stream.Length);
                             client.Send(maparray);

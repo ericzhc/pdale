@@ -55,7 +55,7 @@ void ReceiveMap(char cmd, char* buffer)
 		ptrRfRxBuffCurr = (ptrRfRxBuffCurr + 1) % (int) SERIAL_BUFF_SIZE;
 		buffer[i] = RxRfSerialBuffer[ptrRfRxBuffCurr];
 		if ((ptrRfRxBuffCurr == ptrRfRxBuffEnd)) {
-			OSFlagPend(RfFlag, TCP_TRANSFER_RECEIVED, OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 0,&err);
+			OSFlagPend(RfFlag, TCP_TRANSFER_RECEIVED, OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, OS_TICKS_PER_SEC,&err); // wait one second for a next input
 		}
 		i++;
 	}
