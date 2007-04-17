@@ -205,7 +205,7 @@ namespace Socket.TCPServerReceiver
                         Console.WriteLine("I am here");
 
                         string messageCat = "";
-                        string[] message = Encoding.ASCII.GetString(msgSendData).Split(delimiter, 10);
+                        string[] message = Encoding.ASCII.GetString(msgSendData).Split(delimiter, 5);
 
                         for (int i = 0; i < message.GetLength(0); i++) {
                             if (message[i][0] != '\0') {
@@ -218,7 +218,6 @@ namespace Socket.TCPServerReceiver
                         tempBuffer = Encoding.ASCII.GetBytes(messageCat);
 
                         client.Send(tempBuffer);
-                        msgSendData = new byte[1024];
                         msgSendSem.Release();
                     }
                     else if (receivedData[0] == COMMAND_TRUCKNAMES)
@@ -362,13 +361,13 @@ namespace Socket.TCPServerReceiver
                         if (msgSendData[0] != COMMAND_DELIMITER)
                         {
                             string messageCat = "";
-                            string[] message = Encoding.ASCII.GetString(msgSendData).Split(delimiter, 10);
+                            string[] message = Encoding.ASCII.GetString(msgSendData).Split(delimiter, 5);
 
                             for (int i = 0; i < message.GetLength(0); i++)
                             {
                                 if (message[i][0] != '\0')
                                 {
-                                    messageCat += message[i] + ";";
+                                    messageCat = message[i] + ";" + messageCat;
                                 }
                             }   
                             
