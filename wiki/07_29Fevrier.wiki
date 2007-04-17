@@ -1,0 +1,5 @@
+#summary Résumé de la rencontre du 29 février
+
+*Rapport d'étape 1*
+
+Les tâches restantes à accomplir pour le rapport d'étape 1 ont été réparties entres les membres de l'équipe. Un _thread_ officiel a été démarré par courriel afin que tous puissent ajouter leurs modifications à la version la plus récente du rapport. Malheureusement, le système de gestion de révisions que nous employons ne permet pas de gérer des fichiers tels que les .doc de Microsoft Word. C'est pour cette raison que nous avons opté pour un _thread_ par courriel.
