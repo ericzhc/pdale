@@ -12,7 +12,7 @@
 <body text="white">
     <table border="0" bgcolor="black">
         <tr>
-            <td colspan="4" align="CENTER" style="height: 150px; width: 1016px" bgcolor="DarkRed"><asp:Label ID="Label1" runat="server" Font-Size="42"
+            <td colspan="4" align="CENTER" style="height: 150px; width: 1000px" bgcolor="DarkRed"><asp:Label ID="Label1" runat="server" Font-Size="42"
                     ForeColor="Yellow" Height="150px" Text="PDA Livraison Express" Width="800px"></asp:Label></td></tr>
     </table>   
 
@@ -79,7 +79,7 @@
                         <table>
                             <tr>
                                 <td style="height: 18px">Non cueilli</td>
-                                <td style="height: 18px"><asp:RadioButton ID="rdb_Etat1" GroupName="Etat" runat="server" /></td>
+                                <td style="height: 18px"><asp:RadioButton ID="rdb_Etat1" GroupName="Etat" runat="server" Checked="True" /></td>
                             </tr>
                         </table>
                     </td><td></td><td></td>
