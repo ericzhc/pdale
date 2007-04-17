@@ -11,3 +11,5 @@ Le PDA sera aussi équippé d'un module GPS permettant à la centrale de connaî
 *Logiciel*
 
 Il a été décidé que l'environnement de développé utilisé sera Microsoft Visual Studio 2005. Cela permettra à l'équipe d'éviter des conflits de librairies de développement. L'interface utilisée par la centrale (donc présente sur le serveur) sera réalisée en langage ASP.NET et C#. Nous emploierons une base de données MySQL. 
+
+Les documents seront produits grâce à la suite Microsoft Office afin de conserver une uniformité dans les documents. Le code source sera conservé sur un serveur Subversion (SVN) accessible à l'adresse code.google.com/p/pdale. Ce même site contiendra notre logbook, présenté sous forme de wiki qui contiendra les résumés de nos rencontres d'équipe.  
