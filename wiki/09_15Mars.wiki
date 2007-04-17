@@ -2,4 +2,4 @@
 
 *Répartition des tâches*
 
-Durant notre semaine de repos du projet, nous avons constaté que le temps filait mais que le projet n'était pas très avancé. Bien sûr, nous avons toutes les spécifications fonctionnelles et détaillées, mais rien de concret n'est encore fait.
+Durant notre semaine de repos du projet, nous avons constaté que le temps filait mais que le projet n'était pas très avancé. Bien sûr, nous avons toutes les spécifications fonctionnelles et détaillées, mais rien de concret n'est encore fait. Nous avons donc aujourd'hui fait une répartition préliminaire des tâches
