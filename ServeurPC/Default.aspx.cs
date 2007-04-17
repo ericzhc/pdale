@@ -1396,7 +1396,7 @@ public partial class _Default : System.Web.UI.Page
 
             for (int i = 0; i < arr_Colis.Count; i++)
             {
-                str_Sql = "UPDATE colis SET cam_nom = '' WHERE col_noident = '" + arr_Colis[i].ToString() + "'";                
+                str_Sql = "UPDATE colis SET cam_nom = '', col_ordre = '-1' WHERE col_noident = '" + arr_Colis[i].ToString() + "'";                
                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
                 MyCommand.ExecuteNonQuery();
             }
@@ -1550,6 +1550,7 @@ public partial class _Default : System.Web.UI.Page
     {
         try
         {
+            int ordre = 0;
             string str_Sql = "";
             MySqlCommand MyCommand = null;
             MySqlDataReader MyReader = null;
@@ -1588,7 +1589,10 @@ public partial class _Default : System.Web.UI.Page
 
             for (int j = 0; j < NombreColisApres; j++)
             {
-                str_Sql = "UPDATE colis SET col_ordre = '" + str_Ordre + j + 1 + "' WHERE col_noident = '" + Colis[j] + "'";
+                ordre = Convert.ToInt16(str_Ordre);
+                ordre += (j + 1);
+                //str_Sql = "UPDATE colis SET col_ordre = '" + str_Ordre + j + 1 + "' WHERE col_noident = '" + Colis[j] + "'";
+                str_Sql = "UPDATE colis SET col_ordre = '" + ordre.ToString() + "' WHERE col_noident = '" + Colis[j] + "'";
                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
                 MyCommand.ExecuteNonQuery();
             }
