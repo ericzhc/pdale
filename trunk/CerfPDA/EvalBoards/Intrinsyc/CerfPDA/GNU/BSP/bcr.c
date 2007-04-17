@@ -13,6 +13,7 @@ INT8U enable = 0;
 
 void BCR_Init(void) 
 {
+	enable = 1;
 	INT8U err;
 	#if DEBUG
 		printf("Starting BCR update task\n\r");
@@ -57,12 +58,12 @@ void BCRUpdateTask()
 				timeout,
 				&err);
 			
-			if(err != OS_TIMEOUT)
+			if(err == OS_NO_ERR)
 			{
 				#if DEBUG
 					printf("Received flagCurrent : %d  End: %d\n\r", *RxBuff.ptrCurrent, *RxBuff.ptrEnd);
 				#endif
-				timeout = 1000;
+				timeout = 3000;
 
 				while ((*RxBuff.ptrCurrent != *RxBuff.ptrEnd) && (i<MAX_BARCODE_LENGTH)) {
 					printf("%d", i);
@@ -95,23 +96,28 @@ void BCRUpdateTask()
 
 void BCR_Enable()
 {
+	COM_BUFF_INFO RxBuff = GetTaskRxComBuff();
+
 	if(enable == 0)
 	{
 		BCR_Init();
 		GPS_Disable();
-		enable = 1;
+		
 	}
 	else
 	{
 		GPS_Disable();
-		SetCTS();
+		//SetCTS();
 		OSTaskResume(TASK_BCR_PRIO);
 	}
+
+	*(RxBuff.ptrCurrent) = *(RxBuff.ptrEnd);
 }
 
 void BCR_Disable()
 {
-	GPS_Enable();
-	ClearCTS();
 	OSTaskSuspend(TASK_BCR_PRIO);
+	GPS_Enable();
+	//ClearCTS();
+	
 }
