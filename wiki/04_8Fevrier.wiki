@@ -22,7 +22,7 @@ Il ne faut pas écrire:
 
 *Schéma-bloc*
 
-Il faudrait aussi faire un schéma-bloc de notre projet pour la semaine prochaine. Ça nous permettrait d'identifier les modules plus complexes et ProjectMan pourra nous donner de l'information supplémentaire. 
+Il faudrait aussi faire un schéma-bloc de notre projet pour la semaine prochaine. Ça nous permettrait d'identifier les modules plus complexes et Projectman pourra nous donner de l'information supplémentaire. 
 
 *Distribution des PDA*
 
