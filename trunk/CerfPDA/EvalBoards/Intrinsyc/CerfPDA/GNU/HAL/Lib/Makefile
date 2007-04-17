@@ -23,7 +23,7 @@ CFG_OBJ=
 COMMON_OBJ=$(OUTDIR)/build_tbl.o $(OUTDIR)/idle.o $(OUTDIR)/lcd_sa.o \
 	$(OUTDIR)/mcp_sa.o $(OUTDIR)/serial.o $(OUTDIR)/serial_front.o \
 	$(OUTDIR)/serial_sa.o $(OUTDIR)/serial_sa_RF.o $(OUTDIR)/string.o \
-	$(OUTDIR)/timer_sa.o $(OUTDIR)/ucb1200.o $(OUTDIR)/util.o $(OUTDIR)/debugELR2.o
+	$(OUTDIR)/timer_sa.o $(OUTDIR)/ucb1200.o $(OUTDIR)/util.o $(OUTDIR)/debugELR2.o $(OUTDIR)/keyboard.o
 OBJ=$(COMMON_OBJ) $(CFG_OBJ)
 
 COMPILE_S=arm-elf-as  $(CFG_INC) -o $@ $<
