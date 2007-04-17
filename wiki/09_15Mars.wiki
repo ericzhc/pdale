@@ -2,4 +2,8 @@
 
 *Répartition des tâches*
 
-Durant notre semaine de repos du projet, nous avons constaté que le temps filait mais que le projet n'était pas très avancé. Bien sûr, nous avons toutes les spécifications fonctionnelles et détaillées, mais rien de concret n'est encore fait. Nous avons donc aujourd'hui fait une répartition préliminaire des tâches
+Durant notre semaine de repos du projet, nous avons constaté que le temps filait mais que le projet n'était pas très avancé. Bien sûr, nous avons toutes les spécifications fonctionnelles et détaillées, mais rien de concret n'est encore fait. Nous avons donc aujourd'hui fait une répartition préliminaire des tâches.
+
+J-S n'a pas eu la chance de travailler sur des interfaces graphiques (GUI) dans le passé alors il sera en charge de faire celle du PDA. Comme c'est un travail d'envergure, il sera aidé par Julien. Marc travaillera sur l'interface du serveurPC et sera aidé par Richard pour effectuer la communication par sockets entre cette interface et le PDA. JBE est en charge de tout ce qui a trait à la base de données. Francis, Blaff et Guillaume travailleront sur tout ce qui touche le hardware du PDA (module GPS, module cellulaire, lecteur de code-barres, interrupts, etc). 
+
+Un compte rendu du travail accompli devra être donné par chacun des membres lors de la prochaine rencontre.
