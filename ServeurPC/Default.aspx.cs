@@ -32,6 +32,7 @@ public partial class _Default : System.Web.UI.Page
     private MySqlConnection m_SqlConnection;
     static bool onMsgDiv;
     static bool onListeDiv;
+    static bool onCarteDiv;
     bool JourneeFlag = false;
 
     double CentralCoordLat = -71.9287836211068;
@@ -61,10 +62,11 @@ public partial class _Default : System.Web.UI.Page
     {
         divMsg.Visible = false;
         divCamion.Visible = false;
+        divListe.Visible = false;
+        divCarte.Visible = false;
         lblError.Visible = false;
         lblErrorCam.Visible = false;
-        divListe.Visible = false;
-
+       
         Timer2_Tick(null, null);
 
         // Ce code est roulé lors du premier chargement de la page web
@@ -87,6 +89,7 @@ public partial class _Default : System.Web.UI.Page
                 {
                     dropCamion.Items.Add(MyReader[0].ToString());
                     dropRetirer.Items.Add(MyReader[0].ToString());
+                    ddlCamionCarte.Items.Add(MyReader[0].ToString());
                 }
 
                 MyReader.Close();
@@ -94,7 +97,8 @@ public partial class _Default : System.Web.UI.Page
             catch (MySqlException myEx)
             {
             }
-            onMsgDiv = false;
+            //onMsgDiv = false;
+            //onCarteDiv = false;
             cmdFinJournee.Enabled = false;
         }
     }
@@ -137,6 +141,7 @@ public partial class _Default : System.Web.UI.Page
 
         onMsgDiv = false;
         onListeDiv = false;
+        onCarteDiv = false;
     }
 
     /*
@@ -150,15 +155,21 @@ public partial class _Default : System.Web.UI.Page
     */
     protected void cmd_Carte_Click(object sender, EventArgs e)
     {
+        Timer3_Tick(null, null);
         cmd_Ajout.BackColor = Color.Yellow;
         cmd_Carte.BackColor = Color.DarkOrange;
         cmd_ListeColis.BackColor = Color.Yellow;
         cmd_Msg.BackColor = Color.Yellow;
         cmd_Camion.BackColor = Color.Yellow;
         divAjout.Visible = false;
-
+        divCarte.Visible = true;
+        divCamion.Visible = false;
+        divMsg.Visible = false;
+        divListe.Visible = false;
+        
         onMsgDiv = false;
         onListeDiv = false;
+        onCarteDiv = true;
     }
 
     /*
@@ -181,9 +192,11 @@ public partial class _Default : System.Web.UI.Page
         divListe.Visible = true;
         divCamion.Visible = false;
         divMsg.Visible = false;
+        divCarte.Visible = false;
 
         onMsgDiv = false;
         onListeDiv = true;
+        onCarteDiv = false;
     }
 
     /*
@@ -205,11 +218,14 @@ public partial class _Default : System.Web.UI.Page
         divAjout.Visible = false;
         divMsg.Visible = true;
         divCamion.Visible = false;
+        divListe.Visible = false;
+        divCarte.Visible = false;
 
         Timer1_Tick(null, null);
 
         onMsgDiv = true;
         onListeDiv = false;
+        onCarteDiv = false;
     }
 
     /*
@@ -232,8 +248,12 @@ public partial class _Default : System.Web.UI.Page
         divAjout.Visible = false;
         divMsg.Visible = false;
         divCamion.Visible = true;
+        divListe.Visible = false;
+        divCarte.Visible = false;
 
         onMsgDiv = false;
+        onCarteDiv = false;
+        onListeDiv = false;
     }
     #endregion
 
@@ -528,6 +548,45 @@ public partial class _Default : System.Web.UI.Page
     }
 #endregion
 
+    #region TAB CARTE
+
+    /*
+   *********************************************************************************************************
+   *                                              cmdGetCarte_Click()
+   *
+   * Description : Cette fonction est appelée lorsque l'utilisateur clique sur le bouton "Obtenir la carte"
+   *               du tab "Carte de la ville"
+   *
+   * Notes		  : La fonction effectue une requête SQL "DELETE FROM" permettant de supprimer une entrée
+   *               de la table "camion" de la BD. Elle met ensuite à jour les menus déroulant.
+   *********************************************************************************************************
+   */
+    protected void cmdGetCarte_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    /*
+    *********************************************************************************************************
+    *                                              Timer3_Tick()
+    *
+    * Description : Cette fonction rafraîchit la carte illustrant le trajet entre la position actuelle du
+    *               du camion et sa destination 
+    *
+    * Notes		  : La fonction est appelée par un module AJAX
+    *********************************************************************************************************
+    */
+    protected void Timer3_Tick(object sender, EventArgs e)
+    {
+        if (onCarteDiv)
+        {
+            divCarte.Visible = true;
+        }
+        imgCarte.ImageUrl = "C:\\map\\map0.jpg";
+    }
+
+    #endregion
+
     #region TAB MESSAGE
     /*
     *********************************************************************************************************
@@ -687,6 +746,173 @@ public partial class _Default : System.Web.UI.Page
     }
     #endregion
 
+    #region TAB LISTE COLIS
+    /*
+    *********************************************************************************************************
+    *                                              Timer2_Tick()
+    *
+    * Description : Cette fonction effectue une requête SQL à la base de données afin d'obtenir la liste
+    *               des colis qu'il affiche ensuite dans le tab "Liste des colis" 
+    *
+    *********************************************************************************************************
+    */
+    protected void Timer2_Tick(object sender, EventArgs e)
+    {
+        string str_Sql = "";
+        string str_Temp = "";
+        MySqlConnection MyConnection = GetConnection();
+        MySqlCommand MyCommand = null;
+        MySqlDataReader MyReader = null;
+
+        str_Sql = "SELECT col_noident, cam_nom, col_etat, col_nomdest, col_adrdest, col_villedest, ";
+        str_Sql += "col_cpdest, col_hrdebutdest, col_hrfindest, col_remarquedest FROM colis";
+
+        TBLListeColis.Rows.Clear();
+
+        TableRow row = new TableRow();
+        row.BackColor = Color.Black;
+
+        // No ident.
+        TableCell cell0 = new TableCell();
+        Label label0 = new Label();
+        label0.Text = "Ident";
+        label0.ForeColor = Color.Yellow;
+        cell0.Controls.Add(label0);
+        row.Cells.Add(cell0);
+
+        // Nom camion
+        TableCell cell1 = new TableCell();
+        Label label1 = new Label();
+        label1.Text = "Camion";
+        label1.ForeColor = Color.Yellow;
+        cell1.Controls.Add(label1);
+        row.Cells.Add(cell1);
+        
+        // Etat
+        TableCell cell2 = new TableCell();
+        Label label2 = new Label();
+        label2.Text = "Etat";
+        label2.ForeColor = Color.Yellow;
+        cell2.Controls.Add(label2);
+        row.Cells.Add(cell2);
+
+        // Nom dest
+        TableCell cell3 = new TableCell();
+        Label label3 = new Label();
+        label3.Text = "Destinataire";
+        label3.ForeColor = Color.Yellow;
+        cell3.Controls.Add(label3);
+        row.Cells.Add(cell3);
+
+        // Addresse dest
+        TableCell cell4 = new TableCell();
+        Label label4 = new Label();
+        label4.Text = "Addresse";
+        label4.ForeColor = Color.Yellow;
+        cell4.Controls.Add(label4);
+        row.Cells.Add(cell4);
+        
+        // Ville dest
+        TableCell cell5 = new TableCell();
+        Label label5 = new Label();
+        label5.Text = "Ville";
+        label5.ForeColor = Color.Yellow;
+        cell5.Controls.Add(label5);
+        row.Cells.Add(cell5);
+
+        // CP dest
+        TableCell cell6 = new TableCell();
+        Label label6 = new Label();
+        label6.Text = "Code postal";
+        label6.ForeColor = Color.Yellow;
+        cell6.Controls.Add(label6);
+        row.Cells.Add(cell6);
+
+        // Heure debut
+        TableCell cell7 = new TableCell();
+        Label label7 = new Label();
+        label7.Text = "Heure début";
+        label7.ForeColor = Color.Yellow;
+        cell7.Controls.Add(label7);
+        row.Cells.Add(cell7);
+
+        // Heure fin
+        TableCell cell8 = new TableCell();
+        Label label8 = new Label();
+        label8.Text = "Heure fin";
+        label8.ForeColor = Color.Yellow;
+        cell8.Controls.Add(label8);
+        row.Cells.Add(cell8);
+
+        // Remarque
+        TableCell cell9 = new TableCell();
+        Label label9 = new Label();
+        label9.Text = "Remarques";
+        label9.ForeColor = Color.Yellow;
+        cell9.Controls.Add(label9);
+        row.Cells.Add(cell9);
+
+        TBLListeColis.Rows.Add(row);
+
+        MyCommand = new MySqlCommand(str_Sql, MyConnection);
+        MyReader = MyCommand.ExecuteReader();
+
+        while (MyReader.Read())
+        {
+            TableRow row1 = new TableRow();
+            row1.BackColor = Color.Black;
+            for (int i = 0; i < MyReader.FieldCount; i++)
+            {
+                if (i == 2)
+                {
+                    TableCell cell = new TableCell();
+                    Label label = new Label();
+                    str_Temp = MyReader[i].ToString();
+                    if (str_Temp == "0")
+                    {
+                        label.Text = "non cueilli";
+                    }
+                    else if (str_Temp == "1")
+                    {
+                        label.Text = "cueilli";
+                    }
+                    else if (str_Temp == "2")
+                    {
+                        label.Text = "en livraison";
+                    }
+                    else if (str_Temp == "3")
+                    {
+                        label.Text = "livré";
+                    }
+                    cell.Controls.Add(label);
+                    row1.Cells.Add(cell);
+                }
+                else
+                {
+                    TableCell cell = new TableCell();
+                    Label label = new Label();
+                    label.Text = MyReader[i].ToString();
+                    cell.Controls.Add(label);
+                    row1.Cells.Add(cell);
+                }
+            }
+            TBLListeColis.Rows.Add(row1);
+        }
+        MyReader.Close();
+
+        // Close connection if this update comes from a tick
+        if (sender != null)
+        {
+            MyConnection.Close();
+        }
+
+        if (onListeDiv)
+        {
+            divListe.Visible = true;
+        }
+    }
+    #endregion
+
     #region TAB CAMION
     /*
     *********************************************************************************************************
@@ -738,7 +964,7 @@ public partial class _Default : System.Web.UI.Page
         {
         }       
     }
-    /*
+   /*
    *********************************************************************************************************
    *                                              cmdRetirerCamion_Click()
    *
@@ -827,55 +1053,6 @@ public partial class _Default : System.Web.UI.Page
         {
         }
         cmdFinJournee.Enabled = false;
-    }
-    #endregion
-
-    #region TAB LISTE COLIS
-    /*
-    *********************************************************************************************************
-    *                                              Timer2_Tick()
-    *
-    * Description : Cette fonction effectue une requête SQL à la base de données afin d'obtenir la liste
-    *               des colis qu'il affiche ensuite dans le tab "Liste des colis" 
-    *
-    *********************************************************************************************************
-    */
-    protected void Timer2_Tick(object sender, EventArgs e)
-    {
-        string str_Sql = "";
-        MySqlConnection MyConnection = GetConnection();
-        MySqlCommand MyCommand = null;
-        MySqlDataReader MyReader = null;
-
-        str_Sql = "SELECT * FROM colis";
-
-        MyCommand = new MySqlCommand(str_Sql, MyConnection);
-        MyReader = MyCommand.ExecuteReader();
-
-        while (MyReader.Read())
-        {
-            TableRow row = new TableRow();
-            row.BackColor = Color.Black;
-            for (int i = 0; i < MyReader.FieldCount; i++)
-            {
-                TableCell cell = new TableCell();
-                Label label = new Label();
-                label.Text = MyReader[i].ToString();
-                cell.Controls.Add(label);
-                row.Cells.Add(cell);
-            }
-            TBLListeColis.Rows.Clear();
-            TBLListeColis.Rows.Add(row);
-        }
-        MyReader.Close();
-
-        // Close connection if this update comes from a tick
-        if (sender != null) {
-            MyConnection.Close();
-        }
-
-        if (onListeDiv)
-            divListe.Visible = true;
     }
     #endregion
 
@@ -1418,4 +1595,5 @@ public partial class _Default : System.Web.UI.Page
         }
     }
 #endregion
+
 }

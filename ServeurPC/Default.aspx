@@ -8,16 +8,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml" >
 <head runat="server">
     <title>PDA Livraison Express</title>
-    
-    <script type="text/javascript" language="javascript">
-
-        function changecolor(color) 
-        {
-            document.bgColor=color;
-        }
-
-    </script>
-
 </head>
 <body text="white">
     <table border="0" bgcolor="black">
@@ -164,6 +154,34 @@
                 </div>
             </ContentTemplate>
             
+        </asp:UpdatePanel>
+        
+        <asp:Timer ID="Timer3" Interval="5000" Enabled="true" OnTick="Timer3_Tick" runat="server" />
+        <asp:UpdatePanel ID="UpdatePanel3" UpdateMode="Conditional" runat="server">
+        <Triggers><asp:AsyncPostBackTrigger ControlID="Timer3" EventName="Tick" /></Triggers>        
+            <ContentTemplate>
+                <div id="divCarte" runat="server">
+                    <table border="0" bgcolor="black" width="1022">
+                        <tr><td style="width: 70px"><font size="5">Carte</font></td></tr>
+                        <tr><td style="height: 40px"></td></tr>
+                        <tr><td style="width: 70px"><font size="4">Selection du camion</font></td></tr>
+                        <tr><td>
+                            <table border="0" bgcolor="black" width="1016">
+                                <tr><td>
+                                        <asp:DropDownList ID="ddlCamionCarte" width="200px" runat="server"></asp:DropDownList>
+                                        <asp:Button ID="cmdGetCarte" runat="server" BackColor="#FF8000" BorderColor="Black"
+                                                            Font-Bold="True" OnClick="cmdGetCarte_Click" Text="Obtenir la carte" Width="200px" />
+                                    </td>                      
+                                    <td><asp:Image ID="imgCarte" runat="server" /></td>   
+                                    <td style="width: 70px">                       
+                                </tr>
+                            </table>
+                            </td>
+                        </tr>
+                        <tr><td style="height: 40px"></td></tr>
+                    </table>    
+                </div>
+            </ContentTemplate>
         </asp:UpdatePanel>
         
         <div id="divCamion" runat="server">
