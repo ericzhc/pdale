@@ -25,7 +25,6 @@
 *********************************************************************************************************
 */
 
-#define  TASK_START_APP_PRIO     5
 #define  TASK_STK_SIZE        2048
 
 /*
@@ -34,7 +33,8 @@
 *********************************************************************************************************
 */
 
-OS_STK  AppStartTaskStk[TASK_STK_SIZE];
+        OS_STK  AppStartTaskStk[TASK_STK_SIZE];
+        OS_STK  GuiTaskStk[TASK_STK_SIZE];
 
 /*
 *********************************************************************************************************
@@ -43,6 +43,7 @@ OS_STK  AppStartTaskStk[TASK_STK_SIZE];
 */
 
 static  void  AppStartTask(void *p_arg);
+static  void  GuiTask(void *p_arg);
 
 /*
 *********************************************************************************************************
@@ -53,11 +54,13 @@ static  void  AppStartTask(void *p_arg);
 int  main (void)
 {
     INT8U err;
+
     BSP_Init();                                 /* Initialize BSP                                      */
-    printf("Initialize uC/OS-II...\n\r");
+
+    printf("\r\nInitialize uC/OS-II...");
     OSInit();                                   /* Initialize uC/OS-II                                 */
-     
-	/* Create start task                                   */
+
+                                                /* Create start task                                   */
     OSTaskCreateExt(AppStartTask,
                     NULL,
                     (OS_STK *)&AppStartTaskStk[TASK_STK_SIZE-1],
@@ -67,17 +70,17 @@ int  main (void)
                     TASK_STK_SIZE,
                     NULL,
                     OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
-    
-	
+
                                                 /* Give a name to tasks                                */
+#if 0                                                
 #if OS_TASK_NAME_SIZE > 10
-    OSTaskNameSet(OS_TASK_IDLE_PRIO,        "Idle task",  &err);
-    OSTaskNameSet(OS_TASK_STAT_PRIO,        "Stat task",  &err);
+    OSTaskNameSet(OS_IDLE_PRIO,        "Idle task",  &err);
+    OSTaskNameSet(OS_STAT_PRIO,        "Stat task",  &err);
     OSTaskNameSet(TASK_START_APP_PRIO, "Start task", &err);
 #endif
+#endif
 
-
-    printf("Start uC/OS-II...\n\r");
+    printf("\r\nStart uC/OS-II...");
     OSStart();                                  /* Start uC/OS-II                                      */
 }
 
@@ -96,40 +99,52 @@ int  main (void)
 *********************************************************************************************************
 */
 
-
 static void  AppStartTask (void *p_arg)
 {
     INT8U err;
+
     p_arg = p_arg;                              /* Prevent compiler warning                            */
-    printf("Start timer tick...\n\r");
+
+    printf("\r\nStart timer tick...");
     Tmr_TickInit();                             /* Start timer tick                                    */
+
 #if OS_TASK_STAT_EN > 0
-   // printf("Start statistics...\n\r");
-    //OSStatInit();                               /* Start stats task                                    */
+    printf("\r\nStart statistics...");
+    OSStatInit();                               /* Start stats task                                    */
 #endif
-	BCR_Init();
-	
-	
-	//GPS_Init();
-	//RFDriverInit();
-	
 
-    while (1) {                                 /* Task body, always written as an infinite loop.      */
+    printf("\r\nStarting uC/GUI demo...\n");
+
+    OSTaskCreateExt(GuiTask,
+                    NULL,
+                    (OS_STK *)&GuiTaskStk[TASK_STK_SIZE-1],
+                    TASK_GUI_PRIO,
+                    TASK_GUI_PRIO,
+                    (OS_STK *)&GuiTaskStk[0],
+                    TASK_GUI_PRIO,
+                    NULL,
+                    OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
+
+                                                /* Give a name to tasks                                */
+#if OS_TASK_NAME_SIZE > 10
+    OSTaskNameSet(TASK_GUI_PRIO,        "GUI task",  &err);
+#endif
+
+    MainTask();
+    while (1) 
+	{                                 /* Task body, always written as an infinite loop.      */
                                                 /* Delay task execution for 500 ms                     */
-		//TransmitRfBuffer("AYE BEGIN TES LACETS SONT DETACHES\n\r\0");
-		//BCRUpdateTask();
-		//OSTimeDly(100);
+		OSTimeDly(300);
+		//OSTimeDly(500 * OS_TICKS_PER_SEC / 1000);
+    }
+}
 
-		OSFlagPend(bcFlag, 
-			BAR_CODE_AVAILABLE,
-			OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 
-			0,
-			&err);
-		printf("bar Code Read : %s", BCRValue); 
-		OSFlagPost(bcFlag, 
-			BAR_CODE_CONSUMED, 
-			OS_FLAG_SET, 
-			&err);
-
+static void  GuiTask (void *p_arg)
+{
+    p_arg = p_arg;                              /* Prevent compiler warning                            */
+    while (1)
+    {
+        GUI_TOUCH_Exec();
+        GUI_Exec();
     }
 }

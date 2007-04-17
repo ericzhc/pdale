@@ -25,8 +25,6 @@
 #include "MULTIPAGE.h"
 #include "LISTVIEW.h"
 
-#define MAX_CODEBARRE_LENGTH 11
-
 #define STATE_UNPICKED		  0
 #define STATE_PICKED		  1
 #define STATE_UNDELIVERED	  2
@@ -70,6 +68,7 @@
 // Attente Lecture Code Barre
 #define EDIT_CODEBARRE_NUMEROCOLIS_ID  2155
 #define PB_CODEBARRE_OK_ID			   2156
+#define PB_CODEBARRE_LECTEUR_ID		   2169
 
 // Modif Colis
 #define TEXT_MODIFCOLIS_NUMEROCOLIS_ID 2157
@@ -95,6 +94,7 @@
 #define EDIT_MESSAGE_ENVOI_ID		   2174
 #define PB_MESSAGE_ENVOYER_ID		   2175
 #define TEXT_MESSAGE_RECUS_ID		   2176
+#define PB_MESSAGE_ENTRETEXT_ID		   2177
 
 /*********************************************************************
 *
@@ -108,8 +108,7 @@
 // Code Barre
 #define CODEBARRE_MSG1 "Veuillez maintenant utiliser le lecteur de "
 #define CODEBARRE_MSG2 "   code barre sur le colis à consulter.    "
-#define CODEBARRE_MSG3 "  Entrer manuellement le numéro du colis   "
-#define CODEBARRE_MSG4 "  l'espace ci-dessous et appuyer sur OK.   "
+#define CODEBARRE_MSG3 "Appuyer sur Lecteur, lire, appuyer sur OK. "
 #define CODEBARRE_MSG5 "Le numéro de colis entré\nest innexistant dans la\nbase de données."
 
 // Modif Colis
@@ -126,8 +125,6 @@
 *********************************************************************************************************
 */
 
-#define  TASK_START_APP_PRIO     5
-#define  TASK_STK_SIZE        2048
 
 /*
 *********************************************************************************************************
@@ -135,7 +132,7 @@
 ***************************************«******************************************************************
 */
 
-OS_STK  AppStartTaskStk[TASK_STK_SIZE];
+
 /*********************************************************************
 *
 *       Prototype de Fonctions
@@ -177,7 +174,7 @@ char*  BUFFER;
 long   IMAGESIZE;
 size_t SIZERESULT;
 
-char    SQLCOLISNUMBER[MAX_CODEBARRE_LENGTH];
+char    SQLCOLISNUMBER[MAX_BARCODE_LENGTH];
 int		CAMIONCOURANT;
 
 // Table pour listView
@@ -198,11 +195,10 @@ static const GUI_WIDGET_CREATE_INFO WaitCodeBarreDialogCreate[] =
 	{ FRAMEWIN_CreateIndirect, "Attente Lecture Code Barre...", 0, 0, 0, 240, 248, 0, 0 },
 	{ TEXT_CreateIndirect, CODEBARRE_MSG1, 0, 10, 0, 220, 15, 0, GUI_TA_CENTER },
 	{ TEXT_CreateIndirect, CODEBARRE_MSG2, 0, 10, 20, 220, 15, 0, GUI_TA_CENTER },
-	{ TEXT_CreateIndirect, "OU", 0, 95, 40, 20, 0, 0, GUI_TA_CENTER },
-	{ TEXT_CreateIndirect, CODEBARRE_MSG3, 0, 10, 60, 220, 15, 0, GUI_TA_CENTER },
-	{ TEXT_CreateIndirect, CODEBARRE_MSG4, 0, 10, 80, 220, 15, 0, GUI_TA_CENTER },
-	{ EDIT_CreateIndirect, NULL, EDIT_CODEBARRE_NUMEROCOLIS_ID, 50, 100, 70, 20, 0, 0 },
-	{ BUTTON_CreateIndirect, "OK", PB_CODEBARRE_OK_ID, 125, 100, 40, 20, 0, 0 }
+	{ TEXT_CreateIndirect, CODEBARRE_MSG3, 0, 10, 40, 220, 15, 0, GUI_TA_CENTER },
+	{ EDIT_CreateIndirect, NULL, EDIT_CODEBARRE_NUMEROCOLIS_ID, 20, 120, 150, 20, 0, 0 },
+	{ BUTTON_CreateIndirect, "OK", PB_CODEBARRE_OK_ID, 175, 120, 40, 20, 0, 0 },
+	{ BUTTON_CreateIndirect, "LECTEUR", PB_CODEBARRE_LECTEUR_ID, 80, 65, 80, 40, 0, 0 },
 };
 
 // Construction de Modification de Colis Dialog
@@ -251,7 +247,8 @@ static const GUI_WIDGET_CREATE_INFO MessageDialogCreate[] =
 	{ TEXT_CreateIndirect, "", TEXT_MESSAGE_RECUS_ID, 5, 25, 200, 125, 0, GUI_TA_LEFT },
 	{ TEXT_CreateIndirect, MESSAGE_MSG2, 0, 5, 155, 200, 15, 0, GUI_TA_LEFT },
 	{ EDIT_CreateIndirect, NULL, EDIT_MESSAGE_ENVOI_ID, 0, 175, 230, 20, 0, 0 },
-	{ BUTTON_CreateIndirect, "ENVOYER", PB_MESSAGE_ENVOYER_ID, 20, 205, 180, 25, 0, 0 }
+	{ BUTTON_CreateIndirect, "ENVOYER", PB_MESSAGE_ENVOYER_ID, 110, 205, 85, 25, 0, 0 },
+	{ BUTTON_CreateIndirect, "ENTRER TEXT", PB_MESSAGE_ENTRETEXT_ID, 20, 205, 85, 25, 0, 0 }
 };
 
 // Construction dun Loading Dialog
@@ -346,9 +343,9 @@ static void InitialisationCallback(WM_MESSAGE * pMsg)
 static void CodeBarreWaitCallback(WM_MESSAGE * pMsg) 
 {
 	// Initialisation de variables
-	int NCode, Id;
-	char CodeBarre[MAX_CODEBARRE_LENGTH];
+	int NCode, Id, i;
 	WM_HWIN hWin = pMsg->hWin;
+	char buffer_codebarre[MAX_BARCODE_LENGTH];
 
 	// Acquisition du Edit "NumeroColis"
 	WM_HWIN Edit_NumeroColis;
@@ -357,9 +354,7 @@ static void CodeBarreWaitCallback(WM_MESSAGE * pMsg)
 	{
 		case WM_INIT_DIALOG:
 			// Initialisation du dialog
-			EDIT_SetMaxLen(Edit_NumeroColis, MAX_CODEBARRE_LENGTH);
-		//	CodeBarreRead(CodeBarre); SERVER REQUEST
-			EDIT_SetText(Edit_NumeroColis, CodeBarre);
+			EDIT_SetMaxLen(Edit_NumeroColis, MAX_BARCODE_LENGTH);
 			break;
 
 		case WM_NOTIFY_PARENT:
@@ -383,14 +378,24 @@ static void CodeBarreWaitCallback(WM_MESSAGE * pMsg)
 						if (strcmp(SQLCOLISNUMBER, "1111111111") == 0) // TO REMOVE
 						{
 							GUI_EndDialog(hWin, 0);
-							//CodeBarreDisable(); SERVER REQUEST
 							ShowModifColis();
 						}
 						else
 						{
 							// Si le numero nest pas valide il y aura une erreur
-							GUI_MessageBox(CODEBARRE_MSG5, "ERREUR", GUI_MESSAGEBOX_CF_MOVEABLE);
+							WM_HWIN MBox = GUI_MessageBox(CODEBARRE_MSG5, "ERREUR", GUI_MESSAGEBOX_CF_MOVEABLE);
+							OSTimeDly(3000);
+							GUI_Clear();
+							PdaleInterface();
 						}
+					}
+					else if (Id == PB_CODEBARRE_LECTEUR_ID)
+					{
+						memset(buffer_codebarre,0x00,MAX_BARCODE_LENGTH);
+						CodeBarreInit(); // SERVER REQUEST
+						CodeBarreRead(buffer_codebarre); // SERVER REQUEST
+						CodeBarreDisable(); // SERVER REQUEST
+						EDIT_SetText(Edit_NumeroColis, buffer_codebarre);
 					}
 					break;
 			}
@@ -659,8 +664,8 @@ static void ListColisCallback(WM_MESSAGE * pMsg)
 	static int NewTimer = 0;
 	static int Flag;
 	int Sentinel = 0;
-	static char Colis1[MAX_CODEBARRE_LENGTH];
-	static char Colis2[MAX_CODEBARRE_LENGTH];
+	static char Colis1[MAX_BARCODE_LENGTH];
+	static char Colis2[MAX_BARCODE_LENGTH];
 	WM_HWIN hWin = pMsg->hWin;
 	WM_HWIN LoadingDialog;
 	static WM_HWIN ListView;
@@ -761,12 +766,12 @@ static void ListColisCallback(WM_MESSAGE * pMsg)
 static void MessageCallback(WM_MESSAGE * pMsg) 
 {
 	// Initialisation des variables
-	int NCode, Id;
+	int NCode, Id, FirstTimeFlag, i;
 	char MessagesRecus[400];
 	char MessageToSend[51];
 	char key;
 	char EditText[51];
-	char TempBuf[51];
+	char TempBufMsg[51];
 	memset(EditText, 0x00, 51);
 	
 	WM_HWIN hWin = pMsg->hWin;
@@ -774,8 +779,8 @@ static void MessageCallback(WM_MESSAGE * pMsg)
 	WM_HWIN Edit_Envoi, Text_Recu;
 
 	// Acquisiton du EDIT et du TEXT
-	Edit_Envoi = WM_GetDialogItem(hWin, EDIT_MESSAGE_ENVOI_ID);
 	Text_Recu  = WM_GetDialogItem(hWin, TEXT_MESSAGE_RECUS_ID);
+	Edit_Envoi = WM_GetDialogItem(hWin, EDIT_MESSAGE_ENVOI_ID);
 
 	switch (pMsg->MsgId) 
 	{
@@ -788,69 +793,13 @@ static void MessageCallback(WM_MESSAGE * pMsg)
 			//GetMessages(CAMIONCOURANT, MessagesRecus); SERVER REQUEST
 			GUI_EndDialog(LoadingDialog, 0);
 			TEXT_SetText(Text_Recu, MessagesRecus);
-			EDIT_SetText(Edit_Envoi, "test");
 			break;
 
 		case WM_NOTIFY_PARENT:
-			printf("Notif");
 			Id = WM_GetId(pMsg->hWinSrc); /* Id of widget */
 			NCode = pMsg->Data.v; /* Notification code */
 			switch (NCode) 
 			{
-				case WM_NOTIFICATION_CLICKED:
-					printf("clicked");
-					if (Id == EDIT_MESSAGE_ENVOI_ID) 
-					{
-						printf("InEdit");
-
-						while ((key != ENTER)) 
-						{
-							printf("InWhile");
-
-							key = ReadFromKeyboard();
-							switch (key)
-							{
-								case F1:
-									break;
-								case F2:
-									break;
-								case SHIFT:
-									break;
-								case ESCAPE:
-									break;
-								case ENTER:
-									break;
-								case CAPSCTRL:
-									break;
-								case NUMCUR:
-									break;
-								case UP:
-									break;
-								case DOWN:
-									break;
-								case LEFT:
-									break;
-								case RIGHT:
-									break;
-								case POWER:
-									break;
-								case TAB:
-									break;
-								case BACKSPACE:
-									memset(TempBuf, 0x00, 51);
-									strncpy(TempBuf,EditText,strlen(EditText)-1);
-									StringCopy(EditText,TempBuf);
-									EDIT_SetText(Edit_Envoi, EditText);
-									break;
-
-								default:	
-									strcat(EditText, &key);
-									EDIT_SetText(Edit_Envoi, EditText);
-									break;
-							}
-						}
-					}
-
 				case WM_NOTIFICATION_RELEASED: /* React only if released */
 					if (Id == PB_MESSAGE_ENVOYER_ID) 
 					{
@@ -858,6 +807,78 @@ static void MessageCallback(WM_MESSAGE * pMsg)
 						EDIT_GetText(Edit_Envoi, MessageToSend, 50);
 						//SendMessage(CAMIONCOURANT, Message); SERVER REQUEST
 						EDIT_SetText(Edit_Envoi, "");
+					}
+					else if (Id == PB_MESSAGE_ENTRETEXT_ID)
+					{
+						printf("EnterText \n\r");
+						key = ' ';
+						while (key != ENTER && i < 51) 
+						{
+							key = ReadFromKeyboard();
+							switch (key)
+							{
+								case F1:
+						printf("1 \n\r");
+
+									break;
+								case F2:
+						printf("2 \n\r");
+
+									break;
+								case SHIFT:
+						printf("3 \n\r");
+									break;
+								case ESCAPE:
+						printf("4 \n\r");
+									break;
+								case ENTER:
+						printf("5 \n\r");
+									break;
+								case CAPSCTRL:
+						printf("6 \n\r");
+									break;
+								case NUMCUR:
+						printf("7 \n\r");
+									break;
+								case UP:
+						printf("8 \n\r");
+									break;
+								case DOWN:
+						printf("9 \n\r");
+									break;
+								case LEFT:
+						printf("10 \n\r");
+									break;
+								case RIGHT:
+						printf("11 \n\r");
+									break;
+								case POWER:
+						printf("12 \n\r");
+									break;
+								case TAB:
+						printf("13 \n\r");
+									break;
+								case BACKSPACE:
+						printf("14 \n\r");
+
+									i--;
+									memset(TempBufMsg, 0x00, 51);
+									strncpy(TempBufMsg, EditText, strlen(EditText)-2);
+									StringCopy(EditText, TempBufMsg);
+									EDIT_SetText(Edit_Envoi, EditText);
+									break;
+
+								default:
+									printf("Key Pressed : %c", key);
+									strcat(EditText, &key);
+									printf("Buffer : %s", EditText);
+									EDIT_SetText(Edit_Envoi, EditText);
+									i++;
+									break;
+							}
+
+							OSTimeDly(300);
+						}
 					}
 					break;
 			}
@@ -919,7 +940,6 @@ void ShowAttenteCodeBarre(void)
 {
 	CODEBARREWINDOW = GUI_CreateDialogBox(WaitCodeBarreDialogCreate, GUI_COUNTOF(WaitCodeBarreDialogCreate), &CodeBarreWaitCallback, 0, 0, 72);
 	CURRENTWINDOW = CODEBARREWINDOW;
-	//CodeBarreInit(); SERVER
 }
 
 /*
