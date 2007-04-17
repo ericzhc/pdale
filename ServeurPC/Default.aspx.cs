@@ -33,7 +33,7 @@ public partial class _Default : System.Web.UI.Page
     static bool onMsgDiv;
     static bool onListeDiv;
     static bool onCarteDiv;
-    bool JourneeFlag = false;
+    static int JourneeFlag;
 
     double CentralCoordLat = -71.9287836211068;
     double CentralCoordLong = 45.3821264306392;
@@ -351,7 +351,7 @@ public partial class _Default : System.Web.UI.Page
 
                     string str_CamionName = "";
                     string str_Ordre = "-1";
-                    if (str_EtatColis == "0" && JourneeFlag)
+                    if ((str_EtatColis == "0") && (JourneeFlag == 1))
                     {
                         AssignClosestCamion(str_LongLatDest, ref str_CamionName, ref str_Ordre);
                     }
@@ -362,8 +362,8 @@ public partial class _Default : System.Web.UI.Page
                     str_Sql += "', '" + txt_VilleClient.Text + "', '" + txt_CodePostalClient.Text + "', '" + str_PlageDebutCli + "', '" + str_PlageFinCli + "', '";
                     str_Sql += txt_RemarquesClient1.Text + "', '" + str_EtatColis + "', '" + txt_NomDest.Text + "', '";
                     str_Sql += txt_AdresseDest.Text + "', '" + txt_VilleDest.Text + "', '" + txt_CodePostalDest.Text + "', '" + str_PlageDebutDest + "', '" + str_PlageFinDest;
-                    str_Sql += "', '" + txt_RemarquesDest1.Text + "', '" + str_CamionName + "', '" + str_LongLatCli[0] + "', '" + str_LongLatCli[1];
-                    str_Sql += "', '" + str_LongLatDest[1] + "', '" + str_LongLatDest[1] + "', '" + str_Ordre + "')";
+                    str_Sql += "', '" + txt_RemarquesDest1.Text + "', '" + str_CamionName + "', '" + str_LongLatCli[1] + "', '" + str_LongLatCli[0];
+                    str_Sql += "', '" + str_LongLatDest[1] + "', '" + str_LongLatDest[0] + "', '" + str_Ordre + "')";
 
                     MyCommand = new MySqlCommand(str_Sql, MyConnection);
                     MyCommand.ExecuteNonQuery();
@@ -1016,7 +1016,7 @@ public partial class _Default : System.Web.UI.Page
     protected void cmdDeterminationItineraire_Click(object sender, EventArgs e)
     {
         divCamion.Visible = true;
-        JourneeFlag = true;
+        JourneeFlag = 1;
         ArrayList ResultList = new ArrayList();
         try
         {
@@ -1047,7 +1047,7 @@ public partial class _Default : System.Web.UI.Page
     protected void cmdFinJournee_Click(object sender, EventArgs e)
     {
         divCamion.Visible = true;
-        JourneeFlag = false;
+        JourneeFlag = 0;
         try
         {
             UpdateBDFinJournee();
@@ -1560,7 +1560,7 @@ public partial class _Default : System.Web.UI.Page
             double Distance = 0;
             int ClosestPackage = FindClosestPackage(ColisList, double.Parse(str_LongLat[0]), double.Parse(str_LongLat[1]), ref Distance);
 
-            str_Sql = "SELECT col_cam, col_ordre FROM colis WHERE col_noident = '" + ((ArrayList)ColisList[ClosestPackage])[2].ToString() + "'"; // PackageID
+            str_Sql = "SELECT cam_nom, col_ordre FROM colis WHERE col_noident = '" + ((ArrayList)ColisList[ClosestPackage])[2].ToString() + "'"; // PackageID
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyReader = MyCommand.ExecuteReader();
@@ -1581,7 +1581,7 @@ public partial class _Default : System.Web.UI.Page
             int NombreColisApres = 0;
             while (MyReader.Read())
             {
-                Colis.Add(MyReader.ToString());
+                Colis.Add(MyReader[0].ToString());
                 NombreColisApres++;
             }
             MyReader.Close();
