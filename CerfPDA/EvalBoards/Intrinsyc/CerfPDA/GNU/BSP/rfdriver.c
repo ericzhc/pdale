@@ -291,10 +291,9 @@ void ISR_Serial_RF()
 *******************************************************/
 void TransmitRfBuffer(char *databuff)
 {
-
 	INT8U err;
 	OSSemPend(TransmitRfFctSem, 0, &err); // protects dual entry in this fct
-	
+	OSTimeDly(1000);
 	int i;
 	for (i=0; databuff[i] != COMMAND_EOL; i++) {
 		// Increment the buffer's ending pointer
