@@ -809,6 +809,7 @@ public partial class _Default : System.Web.UI.Page
 
         // No ident.
         TableCell cell0 = new TableCell();
+        cell0.Width = Unit.Pixel(60);
         Label label0 = new Label();
         label0.Text = "Ident";
         label0.ForeColor = Color.Yellow;
@@ -817,6 +818,7 @@ public partial class _Default : System.Web.UI.Page
 
         // Nom camion
         TableCell cell1 = new TableCell();
+        cell1.Width = Unit.Pixel(60);
         Label label1 = new Label();
         label1.Text = "Camion";
         label1.ForeColor = Color.Yellow;
@@ -825,6 +827,7 @@ public partial class _Default : System.Web.UI.Page
         
         // Etat
         TableCell cell2 = new TableCell();
+        cell2.Width = Unit.Pixel(70);
         Label label2 = new Label();
         label2.Text = "Etat";
         label2.ForeColor = Color.Yellow;
@@ -841,6 +844,7 @@ public partial class _Default : System.Web.UI.Page
 
         // Addresse dest
         TableCell cell4 = new TableCell();
+        cell4.Width = Unit.Pixel(80);
         Label label4 = new Label();
         label4.Text = "Addresse";
         label4.ForeColor = Color.Yellow;
@@ -849,6 +853,7 @@ public partial class _Default : System.Web.UI.Page
         
         // Ville dest
         TableCell cell5 = new TableCell();
+        cell1.Width = Unit.Pixel(80);
         Label label5 = new Label();
         label5.Text = "Ville";
         label5.ForeColor = Color.Yellow;
