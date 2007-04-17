@@ -127,34 +127,34 @@
         </div>
         
         <asp:Timer ID="Timer1" Interval="5000" Enabled="true" OnTick="Timer1_Tick" runat="server" />
-        <asp:UpdatePanel ID="UpdatePanel1" UpdateMode="Conditional" runat="server">
-        <Triggers><asp:AsyncPostBackTrigger ControlID="Timer1" EventName="Tick" /></Triggers>        
-            <ContentTemplate>
-                <div id="divMsg" runat="server">
+        <div id="divMsg" runat="server">
+        
+            <table border="0" bgcolor="black" width="1022">        
+                <tr><td style="width: 70px"><font size="5">Messages</font></td></tr>
+                <tr><td style="width: 70px"><font size="4">Messages reçus</font></td></tr>
                 
-                    <table border="0" bgcolor="black" width="1022">        
-                        <tr><td style="width: 70px"><font size="5">Messages</font></td></tr>
-                        <tr><td style="width: 70px"><font size="4">Messages reçus</font></td></tr>
+                <asp:UpdatePanel ID="UpdatePanel1" UpdateMode="Conditional" runat="server">
+                    <Triggers><asp:AsyncPostBackTrigger ControlID="Timer1" EventName="Tick" /></Triggers>        
+                    <ContentTemplate>
                         <tr><td style="width: 70px; height: 100px" bgcolor="DarkRed"><asp:TextBox ID="LabelMsgRecus" Wrap="true" ReadOnly="true" TextMode="multiline" 
-                                                                                          BorderStyle="None" BorderWidth="0" BackColor="DarkRed" Width="1000px" Height="100px"
-                                                                                          ForeColor="White" runat="server"></asp:TextBox></td></tr>
-                                                                                          
-                        <tr><td style="width: 70px"><asp:Button ID="cmdResetMsgRecus" runat="server" BackColor="#FF8000" BorderColor="Black"
-                                                            Font-Bold="True" OnClick="cmdResetMsgRecus_Click" Text="Effacer" Width="200px" /></td></tr>
-                        
-                        <tr><td style="width: 70px"><font size="4">Envoi d'un message</font></td></tr>
-                        <tr><td style="width: 70px"><asp:TextBox ID="TextEnvoiMsg" Width="1000px" Height="100px" TextMode="MultiLine" runat="server"></asp:TextBox></td></tr>
-                        <tr><td>
-                            <table>
-                                <tr><td><font size="4">Destinataire : </font></td><td style="width: 70px"><asp:DropDownList ID="dropCamion" width="200px" runat="server"></asp:DropDownList></td></tr>
-                            </table></td></tr>
-                        <tr><td style="width: 70px"><asp:Button ID="cmdEnvoyerMsg" runat="server" BackColor="#FF8000" BorderColor="Black"
-                                                            Font-Bold="True" OnClick="cmdEnvoyerMsg_Click" Text="Envoyer" Width="200px" /></td><td></td></tr>
-                    </table>
-                </div>
-            </ContentTemplate>
+                                                                                  BorderStyle="None" BorderWidth="0" BackColor="DarkRed" Width="1000px" Height="100px"
+                                                                                  ForeColor="White" runat="server"></asp:TextBox></td></tr>
+                    </ContentTemplate>
+                </asp:UpdatePanel>
+                                                                                  
+                <tr><td style="width: 70px"><asp:Button ID="cmdResetMsgRecus" runat="server" BackColor="#FF8000" BorderColor="Black"
+                                                    Font-Bold="True" OnClick="cmdResetMsgRecus_Click" Text="Effacer" Width="200px" /></td></tr>
+                <tr><td style="width: 70px"><font size="4">Envoi d'un message</font></td></tr>
+                <tr><td style="width: 70px"><asp:TextBox ID="TextEnvoiMsg" Width="1000px" Height="100px" TextMode="MultiLine" runat="server"></asp:TextBox></td></tr>
+                <tr><td>
+                    <table>
+                        <tr><td><font size="4">Destinataire : </font></td><td style="width: 70px"><asp:DropDownList ID="dropCamion" width="200px" runat="server"></asp:DropDownList></td></tr>
+                    </table></td></tr>
+                <tr><td style="width: 70px"><asp:Button ID="cmdEnvoyerMsg" runat="server" BackColor="#FF8000" BorderColor="Black"
+                                                    Font-Bold="True" OnClick="cmdEnvoyerMsg_Click" Text="Envoyer" Width="200px" /></td><td></td></tr>
+            </table>
+        </div>
             
-        </asp:UpdatePanel>
         
         <asp:Timer ID="Timer3" Interval="5000" Enabled="true" OnTick="Timer3_Tick" runat="server" />
         <asp:UpdatePanel ID="UpdatePanel3" UpdateMode="Conditional" runat="server">
