@@ -220,8 +220,8 @@
         <asp:Timer ID="Timer2" Interval="5000" Enabled="true" OnTick="Timer2_Tick" runat="server"></asp:Timer>
         <asp:UpdatePanel ID="UpdatePanel2" runat="server">
             <ContentTemplate>
-                <div id="divListe" visible="true" runat="server">
-                    <asp:Table ID="TBLListeColis" runat="server"></asp:Table>
+                <div id="divListe" bgcolor="black" width="1022" visible="true" runat="server">
+                    <asp:Table bgcolor="black" Width="1022" ID="TBLListeColis" runat="server"></asp:Table>
                 </div>
             </ContentTemplate>
             <Triggers><asp:AsyncPostBackTrigger ControlID="Timer2" EventName="Tick" /></Triggers>
