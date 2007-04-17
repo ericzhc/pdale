@@ -138,6 +138,9 @@ public partial class _Default : System.Web.UI.Page
         cmd_Camion.BackColor = Color.Yellow;
         divAjout.Visible = true;
         divMsg.Visible = false;
+        divListe.Visible = false;
+        divCarte.Visible = false;
+        divCamion.Visible = false;
 
         onMsgDiv = false;
         onListeDiv = false;
