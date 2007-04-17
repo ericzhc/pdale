@@ -30,6 +30,9 @@ GPSCoord GPSPosition;
 // GPS Time
 GPSTime GPSTimeValue;
 
+OS_FLAG_GRP* gpsFlag;
+#define GPS_READY_TO_SEND		1
+
 void GPS_Init();
 void GPSUpdateTask();
 void GPSSendDataTask();
