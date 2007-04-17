@@ -1,0 +1,9 @@
+#summary Résumé de la rencontre du 22 février
+
+*Schéma-bloc*
+
+Marc s'est chargé de faire un schéma-bloc préliminaire pour représenter les différents modules de notre projet. Eduardo a suggéré de séparer ce schéma en 2 parties, soit un schéma hardware et un schéma software.
+
+*Distribution des PDA*
+
+Nous avons le PDA. Il ne faut pas le briser ou le perdre.
