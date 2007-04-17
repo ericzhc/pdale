@@ -650,7 +650,7 @@ public class DataManager
 
         //Set the map width and height 
         //according to the PictureBox
-        mapSpec.Options.Format.Height = 260;
+        mapSpec.Options.Format.Height = 248;
         mapSpec.Options.Format.Width = 240;
 
         //Set the Map Datasource
