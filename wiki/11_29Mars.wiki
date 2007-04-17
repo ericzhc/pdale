@@ -1,0 +1,29 @@
+#summary Résumé de la rencontre du 29 mars
+
+Plusieurs personnes ont profité de la semaine passée pour commencer une lecture intensive de la documentation relative aux différents modules du projet. C'est à ce moment que certains ont constaté que certains modules allaient être plus longs à développer que prévu. Nous avons donc établi notre plan de travail. Ceux qui ont acquis suffisamment de connaissances pour commencer leur travail devront le faire d'ici la prochaine rencontre et les autres ont droit à encore une semaine pour lire les différents documents. Le prochaine rencontre se déroulera dans 2 semaines alors il y a beaucoup de temps pour avancer les choses.
+
+==Répartition des tâches*==
+Voici la répartition détaillée des tâches:
+
+===CerfPDA===
+  * Interface graphique: JS
+  * Drivers
+    * Audio: Francis et François
+    * Série: Marc
+    * Cellulaire: Guillaume
+    * GPS: Francis et François
+  * Module de communication: Guillaume
+  * Gestion des messages: J-S
+  * Gestion de l'inventaire: J-S
+  * Gestion de la carte: Richard et Julien
+
+===Serveur PC===
+  * Interfaces graphiques
+    * BD: Marc
+    * Gestion des effectifs: Marc
+    * Messages: Marc
+  * Gestion de la carte: Richard et Julien
+  * Gestion de l'inventaire: JBE et Marc
+  * Gestion des messages: Marc
+  * Services Web: JBE
+  * BD: JBE
