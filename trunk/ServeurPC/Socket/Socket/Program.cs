@@ -185,13 +185,15 @@ namespace Socket.TCPServerReceiver
                             for (int i = 0; i < message.GetLength(0); i++) {
                                 if (message[i][0] != '\0') {
                                     messageCat += message[i] + ";";
+                                    Console.WriteLine(message[i]);
                                 }
                             }
 
                             messageCat += Encoding.ASCII.GetString(receivedData);
                             msgReceivedData = Encoding.ASCII.GetBytes(messageCat);
                         } else {
-                            string message = Encoding.ASCII.GetString(receivedData);
+                            string message = Encoding.ASCII.GetString(receivedData).Split(delimiter)[0] + ";";
+                            Console.WriteLine("Message: " + message);
                             msgReceivedData = Encoding.ASCII.GetBytes(message);
                         }
                         msgReceivedSem.Release();
@@ -200,12 +202,15 @@ namespace Socket.TCPServerReceiver
                     {
                         msgSendSem.Wait();
 
+                        Console.WriteLine("I am here");
+
                         string messageCat = "";
                         string[] message = Encoding.ASCII.GetString(msgSendData).Split(delimiter, 10);
 
                         for (int i = 0; i < message.GetLength(0); i++) {
                             if (message[i][0] != '\0') {
                                 messageCat += message[i] + ";";
+                                Console.WriteLine(message[i]);
                             }
                         }
 
@@ -336,10 +341,11 @@ namespace Socket.TCPServerReceiver
                         if (msgReceivedData[0] != COMMAND_DELIMITER)
                         {
                             if (msgReceivedData[0] == COMMAND_MSGFROMPDA)
-                            {   
-                                    client.Send(msgReceivedData);
-                                    msgReceivedData = new byte[1024];
-                                    msgReceivedData[0] = (byte) COMMAND_DELIMITER;
+                            {
+                                Console.WriteLine(Encoding.ASCII.GetString(msgReceivedData));
+                                client.Send(msgReceivedData);
+                                msgReceivedData = new byte[1024];
+                                msgReceivedData[0] = (byte) COMMAND_DELIMITER;
                             }
                             else
                             {
