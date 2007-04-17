@@ -12,7 +12,7 @@
 <body text="white">
     <table border="0" bgcolor="black">
         <tr>
-            <td colspan="4" align="CENTER" style="height: 150px; width: 1000px" bgcolor="DarkRed"><asp:Label ID="Label1" runat="server" Font-Size="42"
+            <td colspan="4" align="CENTER" style="height: 150px; width: 990px" bgcolor="DarkRed"><asp:Label ID="Label1" runat="server" Font-Size="42"
                     ForeColor="Yellow" Height="150px" Text="PDA Livraison Express" Width="800px"></asp:Label></td></tr>
     </table>   
 

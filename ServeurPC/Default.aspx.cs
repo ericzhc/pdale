@@ -35,6 +35,7 @@ public partial class _Default : System.Web.UI.Page
     static bool onCarteDiv;
     static int JourneeFlag;
 
+    // Coordonnées GPS de la centrale (Université)
     double CentralCoordLat = -71.9287836211068;
     double CentralCoordLong = 45.3821264306392;
 
@@ -91,14 +92,12 @@ public partial class _Default : System.Web.UI.Page
                     dropRetirer.Items.Add(MyReader[0].ToString());
                     ddlCamionCarte.Items.Add(MyReader[0].ToString());
                 }
-
                 MyReader.Close();
             }
             catch (MySqlException myEx)
             {
             }
-            //onMsgDiv = false;
-            //onCarteDiv = false;
+            // Desactive le bouton "Fin Journee"
             cmdFinJournee.Enabled = false;
         }
     }
@@ -136,6 +135,7 @@ public partial class _Default : System.Web.UI.Page
         cmd_ListeColis.BackColor = Color.Yellow;
         cmd_Msg.BackColor = Color.Yellow;
         cmd_Camion.BackColor = Color.Yellow;
+        
         divAjout.Visible = true;
         divMsg.Visible = false;
         divListe.Visible = false;
@@ -159,11 +159,13 @@ public partial class _Default : System.Web.UI.Page
     protected void cmd_Carte_Click(object sender, EventArgs e)
     {
         Timer3_Tick(null, null);
+
         cmd_Ajout.BackColor = Color.Yellow;
         cmd_Carte.BackColor = Color.DarkOrange;
         cmd_ListeColis.BackColor = Color.Yellow;
         cmd_Msg.BackColor = Color.Yellow;
         cmd_Camion.BackColor = Color.Yellow;
+
         divAjout.Visible = false;
         divCarte.Visible = true;
         divCamion.Visible = false;
@@ -191,6 +193,7 @@ public partial class _Default : System.Web.UI.Page
         cmd_ListeColis.BackColor = Color.DarkOrange;
         cmd_Msg.BackColor = Color.Yellow;
         cmd_Camion.BackColor = Color.Yellow;
+
         divAjout.Visible = false;
         divListe.Visible = true;
         divCamion.Visible = false;
@@ -213,18 +216,19 @@ public partial class _Default : System.Web.UI.Page
     */
     protected void cmd_Msg_Click(object sender, EventArgs e)
     {
+        Timer1_Tick(null, null);
+
         cmd_Ajout.BackColor = Color.Yellow;
         cmd_Carte.BackColor = Color.Yellow;
         cmd_ListeColis.BackColor = Color.Yellow;
         cmd_Msg.BackColor = Color.DarkOrange;
         cmd_Camion.BackColor = Color.Yellow;
+
         divAjout.Visible = false;
         divMsg.Visible = true;
         divCamion.Visible = false;
         divListe.Visible = false;
         divCarte.Visible = false;
-
-        Timer1_Tick(null, null);
 
         onMsgDiv = true;
         onListeDiv = false;
@@ -242,12 +246,12 @@ public partial class _Default : System.Web.UI.Page
     */
     protected void cmd_Camion_Click(object sender, EventArgs e)
     {
-
         cmd_Ajout.BackColor = Color.Yellow;
         cmd_Carte.BackColor = Color.Yellow;
         cmd_ListeColis.BackColor = Color.Yellow;
         cmd_Msg.BackColor = Color.Yellow;
         cmd_Camion.BackColor = Color.DarkOrange;
+
         divAjout.Visible = false;
         divMsg.Visible = false;
         divCamion.Visible = true;
@@ -351,6 +355,9 @@ public partial class _Default : System.Web.UI.Page
 
                     string str_CamionName = "";
                     string str_Ordre = "-1";
+
+                    // Si on ajoute un colis et que la journée de travail est démarrée,
+                    // on assigne dynamiquement l'ordre du nouveau colis
                     if ((str_EtatColis == "0") && (JourneeFlag == 1))
                     {
                         AssignClosestCamion(str_LongLatDest, ref str_CamionName, ref str_Ordre);
@@ -477,6 +484,10 @@ public partial class _Default : System.Web.UI.Page
             string str_PlageDebutDest = "";
             string str_PlageFinDest = "";
             string str_EtatColis = "0";
+            string str_AddressCli = "";
+            string str_AddressDest = "";
+            string[] str_LongLatCli = new string[2];
+            string[] str_LongLatDest = new string[2];
             MySqlConnection MyConnection = GetConnection();
             MySqlCommand MyCommand = null;
 
@@ -502,13 +513,34 @@ public partial class _Default : System.Web.UI.Page
             str_PlageDebutDest = txt_PlageDest1.Text + ":00";
             str_PlageFinDest = txt_PlageDest2.Text + ":00";
 
+            // Génération des coordonnées GPS
+            str_AddressCli = txt_AdresseClient.Text + ";" + txt_VilleClient.Text + ";";
+            str_AddressCli += "QC;" + txt_CodePostalClient.Text + ";CA";
+            str_LongLatCli = GetGPSFromAdress(str_AddressCli);
+
+            str_AddressDest = txt_AdresseDest.Text + ";" + txt_VilleDest.Text + ";";
+            str_AddressDest += "QC;" + txt_CodePostalDest.Text + ";CA";
+            str_LongLatDest = GetGPSFromAdress(str_AddressDest);
+
+            string str_CamionName = "";
+            string str_Ordre = "-1";
+
+            // Si on ajoute un colis et que la journée de travail est démarrée,
+            // on assigne dynamiquement l'ordre du nouveau colis
+            if ((str_EtatColis == "0") && (JourneeFlag == 1))
+            {
+                AssignClosestCamion(str_LongLatDest, ref str_CamionName, ref str_Ordre);
+            }
+
             str_Sql = "UPDATE colis SET col_noident = '" + txt_Ident.Text + "', col_nomcli = '" + txt_NomClient.Text;
             str_Sql += "', col_adrcli = '" + txt_AdresseClient.Text + "', col_villecli = '" + txt_VilleClient.Text + "', col_cpcli = '" + txt_CodePostalClient.Text + "', col_hrdebutcli = '";
             str_Sql += str_PlageDebutCli + "', col_hrfincli = '" + str_PlageFinCli + "', col_remarquecli = '" + txt_RemarquesClient1.Text;
             str_Sql += "', col_etat = '" + str_EtatColis + "', col_nomdest = '" + txt_NomDest.Text + "', col_adrdest = '";
             str_Sql += txt_AdresseDest.Text + "', col_villedest = '" + txt_VilleDest.Text + "', col_cpdest = '" + txt_CodePostalDest.Text + "', col_hrdebutdest = '" + str_PlageDebutDest;
             str_Sql += "', col_hrfindest = '" + str_PlageFinDest + "', col_remarquedest ='" + txt_RemarquesDest1.Text;
-            str_Sql += "' WHERE col_noident = '" + txt_Ident.Text + "'";
+            str_Sql += "', cam_nom ='" + str_CamionName + "', col_gpslongcli ='" + str_LongLatCli[1] + "', col_gpslatcli ='";
+            str_Sql += str_LongLatCli[0] + "', col_gpslongdest ='" + str_LongLatDest[1] + "', col_gpslatdest ='" + str_LongLatDest[0];
+            str_Sql += "', col_ordre ='" + str_Ordre + "' WHERE col_noident = '" + txt_Ident.Text + "'";
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyCommand.ExecuteNonQuery();
