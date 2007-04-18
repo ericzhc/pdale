@@ -8,14 +8,12 @@
  Needs to be called once from the application integrating this
  driver to initialize the required components
 *******************************************************/
-void RFDriverInit(void* args) 
+void RFDriverInit() 
 {
 	INT8U err;
-#if DEBUG
-	printf("RF driver init\n\r");
-#endif
+	erD_sndValHWrdLbl("RF driver init\n\r");
+
 	// Semaphore to protect multiple entry in transmission
-	//TxRfSerialSem = OSSemCreate(1);
 	TransmitRfFctSem = OSSemCreate(1);
 
 	RfFlag = OSFlagCreate(0x00, &err);
@@ -29,28 +27,13 @@ void RFDriverInit(void* args)
 	setInterruptHandle_rf(ISR_Serial_RF);
 	init_serial_rf(SERIAL_BAUD_115200);
 	
-	OSTaskCreateExt(BufferRfTransmissionTask,
-		NULL,
-		(OS_STK *)&BufferRfTransmissionTaskStk[TASK_RFSERIAL_SIZE-1],
-		TASK_RFSERIAL_PRIO,
-		TASK_RFSERIAL_PRIO,
-		(OS_STK *)&BufferRfTransmissionTaskStk[0],
-		TASK_RFSERIAL_SIZE,
-		NULL,
-		OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
+	OSFlagPost(InitFlag, RF_INIT_DONE, OS_FLAG_SET, &err); // move this and die
 
 	checkNetwork();
 	while(cell_init()==0);
 	while(open_socket("2166","skaber.mine.nu")==0);
-	//while(open_socket("2166","24.202.172.91")==0);
-
-	printf("RF driver init...done\n\r");
-
-	RFFlag = 1;
-	while(1) {
-		OSTimeDlyHMSM(0,1,0,0);
-		//printf("oh yeah\n\r");
-	}
+	
+	erD_sndValHWrdLbl("RF Init done\n\r", 0);
 }
 
 int cell_init()
@@ -70,7 +53,7 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-		printf("1\n\r");
+		erD_sndValHWrdLbl("1\n\r");
 		OSTimeDlyHMSM(0,0,0,500);
 		TransmitRfBuffer("AT+CGDCONT=1,\"IP\",\"internet.fido.ca\",\"0.0.0.0\",0,0\n\r\0"); 
 			do{
@@ -82,7 +65,7 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-		printf("2\n\r");
+		erD_sndValHWrdLbl("2\n\r");
 		OSTimeDlyHMSM(0,0,0,500);
 		TransmitRfBuffer("AT#USERID=\"fido\"\n\r\0");
 		do{
@@ -94,7 +77,7 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-		printf("3\n\r");
+		erD_sndValHWrdLbl("3\n\r");
 		OSTimeDlyHMSM(0,0,0,500);
 		TransmitRfBuffer("AT#PASSW=\"fido\"\n\r\0");
 		do{
@@ -106,7 +89,7 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-		printf("4\n\r");
+		erD_sndValHWrdLbl("4\n\r");
 		OSTimeDlyHMSM(0,0,0,500);
 		TransmitRfBuffer("AT#SKTSAV\n\r\0");
 		do{
@@ -118,7 +101,7 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-		printf("5\n\r");
+		erD_sndValHWrdLbl("5\n\r");
 		OSTimeDlyHMSM(0,0,5,0);
 		TransmitRfBuffer("AT#GPRS=1\n\r\0");						// Activate GPRS connection (wait for connect)
 		do{
@@ -130,7 +113,7 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"+IP")==NULL);	
-		printf("6\n\r");
+		erD_sndValHWrdLbl("6\n\r");
 		OSTimeDlyHMSM(0,0,0,500);
 
 		return 1;
@@ -147,7 +130,7 @@ int open_socket(char* port,char* ipaddress)
 	TransmitRfBuffer(command);
 	//TransmitRfBuffer("AT#SKTD=0,2166,\"24.202.172.91\",0,0\n\r\0");
 	do{
-		printf("7\n\r");
+		erD_sndValHWrdLbl("7\n\r");
 		DonneeRecue(buffer,8000);
 		//printf("--------------------- AT#SKTD %s \n\r",	buffer);	
 
@@ -228,16 +211,11 @@ void ISR_Serial_RF()
 	unsigned char ucSource;
 	INT8U err;
 	
-	//
-
 	while (1) {
-	
 	   //erD_sndValHWrdLbl("Hey un interrrupt!",ucSource);
 	   // erD_snd_cr();
 		ucSource = SERIAL_RF_UTSR0;
 		//printf("Int: %x  \n\r",ucSource);
-	
-
 															/* Rx is set                                      */
 		if ((ucSource & (0x00000002 | 0x00000004)) != 0) {
 	
@@ -319,7 +297,7 @@ void TransmitRfBuffer(char *databuff)
 
 		TxRfSerialBuffer[ptrRfTxBuffEnd] = databuff[i];
 	}
-	printf("Flag post\n\r");
+	erD_sndValHWrdLbl("Flag post\n\r");
 	OSFlagPost( RfFlag, 
 		TX_RFSERIAL_DATA_READY_TO_SEND, 
 		OS_FLAG_SET, 
@@ -342,6 +320,7 @@ void BufferRfTransmissionTask()
 {
 	INT8U err;
 	OS_FLAGS flags;
+	OSFlagPend(InitFlag, RF_INIT_DONE, OS_FLAG_WAIT_SET_ALL, 0, &err);
 
 #if DEBUG
 	printf("Buffer_Rf_TransmissionTask started\n\r");
