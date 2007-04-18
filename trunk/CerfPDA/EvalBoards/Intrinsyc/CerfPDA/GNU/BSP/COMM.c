@@ -9,18 +9,28 @@
 
 void ReceiveData(char cmd, char* buffer)
 {
-	INT8U err;
+	INT8U err = OS_NO_ERR;
 	// Wait for the data to be received
-	OSFlagPend(RfFlag, TCP_TRANSFER_RECEIVED, OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 0,&err);
-	printf("Messages recus\n\r");
 	int i = 0;
-	while(ptrRfRxBuffCurr != ptrRfRxBuffEnd) {
-		ptrRfRxBuffCurr = (ptrRfRxBuffCurr + 1) % (int) SERIAL_BUFF_SIZE;
-		buffer[i] = RxRfSerialBuffer[ptrRfRxBuffCurr];
-		printf("char recu: %c\n\r", RxRfSerialBuffer[ptrRfRxBuffCurr]);
-		i++;
+	int timeout = 0;
+	printf("Wait for the data to be received");
+	//while (err != OS_TIMEOUT) {
+	while (1) {
+		OSFlagPend(RfFlag, TCP_TRANSFER_RECEIVED, OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, timeout,&err);
+		timeout = 5000;
+
+		if(err == OS_NO_ERR)
+		{
+			while(ptrRfRxBuffCurr != ptrRfRxBuffEnd) {
+				ptrRfRxBuffCurr = (ptrRfRxBuffCurr + 1) % (int) SERIAL_BUFF_SIZE;
+				buffer[i] = RxRfSerialBuffer[ptrRfRxBuffCurr];
+				printf("char recu: %c\n\r", RxRfSerialBuffer[ptrRfRxBuffCurr]);
+				i++;
+			}
+		}
 	}
 	buffer[i] = '\0';
+	printf("Messages recus : %s\n\r", buffer);
 }
 
 void GetTruckNames(char* buffer)
@@ -103,10 +113,10 @@ void SendMessage(int truckid, char* msg)
 		data[i+2] = msg[i];
 	}
 
-	data[i+2] = COMMAND_EOL;
+	data[i+2] = ';';
+	data[i+3] = COMMAND_EOL;
 
 	// Send message
-	//printf("Sending MEssage %s\n\r", data);
 	TransmitRfBuffer(data);
 }
 
