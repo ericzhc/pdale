@@ -975,29 +975,10 @@ void ShowModifColis(void)
 */
 void ShowMap(void)
 {
-	//ToDO : Requête map tous les 5 sec
+	//ToDO : Requête map, besoin adresse de l'image ( pour buffer) et de son size
 	
-	//OUVERTURE du fichier jpeg
-	OUVERTURE = fopen("C:/images.jpg", "rb");
-	if (OUVERTURE==NULL) { fputs("File error", stderr); exit(1); }
-
-	//determine size du stream
-	fseek (OUVERTURE , 0 , SEEK_END);
-	IMAGESIZE = ftell(OUVERTURE);
-	rewind(OUVERTURE);
 	
-	//allocation de la mémoire
-	BUFFER = (char*) malloc(sizeof(char)*IMAGESIZE);
-	if (BUFFER == NULL) { fputs("Memory error", stderr); exit(2); }
-
-	// copie du fichier dans le BUFFER
-	SIZERESULT = fread (BUFFER, 1, IMAGESIZE, OUVERTURE);
-	if (SIZERESULT != IMAGESIZE) { fputs("Reading error", stderr); exit(3); }
-
-	//fermeture du fichier jpeg
-	fclose(OUVERTURE);
-
-	GUI_JPEG_Draw(BUFFER, sizeof(char)*IMAGESIZE, 0, 72);
+	//GUI_JPEG_Draw(BUFFER, sizeof(char)*IMAGESIZE, 0, 72);
 }
 
 /*
@@ -1073,7 +1054,7 @@ void BuildList(WM_HWIN opListView, int ipCamion)
 	int j = 0;
 	int Row = 0;
 
-	//GetAllPackages(int truckid, char* buffer)  //demande du string
+	//GetAllPackages(int truckid, char* buffer)  //SERVER
 	
 	//Boucle jusqu'à la fin du string reçu
 	while(String[i] != '*')
@@ -1150,7 +1131,7 @@ void GetIdColis(int ipLigne, char* ColisID)
 *********************************************************************
 * StringCopy()
 *
-* Description : Cette fonction regarde l'état des 4 buttons principaux (PDA TAB)
+* Description : Cette fonction prend String2 et le copie dans String1
 *
 * Argument(s) : opString1 : String dans lequel le string2 sera copié
 *				ipString2 : String qui sera copié dans le string1
@@ -1168,9 +1149,21 @@ void StringCopy(char* opString1, char* ipString2)
 	opString1[i] = '\0';
 }
 
+/*
+*********************************************************************
+* CheckButtonState()
+*
+* Description : Cette fonction regarde l'état des 4 buttons principaux (PDA TAB)
+*
+* Argument(s) : 
+*
+* Return(s)   : 
+*********************************************************************************************************
+*/
 void CheckButtonState(void)
 {
 	int Key;
+	static int InMap = 0;
 	static int InMsg = 0;
 	BUTTON_Handle ModifColisButton;
 	BUTTON_Handle MapButton;
@@ -1187,7 +1180,8 @@ void CheckButtonState(void)
 		
 		/* Set the button text*/
 		BUTTON_SetText(ModifColisButton, "Modif colis");
-		BUTTON_SetText(MapButton,        "Map");
+		if (InMap == 0) BUTTON_SetText(MapButton, "Map");
+		else BUTTON_SetText(MapButton, "Refresh");
 		BUTTON_SetText(ListColisButton,  "Liste colis");
 		if (InMsg == 0)
 		{	
@@ -1204,11 +1198,13 @@ void CheckButtonState(void)
 	switch (Key)
 	{
 		case PB_MODIFCOLIS_TAB_ID:
+			InMap = 0;
 			InMsg = 0;
 			GUI_EndDialog(CURRENTWINDOW, 0);
 			ShowAttenteCodeBarre();
 			break;
 		case PB_MAP_TAB_ID:
+			InMap = 1;
 			InMsg = 0;
 			GUI_EndDialog(CURRENTWINDOW, 0);
 			GUI_Clear();
@@ -1216,11 +1212,13 @@ void CheckButtonState(void)
 			ShowMap();
 			break;
 		case PB_LISTCOLIS_TAB_ID:
+			InMap = 0;
 			InMsg = 0;
 			GUI_EndDialog(CURRENTWINDOW, 0);
 			ShowListColis();
 			break;
 		case PB_MESSAGE_TAB_ID:
+			InMap = 0;
 			if (InMsg == 0)
 			{
 				BUTTON_SetText(MessageButton, "New Msg?");
