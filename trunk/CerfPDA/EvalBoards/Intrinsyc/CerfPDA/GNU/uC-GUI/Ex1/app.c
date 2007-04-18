@@ -35,6 +35,7 @@
 
         OS_STK  AppStartTaskStk[TASK_STK_SIZE];
         OS_STK  GuiTaskStk[TASK_STK_SIZE];
+		OS_STK  RFDriverInitStk[TASK_STK_SIZE];
 
 /*
 *********************************************************************************************************
@@ -71,11 +72,22 @@ int  main (void)
                     NULL,
                     OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
 
+	printf("\r\nStarting uC/GUI demo...\n");
+    OSTaskCreateExt(GuiTask,
+					NULL,
+					(OS_STK *)&GuiTaskStk[TASK_STK_SIZE-1],
+					TASK_GUI_PRIO,
+					TASK_GUI_PRIO,
+					(OS_STK *)&GuiTaskStk[0],
+					TASK_GUI_PRIO,
+					NULL,
+					OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
+
                                                 /* Give a name to tasks                                */
 #if 0                                                
 #if OS_TASK_NAME_SIZE > 10
     OSTaskNameSet(OS_IDLE_PRIO,        "Idle task",  &err);
-    OSTaskNameSet(OS_STAT_PRIO,        "Stat task",  &err);
+    //OSTaskNameSet(OS_STAT_PRIO,        "Stat task",  &err);
     OSTaskNameSet(TASK_START_APP_PRIO, "Start task", &err);
 #endif
 #endif
@@ -102,44 +114,34 @@ int  main (void)
 static void  AppStartTask (void *p_arg)
 {
     INT8U err;
-
     p_arg = p_arg;                              /* Prevent compiler warning                            */
 
     printf("\r\nStart timer tick...");
     Tmr_TickInit();                             /* Start timer tick                                    */
 
-#if OS_TASK_STAT_EN > 0
-    printf("\r\nStart statistics...");
-    OSStatInit();                               /* Start stats task                                    */
-#endif
-
-    //printf("\r\nStarting uC/GUI demo...\n");
-
-    //OSTaskCreateExt(GuiTask,
-    //                NULL,
-    //                (OS_STK *)&GuiTaskStk[TASK_STK_SIZE-1],
-    //                TASK_GUI_PRIO,
-    //                TASK_GUI_PRIO,
-    //                (OS_STK *)&GuiTaskStk[0],
-    //                TASK_GUI_PRIO,
-    //                NULL,
-    //                OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
-
+//#if OS_TASK_STAT_EN > 0
+  //  printf("\r\nStart statistics...");
+   // OSStatInit();                               /* Start stats task                                    */
+//#endif
                                                 /* Give a name to tasks                                */
-#if OS_TASK_NAME_SIZE > 10
-    //OSTaskNameSet(TASK_GUI_PRIO,        "GUI task",  &err);
-#endif
+//#if OS_TASK_NAME_SIZE > 10
+//    OSTaskNameSet(TASK_GUI_PRIO,        "GUI task",  &err);
+//#endif
 
-    //MainTask();
+	OSTaskCreateExt(RFDriverInit,
+				NULL,
+				(OS_STK *)&RFDriverInitStk[TASK_STK_SIZE-1],
+				TASK_RFTASK_PRIO,
+				TASK_RFTASK_PRIO,
+				(OS_STK *)&RFDriverInitStk[0],
+				TASK_RFTASK_PRIO,
+				NULL,
+				OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
+	MainTask();
 
-	RFDriverInit();
-
-	GPS_Init();
-
-    while (1) 
-	{                                 /* Task body, always written as an infinite loop.      */
-                                                /* Delay task execution for 500 ms                     */
-		OSTimeDlyHMSM(0,0,10,0);
+	while (1) 
+	{
+		OSTimeDly(3000);
     }
 }
 
@@ -148,6 +150,7 @@ static void  GuiTask (void *p_arg)
     p_arg = p_arg;                              /* Prevent compiler warning                            */
     while (1)
     {
+		//printf("GUI GUI \n\r");
         GUI_TOUCH_Exec();
         GUI_Exec();
     }
