@@ -14,16 +14,6 @@ void MAP_Init(void)
 	#if DEBUG
 		printf("Starting MAP update task\n\r");
 	#endif
-	OSTaskCreateExt(MapUpdateTask,
-                NULL,
-                (OS_STK *)&MapUpdateTaskStk[TASK_MAP_SIZE-1],
-                TASK_MAP_PRIO,
-                TASK_MAP_PRIO,
-                (OS_STK *)&MapUpdateTaskStk[0],
-                TASK_MAP_SIZE,
-                NULL,
-                OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR
-	);
 	#if DEBUG
 		printf("Init done...Map\n\r");
 	#endif

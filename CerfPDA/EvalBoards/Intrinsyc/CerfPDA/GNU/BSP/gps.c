@@ -11,72 +11,53 @@ char GPSBuffer[TSIP_BUFF_SIZE];
 // Buffer pointers
 int ptrGPSBuffCurr = 0, ptrGPSBuffEnd = 0;
 // Required
-OS_STK GPSUpdateTaskStk[TASK_GPS_SIZE];
-OS_STK GPSSendDataTaskTsk[TASK_GPS_SIZE];
 INT8U err;
 
 void GPS_Init(void) 
 {
 	ComDriverInit(GPS_CONFIG);
 
-	#if DEBUG
-		printf("Starting GPS update task\n\r");
-	#endif
-	OSTaskCreateExt(GPSUpdateTask,
-                NULL,
-                (OS_STK *)&GPSUpdateTaskStk[TASK_GPS_SIZE-1],
-                TASK_GPS_PRIO,
-                TASK_GPS_PRIO,
-                (OS_STK *)&GPSUpdateTaskStk[0],
-                TASK_GPS_SIZE,
-                NULL,
-                OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR
-	);
-	OSTaskCreateExt(GPSSendDataTask,
-                NULL,
-                (OS_STK *)&GPSSendDataTaskTsk[TASK_GPS_SIZE-1],
-                TASK_GPS_SEND_PRIO,
-                TASK_GPS_SEND_PRIO,
-                (OS_STK *)&GPSSendDataTaskTsk[0],
-                TASK_GPS_SIZE,
-                NULL,
-                OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR
-	);
+	erD_sndstr("Starting GPS update task\n\r");
+
 	gpsFlag = OSFlagCreate(0x00, &err);
-	#if DEBUG
-		printf("Init done...GPS\n\r");
-	#endif
+	erD_sndstr("Init done...GPS\n\r");
+
+	OSFlagPost(InitFlag, GPS_INIT_DONE, OS_FLAG_SET, &err);
+	OSFlagPost(InitFlag, GPS_INIT_DONE2, OS_FLAG_SET, &err);
 }
 
 void GPSSendDataTask() 
 {
-	printf("GPSSendDataTask started...");
+	OSFlagPend(InitFlag, GPS_INIT_DONE, OS_FLAG_WAIT_SET_ALL, 0, &err);
+	erD_sndstr("GPSSendDataTask started...\n\r");
 	while (1) {
-		//OSFlagPend(gpsFlag, 
-		//	GPS_READY_TO_SEND, 
-		//	OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 
-		//	0,
-		//	&err);
-		
-		// Send GPS data to server every 2 minutes
-		OSTimeDlyHMSM(0,/*GPSDELAY*/0,15,0);
-		printf("Long: %f Lat: %f\n\r", GPSPosition.Longitude, GPSPosition.Latitude);
-		char* latvalues = (char*)&(GPSPosition.Latitude);
-		char* longvalues = (char*)&(GPSPosition.Longitude);
-		char data[] = {COMMAND_GPSCOORD, 0,
-					latvalues[0], latvalues[1], 
-					latvalues[2], latvalues[3], 
-					longvalues[0], longvalues[1], 
-					longvalues[2], longvalues[3], 
-					';', COMMAND_EOL};
-		printf("Avant ransmituffer %s", data);
+
+		OSTimeDlyHMSM(0,GPSDELAY,0,0);
+
+		char data[24];
+		memset(data, 'q', 24);
+		data[0] = COMMAND_GPSCOORD;
+		data[1] = '0';
+		sprintf(&data[2], "%2.6f", GPSPosition.Longitude);
+		data[12] = ';';
+		sprintf(&data[13], "%2.6f", GPSPosition.Latitude);
+		data[22] = ';';
+		data[23] = COMMAND_EOL;
+
+		erD_sndstr("Data Sent as GPS coordonees : ");
+		erD_sndstr(data);
+		erD_sndstr("\n\r");
 		TransmitRfBuffer(data);
 	}
 }
 
 void GPSUpdateTask() 
 {
+	OSFlagPend(InitFlag, GPS_INIT_DONE2, OS_FLAG_WAIT_SET_ALL, 0, &err);
 	COM_BUFF_INFO RxBuff = GetTaskRxComBuff();
+	GPSPosition.Longitude = -71.924255;
+
+	GPSPosition.Latitude = 45.377930;
 	while (1) {
 		OSFlagPend(comFlag, 
 			RX_SERIAL_DATA_AVAILABLE, 
@@ -145,7 +126,7 @@ void ReadPosition()
 					24 significant bits, roughly 6.5 digits. Page 87 Lassen Doc
 */
 	// Documentation Page 109 for TSIP structure of a LLA packet
-	printf("Reading position");
+	erD_sndstr("Reading position...\n\r");
 
 	char GPSData[4];
 
@@ -188,7 +169,7 @@ void ReadPosition()
 
 void ReadTime() 
 {
-	printf("Reading time...\n\r");
+	erD_sndstr("Reading time...\n\r");
 
 	ptrGPSBuffCurr = (ptrGPSBuffCurr+1) % (int)TSIP_BUFF_SIZE;
 	int seconds = atoi(&(GPSBuffer[ptrGPSBuffCurr]));

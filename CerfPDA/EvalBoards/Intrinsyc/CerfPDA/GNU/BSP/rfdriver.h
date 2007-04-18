@@ -10,7 +10,7 @@
 *********************************************************************************************************
 */
 
-void RFDriverInit(void*);
+void RFDriverInit();
 void ISR_Serial_RF();
 void TransmitRfBuffer(char*);
 void BufferRfTransmissionTask();
@@ -35,8 +35,6 @@ OS_FLAG_GRP* RfFlag; // Flag to announce data was received after issuing a comma
 #define TX_RFSERIAL_DATA_READY_TO_SEND		1
 #define	TX_RFSERIAL_DATA_SENT				2
 #define	TCP_TRANSFER_RECEIVED				4
-
-int RFFlag;
 
 // Circular buffer pointers
 int ptrRfTxBuffCurr;

@@ -43,12 +43,11 @@
 
 #define TASK_SERIAL_PRIO						   8
 
-#define TASK_GUI_PRIO								9
 #define TASK_GPS_PRIO							   10
 #define TASK_GPS_SEND_PRIO						  11
 #define TASK_BCR_PRIO							  12
 #define TASK_MAP_PRIO							  15
-
+#define TASK_GUI_PRIO							   19 
 
 //#define  MSTREAMRX_TASK_PRIO                      11
 //#define  SIPEVNT_PIP                              12

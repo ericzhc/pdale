@@ -4,6 +4,9 @@
 #define TSIP_BUFF_SIZE 1024
 #define TASK_GPS_SIZE 1024
 
+OS_STK GPSUpdateTaskStk[TASK_GPS_SIZE];
+OS_STK GPSSendDataTaskTsk[TASK_GPS_SIZE];
+
 #define GPS_DLE 0x10
 #define GPS_POS 0x4A // See documentation Lassen Page 106
 #define GPS_TIME 0x41

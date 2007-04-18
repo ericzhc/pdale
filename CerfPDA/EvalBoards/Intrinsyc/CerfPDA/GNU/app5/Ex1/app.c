@@ -78,6 +78,16 @@ int  main (void)
                     NULL,
                     OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
 
+	OSTaskCreateExt(BufferRfTransmissionTask,
+					NULL,
+					(OS_STK *)&BufferRfTransmissionTaskStk[TASK_RFSERIAL_SIZE-1],
+					TASK_RFSERIAL_PRIO,
+					TASK_RFSERIAL_PRIO,
+					(OS_STK *)&BufferRfTransmissionTaskStk[0],
+					TASK_RFSERIAL_SIZE,
+					NULL,
+					OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
+
 	/* Initialisation du flag de communication */
 	comFlag = OSFlagCreate(0x00, &err);
 

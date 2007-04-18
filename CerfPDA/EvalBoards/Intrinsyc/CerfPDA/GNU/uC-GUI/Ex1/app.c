@@ -58,7 +58,7 @@ int  main (void)
 
     BSP_Init();                                 /* Initialize BSP                                      */
 
-    printf("\r\nInitialize uC/OS-II...");
+    erD_sndstr("\r\nInitialize uC/OS-II...");
     OSInit();                                   /* Initialize uC/OS-II                                 */
 
                                                 /* Create start task                                   */
@@ -72,16 +72,16 @@ int  main (void)
                     NULL,
                     OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
 
-	printf("\r\nStarting uC/GUI demo...\n");
-    OSTaskCreateExt(GuiTask,
+	OSTaskCreateExt(GuiTask,
 					NULL,
 					(OS_STK *)&GuiTaskStk[TASK_STK_SIZE-1],
 					TASK_GUI_PRIO,
 					TASK_GUI_PRIO,
 					(OS_STK *)&GuiTaskStk[0],
-					TASK_GUI_PRIO,
+					TASK_STK_SIZE,
 					NULL,
 					OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
+	Tasks();
 
                                                 /* Give a name to tasks                                */
 #if 0                                                
@@ -92,7 +92,7 @@ int  main (void)
 #endif
 #endif
 
-    printf("\r\nStart uC/OS-II...");
+    erD_sndstr("\r\nStart uC/OS-II...");
     OSStart();                                  /* Start uC/OS-II                                      */
 }
 
@@ -116,7 +116,7 @@ static void  AppStartTask (void *p_arg)
     INT8U err;
     p_arg = p_arg;                              /* Prevent compiler warning                            */
 
-    printf("\r\nStart timer tick...");
+    erD_sndstr("\r\nStart timer tick...");
     Tmr_TickInit();                             /* Start timer tick                                    */
 
 //#if OS_TASK_STAT_EN > 0
@@ -128,21 +128,14 @@ static void  AppStartTask (void *p_arg)
 //    OSTaskNameSet(TASK_GUI_PRIO,        "GUI task",  &err);
 //#endif
 
-	RFFlag = 1;
-	OSTaskCreateExt(RFDriverInit,
-				NULL,
-				(OS_STK *)&RFDriverInitStk[TASK_STK_SIZE-1],
-				TASK_RFTASK_PRIO,
-				TASK_RFTASK_PRIO,
-				(OS_STK *)&RFDriverInitStk[0],
-				TASK_RFTASK_PRIO,
-				NULL,
-				OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
+	RFDriverInit();
+	GPS_Init();
+
 	MainTask();
 
 	while (1) 
 	{
-		OSTimeDly(3000);
+		OSTimeDly(500);
     }
 }
 
