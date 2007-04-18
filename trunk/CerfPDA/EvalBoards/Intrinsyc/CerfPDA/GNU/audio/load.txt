@@ -1,0 +1,3 @@
+exec tftp:132.210.78.76 loadscriptUS.txt
+
+
