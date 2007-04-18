@@ -27,19 +27,23 @@ void RFDriverInit()
 	setInterruptHandle_rf(ISR_Serial_RF);
 	init_serial_rf(SERIAL_BAUD_115200);
 	
-	OSFlagPost(InitFlag, RF_INIT_DONE, OS_FLAG_SET, &err); // move this and die
+	//OSFlagPost(InitFlag, RF_INIT_DONE, OS_FLAG_SET, &err); // move this and die
+
+	OSTaskCreateExt(BufferRfTransmissionTask,
+				NULL,
+				(OS_STK *)&BufferRfTransmissionTaskStk[TASK_RFSERIAL_SIZE-1],
+				TASK_RFSERIAL_PRIO,
+				TASK_RFSERIAL_PRIO,
+				(OS_STK *)&BufferRfTransmissionTaskStk[0],
+				TASK_RFSERIAL_SIZE,
+				NULL,
+				OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
 
 	checkNetwork();
 	while(cell_init()==0);
 	while(open_socket("2166","skaber.mine.nu")==0);
 	
 	erD_sndstr("RF Init done\n\r", 0);
-
-	/*
-	while(1)
-	{
-		OSTimeDlyHMSM(254,0,0,0);
-	}*/
 }
 
 int cell_init()
@@ -100,7 +104,7 @@ int cell_init()
 		TransmitRfBuffer("AT#SKTSAV\n\r\0");
 		do{
 			err = DonneeRecue(buffer,8000);
-			//printf("--------------------------  SKTSAV: %s ",buffer);
+			//erD_sndstr("--------------------------  SKTSAV: %s ",buffer);
 			if((strstr(buffer,"ERROR") != NULL) || err == 0)
 			{
 				erD_sndstr("ERROR -----------------------------------------------");
@@ -127,7 +131,6 @@ int cell_init()
 
 int open_socket(char* port,char* ipaddress)
 {
-	
 	char command[100];
 	char buffer[50];
 	int err;
@@ -138,7 +141,7 @@ int open_socket(char* port,char* ipaddress)
 	do{
 		erD_sndstr("7\n\r");
 		DonneeRecue(buffer,8000);
-		//printf("--------------------- AT#SKTD %s \n\r",	buffer);	
+		//erD_sndstr("--------------------- AT#SKTD %s \n\r",	buffer);	
 
 		if((strstr(buffer,"ERROR") != NULL) || err == 0)
 		{
@@ -148,7 +151,7 @@ int open_socket(char* port,char* ipaddress)
 	}while(strstr(buffer,"C")==NULL);	
 
 	erD_sndstr("- Connected -\n\r");
-
+	DonneeRecue(buffer,8000);
 	return 1;
 }
 	
@@ -167,15 +170,15 @@ int DonneeRecue(char* buffer, INT16U timeout)
 	{
 		if((ptrRfRxBuffCurr != ptrRfRxBuffEnd)) {
 			int i = 0;
-			//printf("ptrRfRxBuffCurr %d ptrRfRxBuffEnd %d RxRfSerialBuffer[ptrRfRxBuffCurr] %s \n\r ",ptrRfRxBuffCurr,ptrRfRxBuffEnd,RxRfSerialBuffer[ptrRfRxBuffCurr]);
+			//erD_sndstr("ptrRfRxBuffCurr %d ptrRfRxBuffEnd %d RxRfSerialBuffer[ptrRfRxBuffCurr] %s \n\r ",ptrRfRxBuffCurr,ptrRfRxBuffEnd,RxRfSerialBuffer[ptrRfRxBuffCurr]);
 			while((ptrRfRxBuffCurr != ptrRfRxBuffEnd)) {
-				//printf("ici2 : %c \n\r",RxRfSerialBuffer[ptrRfRxBuffCurr]);
+				//erD_sndstr("ici2 : %c \n\r",RxRfSerialBuffer[ptrRfRxBuffCurr]);
 				ptrRfRxBuffCurr = (ptrRfRxBuffCurr + 1) % (int) SERIAL_BUFF_SIZE;
 				buffer[i] = RxRfSerialBuffer[ptrRfRxBuffCurr];
 				i++;
 			}
 			buffer[i]='\0';	
-			erD_sndstr(buffer);
+			//erD_sndstr(buffer);
 		}
 
 		return 1;
@@ -192,16 +195,15 @@ void checkNetwork()
 	do
 	{
 		TransmitRfBuffer("AT+CREG\n\r\0");
-		//printf("Command send:\n\r");
+		//erD_sndstr("Command send:\n\r");
 		if(DonneeRecue(buffer,8000)==0)
 			continue;
 		
-		printf("Data received:%s \n\r", buffer);
+		//erD_sndstr("Data received:%s \n\r", buffer);
 		
-
 	}while(strstr(buffer,"+CREG: 0,5")!=NULL);
 
-	//printf("Find Network:");
+	//erD_sndstr("Find Network:");
 
 
 }
@@ -221,7 +223,7 @@ void ISR_Serial_RF()
 	   //erD_sndValHWrdLbl("Hey un interrrupt!",ucSource);
 	   // erD_snd_cr();
 		ucSource = SERIAL_RF_UTSR0;
-		//printf("Int: %x  \n\r",ucSource);
+		//erD_sndstr("Int: %x  \n\r",ucSource);
 															/* Rx is set                                      */
 		if ((ucSource & (0x00000002 | 0x00000004)) != 0) {
 	
@@ -231,18 +233,18 @@ void ISR_Serial_RF()
 			do {
 				ucData = SERIAL_RF_UTDR;		              /* Read a char                                  */
 				//erD_sndchr(ucData); 
-				//printf("%c",ucData);
+				//erD_sndstr("%c",ucData);
 				ptrRfRxBuffEnd = (ptrRfRxBuffEnd + 1) % (int) SERIAL_BUFF_SIZE;
 				//ptrRfRxBuffEnd++;
 				//if (ptrRfRxBuffEnd == SERIAL_BUFF_SIZE) {
 					//ptrRfRxBuffEnd = 0;
 				//}
 				RxRfSerialBuffer[ptrRfRxBuffEnd] = ucData;	  /* move char into Rx_FIFO                       */
-				//printf("%c",RxRfSerialBuffer[ptrRfRxBuffEnd]);
+				//erD_sndstr("%c",RxRfSerialBuffer[ptrRfRxBuffEnd]);
 			} while (SERIAL_RF_UTSR1 & 0x00000002);           /* While buffer is not empty                      */
 			
 			//OSFlagPost(RfFlag, TCP_TRANSFER_RECEIVED, 0, &err); /* Announce we have received a message          */
-			//printf(" \n\r Flag post \n\r");
+			//erD_sndstr(" \n\r Flag post \n\r");
 			OSFlagPost( RfFlag, 
 				TCP_TRANSFER_RECEIVED, 
 				OS_FLAG_SET, 
@@ -281,8 +283,6 @@ void TransmitRfBuffer(char *databuff)
 	INT8U err;
 	OSSemPend(TransmitRfFctSem, 0, &err); // protects dual entry in this fct
 	
-	OSTimeDly(1000);
-	
 	int i;
 	for (i=0; databuff[i] != COMMAND_EOL; i++) {
 		// Increment the buffer's ending pointer
@@ -305,7 +305,7 @@ void TransmitRfBuffer(char *databuff)
 
 		TxRfSerialBuffer[ptrRfTxBuffEnd] = databuff[i];
 	}
-	erD_sndValHWrdLbl("Flag post\n\r");
+	//erD_sndValHWrdLbl("Flag post\n\r");
 	OSFlagPost( RfFlag, 
 		TX_RFSERIAL_DATA_READY_TO_SEND, 
 		OS_FLAG_SET, 
@@ -327,19 +327,17 @@ void TransmitRfBuffer(char *databuff)
 void BufferRfTransmissionTask() 
 {
 	INT8U err;
-	OS_FLAGS flags;
-	OSFlagPend(InitFlag, RF_INIT_DONE, OS_FLAG_WAIT_SET_ALL, 0, &err);
+	//OSFlagPend(InitFlag, RF_INIT_DONE, OS_FLAG_WAIT_SET_ALL, 0, &err);
 
-#if DEBUG
-	printf("Buffer_Rf_TransmissionTask started\n\r");
-#endif
+	erD_sndstr("Buffer_Rf_TransmissionTask started\n\r");
+
 	while (1) {
-		flags = OSFlagPend(RfFlag, 
+		OSFlagPend(RfFlag, 
 			TX_RFSERIAL_DATA_READY_TO_SEND, 
 			OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 
 			0,
 			&err);
-		//printf("Transmission\n\r\0");
+		//erD_sndstr("Transmission\n\r\0");
 		while (ptrRfTxBuffCurr != ptrRfTxBuffEnd) {
 			ptrRfTxBuffCurr = (ptrRfTxBuffCurr+1) % (int)RFSERIAL_BUFF_SIZE;
 			output_byte_serial_rf((char)TxRfSerialBuffer[ptrRfTxBuffCurr]);

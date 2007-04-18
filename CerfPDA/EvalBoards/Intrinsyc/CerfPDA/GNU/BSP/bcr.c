@@ -17,10 +17,10 @@ void BCR_Init(void)
 	enable = 1;
 	INT8U err;
 	
-	printf("Starting BCR update task\n\r");
+	erD_sndstr("Starting BCR update task\n\r");
 	
 	bcFlag = OSFlagCreate(0x00, &err);
-	ComDriverInit(BCREADER_CONFIG);
+	//ComDriverInit(BCREADER_CONFIG);
 	OSTaskCreateExt(BCRUpdateTask,
                 NULL,
                 (OS_STK *)&BCRUpdateTaskStk[TASK_BCR_SIZE-1],
@@ -32,14 +32,14 @@ void BCR_Init(void)
                 OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR
 	);
 
-	printf("Init done...BCR\n\r");
+	erD_sndstr("Init done...BCR\n\r");
 }
 
 void BCRUpdateTask() 
 {
 	INT8U err;
 
-	printf("In the BCRUpdateTask()\n\r");
+	erD_sndstr("In the BCRUpdateTask()\n\r");
 	
 	COM_BUFF_INFO RxBuff = GetTaskRxComBuff();
 	int i;
@@ -51,18 +51,13 @@ void BCRUpdateTask()
 		i = 0;
 		memset(BCRValue, 0x00, MAX_BARCODE_LENGTH);
 		while (err != OS_TIMEOUT) {
-			
 			OSFlagPend(comFlag, 
 				RX_SERIAL_DATA_AVAILABLE, 
 				OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 
 				timeout,
 				&err);
-			
 			if(err == OS_NO_ERR)
 			{
-
-				printf("Received flagCurrent : %d  End: %d\n\r", *RxBuff.ptrCurrent, *RxBuff.ptrEnd);
-			
 				timeout = 3000;
 
 				while ((*RxBuff.ptrCurrent != *RxBuff.ptrEnd) && (i<MAX_BARCODE_LENGTH)) 
@@ -74,9 +69,6 @@ void BCRUpdateTask()
 				}
 				
 				BCRValue[i] = '\0';
-				#if DEBUG
-					printf("\n\rWhile OVER\n\r");
-				#endif
 			}	
 		}
 		OSFlagPost(bcFlag, 
@@ -101,8 +93,8 @@ void BCR_Enable()
 
 	if(enable == 0)
 	{
-		BCR_Init();
 		GPS_Disable();
+		BCR_Init();
 	}
 	else
 	{
@@ -116,7 +108,9 @@ void BCR_Enable()
 
 void BCR_Disable()
 {
+	COM_BUFF_INFO RxBuff = GetTaskRxComBuff();
+
 	OSTaskSuspend(TASK_BCR_PRIO);
-    GPS_Enable();
-	//ClearCTS();
+    *(RxBuff.ptrCurrent) = *(RxBuff.ptrEnd);
+	GPS_Enable();
 }

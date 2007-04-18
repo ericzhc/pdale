@@ -276,7 +276,8 @@ static void InitialisationCallback(WM_MESSAGE * pMsg)
 	// Initialisation de variables
 	int NCode, Id, i, j;
 	char CamionName[30];
-	char AllCamionsName[400];
+	char AllCamionsName[100];
+	memset(AllCamionsName, 0x00, 100);
 	WM_HWIN hWin = pMsg->hWin;
 
 	// Acquisition du DropDown
@@ -286,11 +287,11 @@ static void InitialisationCallback(WM_MESSAGE * pMsg)
 	{
 		// Initialisation du dialog
 		case WM_INIT_DIALOG:
-			// GetTruckNames(AllCamionsName); // SERVER REQUEST
 			
+			GetTruckNames(AllCamionsName); // SERVER REQUEST
 			// Remplir le DropDown avec le nom des camions
 			j = 0;
-			for (i = 0; AllCamionsName[i] == '\0'; i++)
+			for (i = 0; AllCamionsName[i] != '\0'; i++)
 			{
 				if (AllCamionsName[i] != ';')
 				{
@@ -368,19 +369,14 @@ static void CodeBarreWaitCallback(WM_MESSAGE * pMsg)
 					// le dialog de Modification du colis
 					if (Id == PB_CODEBARRE_OK_ID) 
 					{
+						memset(SQLCOLISNUMBER, 0x00, MAX_BARCODE_LENGTH);
 						/* TODO: SQL Check the DataBase to see if the colis exist */
-						EDIT_GetText(Edit_NumeroColis, SQLCOLISNUMBER, 1000);
-						/* if (IsValidPackage(SQLCOLISNUMBER) == '1') SERVER REQUEST
-						{
-							GUI_EndDialog(hWin, 0);
-							//CodeBarreDisable(); SERVER REQUEST
-							ShowModifColis();
-						} */
-						if (strcmp(SQLCOLISNUMBER, "1111111111") == 0) // TO REMOVE
+						EDIT_GetText(Edit_NumeroColis, SQLCOLISNUMBER, MAX_BARCODE_LENGTH);
+						if (IsValidPackage(SQLCOLISNUMBER) == '1') // SERVER REQUEST
 						{
 							GUI_EndDialog(hWin, 0);
 							ShowModifColis();
-						}
+						} 
 						else
 						{
 							// Si le numero nest pas valide il y aura une erreur
@@ -424,9 +420,11 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 {
 	// Initialisation des variables
 	static int CheckedBoxIndex;
-	int NCode, Id, NewState, i, j, k;
-	char AllPacketInfo[] = "1;test;test;test;test;test;test;test;test;test;test;test;";
+	int NCode, Id, i, j, k;
+	char NewState = '0';
+	char AllPacketInfo[200];
 	char PacketInfoList[13][40];
+	memset(AllPacketInfo, 0x00, 200); 
 	WM_HWIN hWin = pMsg->hWin;
 	WM_HWIN CB_NonCueilli, CB_Cueilli, CB_EnLivraison, CB_Livre;
 	WM_HWIN TEXT_NumeroColis, TEXT_Nom, TEXT_Adresse1, TEXT_Adresse2;
@@ -456,7 +454,7 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 
 			// Obtenir linformation pour le numero de colis 
 			LoadingDialog = ShowLoadingDialog();
-			// GetPacketInfos(SQLCOLISNUMBER, AllPacketInfo); // SERVER
+			GetPacketInfos(SQLCOLISNUMBER, AllPacketInfo); // SERVER REQUEST
 			GUI_EndDialog(LoadingDialog, 0);
 			
 			j = 0;
@@ -527,24 +525,28 @@ static void ModifColisCallback(WM_MESSAGE * pMsg)
 					// Sauvegarder le nouvel etat du colis et revenir a Attente de Code Barre
 					if (Id == PB_MODIFCOLIS_SAUVEGARDER_ID) 
 					{
+						int test = CHECKBOX_IsChecked(CB_Livre);
+						printf("%d\n\r",test);
 						if (CHECKBOX_IsChecked(CB_NonCueilli))
 						{
-							NewState = STATE_UNPICKED; 
+							NewState = '0'; 
 						}
 						else if (CHECKBOX_IsChecked(CB_Cueilli))
 						{
-							NewState = STATE_PICKED; 
+							NewState = '1'; 
 						}
 						else if (CHECKBOX_IsChecked(CB_EnLivraison))
 						{
-							NewState = STATE_UNDELIVERED; 
+							NewState = '2'; 
 						}
 						else if (CHECKBOX_IsChecked(CB_Livre))
 						{
-							NewState = STATE_DELIVERED; 
+							printf("livre\n\r");
+
+							NewState = '3'; 
 						}
 
-						// SetPacketState(SQLCOLISNUMBER, NewState); // SERVER
+						SetPacketState(SQLCOLISNUMBER, NewState); // SERVER REQUEST
 						GUI_EndDialog(hWin, 0);
 						ShowAttenteCodeBarre();
 					}
@@ -1048,16 +1050,17 @@ WM_HWIN ShowLoadingDialog(void)
 */
 void BuildList(WM_HWIN opListView, int ipCamion)
 {
-    char String[] = {"1111111111;aaaa;2222222222;bbbb;3333333333;cccc;4444444444;dddd*"};
+    char String[200];
 	char StringLu[11] = "0";
 	int i = 0; 
 	int j = 0;
 	int Row = 0;
+	memset(String, 0x00, 200);
 
-	//GetAllPackages(int truckid, char* buffer)  //SERVER
+	GetAllPackages(0, String);  // SERVER REQUEST
 	
 	//Boucle jusqu'à la fin du string reçu
-	while(String[i] != '*')
+	while(String[i] != '\0')
 	{
 		//Copie dans le string temporaire jusqu'à un délimiteur de string
 		while( String[i] != ';')
@@ -1077,14 +1080,14 @@ void BuildList(WM_HWIN opListView, int ipCamion)
 		}
 		j = 0;
 		//Copie dans le string temporaire jusqu'à un délimiteur de string
-		while(String[i] != ';' && String[i] != '*')
+		while(String[i] != ';' && String[i] != '\0')
 		{
 			StringLu[j] = String[i];
 			i++;
 			j++;
 		}
 		//Vérification si on est sur le dernier caractère du string
-		if (String[i] != '*')
+		if (String[i] != '\0')
 		{
 			i++;
 		}
@@ -1264,7 +1267,7 @@ void PdaleInterface(void)
 	GUI_SetColor(GUI_DARKRED);
 	GUI_FillRect(0, 0, 240, 50);
 	GUI_SetColor(GUI_YELLOW);
-	GUI_DispStringAt("PDA Livraison Expresse", 50, 25);
+	GUI_DispStringAt("PDA Livraison Express", 50, 25);
 }
 
 /*
@@ -1281,9 +1284,9 @@ void PdaleInterface(void)
 
 void MainTask (void *p_arg)
 {
-
 	// Initialisation d'un GUI
 	GUI_Init();
+
 	PdaleInterface();
 	
 	// Montre le dialog d'initialisation
@@ -1292,6 +1295,6 @@ void MainTask (void *p_arg)
 	while (1) 
 	{
 		CheckButtonState(); // Regarde l'état des boutons constamment
-		OSTimeDly(100);
+		OSTimeDly(500);
 	}
 }

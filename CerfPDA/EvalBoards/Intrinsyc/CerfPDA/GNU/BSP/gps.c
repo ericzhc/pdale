@@ -11,11 +11,15 @@ char GPSBuffer[TSIP_BUFF_SIZE];
 // Buffer pointers
 int ptrGPSBuffCurr = 0, ptrGPSBuffEnd = 0;
 // Required
-INT8U err;
+int firstGPSstart = 1;
 
 void GPS_Init(void) 
 {
-	ComDriverInit(GPS_CONFIG);
+	INT8U err;
+
+	if (firstGPSstart) {
+		ComDriverInit(GPS_CONFIG);
+	}
 
 	erD_sndstr("Starting GPS update task\n\r");
 
@@ -28,6 +32,8 @@ void GPS_Init(void)
 
 void GPSSendDataTask() 
 {
+	INT8U err;
+	
 	OSFlagPend(InitFlag, GPS_INIT_DONE, OS_FLAG_WAIT_SET_ALL, 0, &err);
 	erD_sndstr("GPSSendDataTask started...\n\r");
 	while (1) {
@@ -53,6 +59,7 @@ void GPSSendDataTask()
 
 void GPSUpdateTask() 
 {
+	INT8U err;
 	OSFlagPend(InitFlag, GPS_INIT_DONE2, OS_FLAG_WAIT_SET_ALL, 0, &err);
 	COM_BUFF_INFO RxBuff = GetTaskRxComBuff();
 	GPSPosition.Longitude = -71.924255;
@@ -195,16 +202,26 @@ void ReadTime()
 
 void GPS_Enable()
 {
+	erD_sndstr("Enabling GPS\n\r");
 	// Send TSIP packet to start automatic transmission of GPS data
-	char trame[] = {0x35, 0x02, 0x01}; // page 89
+	char trame[] = {0x35, 0x02, 0x01, COMMAND_EOL}; // page 89
 	SendTSIP(trame);
-	OSTaskResume(TASK_GPS_PRIO);
+	OSTaskCreateExt(GPSUpdateTask,
+					NULL,
+					(OS_STK *)&GPSUpdateTaskStk[TASK_GPS_SIZE-1],
+					TASK_GPS_PRIO,
+					TASK_GPS_PRIO,
+					(OS_STK *)&GPSUpdateTaskStk[0],
+					TASK_GPS_SIZE,
+					NULL,
+					OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
 }
 
 void GPS_Disable()
 {
+	erD_sndstr("Disabling GPS\n\r");
 	// Send TSIP packet to stop automatic transmission of GPS data
-	char trame[] = {0x35, 0x00, 0x00}; // page 89
+	char trame[] = {0x35, 0x00, 0x00, COMMAND_EOL}; // page 89
 	SendTSIP(trame);
-	OSTaskSuspend(TASK_GPS_PRIO);
+	OSTaskDel(TASK_GPS_PRIO);
 }

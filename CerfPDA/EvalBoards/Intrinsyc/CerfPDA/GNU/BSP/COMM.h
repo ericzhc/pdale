@@ -21,9 +21,9 @@
 
 void ReceiveData(char, char*);
 void GetTruckNames(char*); // Fills parameter pointer
-char IsValidPackage(int);  // returns 0 or 1 to specify is package is valid
-void GetPacketInfos(int, char*); // Define sequence order (seperate each field with ;)
-void SetPacketState(int, int); // Use STATES defined above as parameter
+char IsValidPackage(char*);  // returns 0 or 1 to specify is package is valid
+void GetPacketInfos(char*, char*); // Define sequence order (seperate each field with ;)
+void SetPacketState(char*, char); // Use STATES defined above as parameter
 void GetAllPackages(int, char*); // Retrieve all packages and their status associated with a truck
 void GetMessages(int, char*);
 void SendMessage(int, char*);
