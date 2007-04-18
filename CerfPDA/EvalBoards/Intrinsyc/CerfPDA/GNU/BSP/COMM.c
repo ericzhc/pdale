@@ -94,9 +94,13 @@ void GetMessages(int truckid, char* buffer)
 	char data[] = {COMMAND_GETMSGS, '0', ';', COMMAND_EOL};
 
 	// Send command
+	printf("\n\rGETMESSAGES BEFORE TRANSMIT: %s", data);
 	TransmitRfBuffer(data);
 	// Wait for response
+	printf("\n\rGETMESSAGES BEFORE RECEIVEL: %s", data);
 	ReceiveData(COMMAND_GETMSGS, buffer);
+	printf("\n\rGETMESSAGES AFTER RECEIVE\n\n");
+
 }
 
 void SendMessage(int truckid, char* msg)

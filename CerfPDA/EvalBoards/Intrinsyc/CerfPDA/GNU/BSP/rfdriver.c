@@ -11,7 +11,7 @@
 void RFDriverInit() 
 {
 	INT8U err;
-	erD_sndValHWrdLbl("RF driver init\n\r");
+	erD_sndstr("RF driver init\n\r");
 
 	// Semaphore to protect multiple entry in transmission
 	TransmitRfFctSem = OSSemCreate(1);
@@ -33,7 +33,13 @@ void RFDriverInit()
 	while(cell_init()==0);
 	while(open_socket("2166","skaber.mine.nu")==0);
 	
-	erD_sndValHWrdLbl("RF Init done\n\r", 0);
+	erD_sndstr("RF Init done\n\r", 0);
+
+	/*
+	while(1)
+	{
+		OSTimeDlyHMSM(254,0,0,0);
+	}*/
 }
 
 int cell_init()
@@ -49,11 +55,11 @@ int cell_init()
 
 			if((strstr(buffer,"ERROR") != NULL) || err == 0)
 			{
-				printf("ERROR -----------------------------------------------");
+				erD_sndstr("ERROR -----------------------------------------------");
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-		erD_sndValHWrdLbl("1\n\r");
+		erD_sndstr("1\n\r");
 		OSTimeDlyHMSM(0,0,0,500);
 		TransmitRfBuffer("AT+CGDCONT=1,\"IP\",\"internet.fido.ca\",\"0.0.0.0\",0,0\n\r\0"); 
 			do{
@@ -61,11 +67,11 @@ int cell_init()
 
 			if((strstr(buffer,"ERROR") != NULL) || err == 0)
 			{
-				printf("ERROR -----------------------------------------------");
+				erD_sndstr("ERROR -----------------------------------------------");
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-		erD_sndValHWrdLbl("2\n\r");
+		erD_sndstr("2\n\r");
 		OSTimeDlyHMSM(0,0,0,500);
 		TransmitRfBuffer("AT#USERID=\"fido\"\n\r\0");
 		do{
@@ -73,11 +79,11 @@ int cell_init()
 
 			if((strstr(buffer,"ERROR") != NULL) || err == 0)
 			{
-				printf("ERROR -----------------------------------------------");
+				erD_sndstr("ERROR -----------------------------------------------");
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-		erD_sndValHWrdLbl("3\n\r");
+		erD_sndstr("3\n\r");
 		OSTimeDlyHMSM(0,0,0,500);
 		TransmitRfBuffer("AT#PASSW=\"fido\"\n\r\0");
 		do{
@@ -85,11 +91,11 @@ int cell_init()
 
 			if((strstr(buffer,"ERROR") != NULL) || err == 0)
 			{
-				printf("ERROR -----------------------------------------------");
+				erD_sndstr("ERROR -----------------------------------------------");
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-		erD_sndValHWrdLbl("4\n\r");
+		erD_sndstr("4\n\r");
 		OSTimeDlyHMSM(0,0,0,500);
 		TransmitRfBuffer("AT#SKTSAV\n\r\0");
 		do{
@@ -97,11 +103,11 @@ int cell_init()
 			//printf("--------------------------  SKTSAV: %s ",buffer);
 			if((strstr(buffer,"ERROR") != NULL) || err == 0)
 			{
-				printf("ERROR -----------------------------------------------");
+				erD_sndstr("ERROR -----------------------------------------------");
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-		erD_sndValHWrdLbl("5\n\r");
+		erD_sndstr("5\n\r");
 		OSTimeDlyHMSM(0,0,5,0);
 		TransmitRfBuffer("AT#GPRS=1\n\r\0");						// Activate GPRS connection (wait for connect)
 		do{
@@ -109,11 +115,11 @@ int cell_init()
 
 			if((strstr(buffer,"ERROR") != NULL) || err == 0)
 			{
-				printf("ERROR -----------------------------------------------");
+				erD_sndstr("ERROR -----------------------------------------------");
 				return 0;			
 			}
 		}while(strstr(buffer,"+IP")==NULL);	
-		erD_sndValHWrdLbl("6\n\r");
+		erD_sndstr("6\n\r");
 		OSTimeDlyHMSM(0,0,0,500);
 
 		return 1;
@@ -130,18 +136,18 @@ int open_socket(char* port,char* ipaddress)
 	TransmitRfBuffer(command);
 	//TransmitRfBuffer("AT#SKTD=0,2166,\"24.202.172.91\",0,0\n\r\0");
 	do{
-		erD_sndValHWrdLbl("7\n\r");
+		erD_sndstr("7\n\r");
 		DonneeRecue(buffer,8000);
 		//printf("--------------------- AT#SKTD %s \n\r",	buffer);	
 
 		if((strstr(buffer,"ERROR") != NULL) || err == 0)
 		{
-			printf("ERROR -----------------------------------------------");
+			erD_sndstr("ERROR -----------------------------------------------");
 			return 0;			
 		}
 	}while(strstr(buffer,"C")==NULL);	
 
-	printf("- Connected -\n\r");
+	erD_sndstr("- Connected -\n\r");
 
 	return 1;
 }
@@ -169,7 +175,7 @@ int DonneeRecue(char* buffer, INT16U timeout)
 				i++;
 			}
 			buffer[i]='\0';	
-
+			erD_sndstr(buffer);
 		}
 
 		return 1;
@@ -274,7 +280,9 @@ void TransmitRfBuffer(char *databuff)
 {
 	INT8U err;
 	OSSemPend(TransmitRfFctSem, 0, &err); // protects dual entry in this fct
+	
 	OSTimeDly(1000);
+	
 	int i;
 	for (i=0; databuff[i] != COMMAND_EOL; i++) {
 		// Increment the buffer's ending pointer
