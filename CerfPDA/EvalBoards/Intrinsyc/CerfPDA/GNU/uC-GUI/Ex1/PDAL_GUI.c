@@ -175,7 +175,8 @@ long   IMAGESIZE;
 size_t SIZERESULT;
 
 char    SQLCOLISNUMBER[MAX_BARCODE_LENGTH];
-int		CAMIONCOURANT;
+int		CAMIONCOURANT = 0;
+char    MessagesRecus[300];
 
 // Table pour listView
 char TABLECOLIS[50][2][11];
@@ -767,12 +768,12 @@ static void MessageCallback(WM_MESSAGE * pMsg)
 {
 	// Initialisation des variables
 	int NCode, Id, FirstTimeFlag, i;
-	char MessagesRecus[400];
 	char MessageToSend[51];
 	char key;
 	char EditText[51];
 	char TempBufMsg[51];
 	memset(EditText, 0x00, 51);
+	memset(MessageToSend, 0x00, 51);
 	
 	WM_HWIN hWin = pMsg->hWin;
 	WM_HWIN LoadingDialog;
@@ -787,10 +788,11 @@ static void MessageCallback(WM_MESSAGE * pMsg)
 		case WM_INIT_DIALOG:
 			// Initialisation du dialog
 			EDIT_SetMaxLen(Edit_Envoi, 50);
-
+			memset(MessagesRecus, 0x00, 300);
+			
 			// Aller chercher les 5 derniers messages recus et les afficher
 			LoadingDialog = ShowLoadingDialog();
-			//GetMessages(CAMIONCOURANT, MessagesRecus); SERVER REQUEST
+			GetMessages(CAMIONCOURANT, MessagesRecus); // SERVER REQUEST
 			GUI_EndDialog(LoadingDialog, 0);
 			TEXT_SetText(Text_Recu, MessagesRecus);
 			break;
@@ -805,7 +807,8 @@ static void MessageCallback(WM_MESSAGE * pMsg)
 					{
 						// Envoyer le message au server
 						EDIT_GetText(Edit_Envoi, MessageToSend, 50);
-						//SendMessage(CAMIONCOURANT, Message); SERVER REQUEST
+						//printf("Message :%s", MessageToSend);
+						SendMessage(CAMIONCOURANT, MessageToSend); // SERVER REQUEST
 						EDIT_SetText(Edit_Envoi, "");
 					}
 					else if (Id == PB_MESSAGE_ENTRETEXT_ID)
@@ -1168,6 +1171,7 @@ void StringCopy(char* opString1, char* ipString2)
 void CheckButtonState(void)
 {
 	int Key;
+	static int InMsg = 0;
 	BUTTON_Handle ModifColisButton;
 	BUTTON_Handle MapButton;
 	BUTTON_Handle ListColisButton;
@@ -1185,7 +1189,14 @@ void CheckButtonState(void)
 		BUTTON_SetText(ModifColisButton, "Modif colis");
 		BUTTON_SetText(MapButton,        "Map");
 		BUTTON_SetText(ListColisButton,  "Liste colis");
-		BUTTON_SetText(MessageButton,    "Messages");
+		if (InMsg == 0)
+		{	
+			BUTTON_SetText(MessageButton,    "Messages");
+		}
+		else
+		{
+			BUTTON_SetText(MessageButton,    "New Msg?");
+		}
 	}
 
 	/* Wait for the button that is being pressed */
@@ -1193,24 +1204,43 @@ void CheckButtonState(void)
 	switch (Key)
 	{
 		case PB_MODIFCOLIS_TAB_ID:
+			InMsg = 0;
 			GUI_EndDialog(CURRENTWINDOW, 0);
 			ShowAttenteCodeBarre();
 			break;
 		case PB_MAP_TAB_ID:
+			InMsg = 0;
 			GUI_EndDialog(CURRENTWINDOW, 0);
 			GUI_Clear();
 			PdaleInterface();
 			ShowMap();
 			break;
 		case PB_LISTCOLIS_TAB_ID:
+			InMsg = 0;
 			GUI_EndDialog(CURRENTWINDOW, 0);
 			ShowListColis();
 			break;
 		case PB_MESSAGE_TAB_ID:
-			GUI_EndDialog(CURRENTWINDOW, 0);
-			ShowMessage();
-			break;
-		case PB_INITIALISATION_OK_ID:
+			if (InMsg == 0)
+			{
+				BUTTON_SetText(MessageButton, "New Msg?");
+				GUI_EndDialog(CURRENTWINDOW, 0);
+				InMsg = 1;
+				ShowMessage();
+			}
+			else
+			{
+				WM_HWIN Text_Recu;
+				char NewMsg[300];
+				memset(NewMsg, 0x00, 300);
+				Text_Recu  = WM_GetDialogItem(CURRENTWINDOW, TEXT_MESSAGE_RECUS_ID);
+				GetMessages(0, NewMsg);
+				if (strcmp(MessagesRecus, NewMsg))
+				{
+					//startPlay(); // SERVER REQUEST
+					TEXT_SetText(Text_Recu, NewMsg);
+				}
+			}
 			break;
 		default:
 			break;
@@ -1253,6 +1283,13 @@ void PdaleInterface(void)
 
 void MainTask (void *p_arg)
 {
+	//GPS_Init();
+	printf("Before loading GUI\n\r");
+
+	while(RFFlag) {
+	
+	}
+
 	// Initialisation d'un GUI
 	GUI_Init();
 
@@ -1262,8 +1299,12 @@ void MainTask (void *p_arg)
 	ShowInitDialog();
 	while (1) 
 	{
-		//GUI_TOUCH_Exec();
-		//GUI_Exec();
-		CheckButtonState(); // Regarde l'état des boutons constamment
+		//CheckButtonState(); // Regarde l'état des boutons constamment
+		//char buff[50];
+		//GetMessages(0, buff);
+		//printf("%s", buff);
+		//printf("Still running");
+		//OSTimeDlyHMSM(0,1,0,0);
+		OSTimeDly(1000);
 	}
 }
