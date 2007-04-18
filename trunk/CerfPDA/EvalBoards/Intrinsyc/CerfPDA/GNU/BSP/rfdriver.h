@@ -36,6 +36,8 @@ OS_FLAG_GRP* RfFlag; // Flag to announce data was received after issuing a comma
 #define	TX_RFSERIAL_DATA_SENT				2
 #define	TCP_TRANSFER_RECEIVED				4
 
+int RFFlag;
+
 // Circular buffer pointers
 int ptrRfTxBuffCurr;
 int ptrRfTxBuffEnd;

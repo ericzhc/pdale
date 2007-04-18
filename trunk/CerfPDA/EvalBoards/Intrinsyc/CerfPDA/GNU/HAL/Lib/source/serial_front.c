@@ -30,7 +30,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 void init_serial_front(short config)
 {
-	switch (config) {
+	switch (config) 
+	{
 		case GPS_CONFIG:
 			#if DEBUG
 				printf("Using GPS config\n\r");
@@ -69,13 +70,11 @@ void init_serial_front(short config)
 			break;
 	}
 
-
-	GAFR_SF &= 0xfffffff7;			// GAFR.3 = 0 (disable Alternate function on pin 3)
-	GPDR_SF &= 0xfffffff7;			// define GPIO.3 as input
-	GFER_SF &= 0xfffffff7;			// GFER.3 = 0 (disable falling edge on pin 3)
+    GAFR_SF &= 0xfffffff7;			// GAFR.3 = 0 (disable Alternate function on pin 3)
+	//GPDR_SF &= 0xfffffff7;			// define GPIO.3 as input
+    GFER_SF &= 0xfffffff7;			// GFER.3 = 0 (disable falling edge on pin 3)
 	GRER_SF |= 0x08;				// GRER.3 = 1 (enable rising edge on pin 3)
 	GEDR_SF = 0x08;					// clear GEDR.3 
-	
 	
 	//setBufferTriger();
 	setRxInterrupt();
@@ -288,7 +287,6 @@ void output_byte_serial_front(char byte)
 {
    //wait for room in the fifo.
    while((txFIFOEmpty()) == 0);
-
    THR = byte;
 }
 

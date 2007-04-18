@@ -1286,8 +1286,8 @@ void MainTask (void *p_arg)
 	//GPS_Init();
 	printf("Before loading GUI\n\r");
 
-	while(RFFlag) {
-	
+	while(RFFlag == 0) {
+		OSTimeDly(1000);
 	}
 
 	// Initialisation d'un GUI
@@ -1295,16 +1295,18 @@ void MainTask (void *p_arg)
 
 	PdaleInterface();
 
+	printf("pdale inferface\n\r");
 	// Montre le dialog d'initialisation
 	ShowInitDialog();
+	printf("show init\n\r");
 	while (1) 
 	{
-		//CheckButtonState(); // Regarde l'état des boutons constamment
-		//char buff[50];
-		//GetMessages(0, buff);
-		//printf("%s", buff);
-		//printf("Still running");
-		//OSTimeDlyHMSM(0,1,0,0);
-		OSTimeDly(1000);
+		CheckButtonState(); // Regarde l'état des boutons constamment
+		/*char buff[50];
+		GetMessages(0, buff);
+		printf("%s", buff);
+		printf("Still running");
+		OSTimeDlyHMSM(0,1,0,0);*/
+		OSTimeDly(100);
 	}
 }
