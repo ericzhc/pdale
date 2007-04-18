@@ -14,8 +14,7 @@ void ReceiveData(char cmd, char* buffer)
 	int i = 0;
 	int timeout = 0;
 	printf("Wait for the data to be received");
-	//while (err != OS_TIMEOUT) {
-	while (1) {
+	while (err != OS_TIMEOUT) {
 		OSFlagPend(RfFlag, TCP_TRANSFER_RECEIVED, OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, timeout,&err);
 		timeout = 5000;
 

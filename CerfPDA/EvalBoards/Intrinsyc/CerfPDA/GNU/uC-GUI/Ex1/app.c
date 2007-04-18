@@ -128,6 +128,7 @@ static void  AppStartTask (void *p_arg)
 //    OSTaskNameSet(TASK_GUI_PRIO,        "GUI task",  &err);
 //#endif
 
+	RFFlag = 1;
 	OSTaskCreateExt(RFDriverInit,
 				NULL,
 				(OS_STK *)&RFDriverInitStk[TASK_STK_SIZE-1],

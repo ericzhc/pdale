@@ -21,23 +21,23 @@ I-bit of the CCR register was
 *********************************************************************************************************
 */
 
-char lowerCase[51] = {POWER,F1,F2,'a','b','c','d',0,0,0,
-					'k','e','f','g','h','i','j',0,0,0,
-					'r','l','m','n','o','p','q',0,0,0,
-					'y','s','t','u','v','w','x',0,0,0,
-					ENTER,'z',SHIFT,CAPSCTRL,BACKSPACE,NUMCUR,'\\',0,0,0};
+char lowerCase[51] = {F1,F2,'a','b','c','d',POWER,0,0,0,
+					'e','f','g','h','i','j','k',0,0,0,
+					'l','m','n','o','p','q','r',0,0,0,
+					's','t','u','v','w','x','y',0,0,0,
+					'z',SHIFT,CAPSCTRL,BACKSPACE,NUMCUR,'\\',ENTER,0,0,0};
 
-char uperCase[51] = {POWER,F1,F2,'A','B','C','D',0,0,0,
-					'K','E','F','G','H','I','J',0,0,0,
-					'R','L','M','N','O','P','Q',0,0,0,
-					'Y','S','T','U','V','W','X',0,0,0,
-					ENTER,'Z',SHIFT,CAPSCTRL,BACKSPACE,NUMCUR,'\\',0,0,0};
+char uperCase[51] = {F1,F2,'A','B','C','D',POWER,0,0,0,
+					'E','F','G','H','I','J','K',0,0,0,
+					'L','M','N','O','P','Q','R',0,0,0,
+					'X','Y','S','T','U','V','W',0,0,0,
+					'Z',SHIFT,CAPSCTRL,BACKSPACE,NUMCUR,'\\',ENTER,0,0,0};
 
-char shift[51] = {POWER,F1,F2,'1','2','3','4',0,0,0,
-					'@','5','6','7','8','9','0',0,0,0,
-					'\"','+','-','*','/','=',UP,0,0,0,
-					RIGHT,ESCAPE,',','.','?',LEFT,':',0,0,0,
-					ENTER,TAB,SHIFT,CAPSCTRL,SPACE,NUMCUR,'\\',0,0,0};
+char shift[51] = {F1,F2,'1','2','3','4',POWER,0,0,0,
+					'5','6','7','8','9','0','@',0,0,0,
+					'+','-','*','/','=',UP,'\"',0,0,0,
+					ESCAPE,',','.','?',LEFT,':',RIGHT,0,0,0,
+					TAB,SHIFT,CAPSCTRL,SPACE,NUMCUR,'\\',ENTER,0,0,0};
 
 
 char ReadFromKeyboard (void)
@@ -47,9 +47,13 @@ char ReadFromKeyboard (void)
 	
 	curmap =  lowerCase;
 	
-	GAFR_SF &= 0xfe0fffff;			// GAFR.3 = 0 (disable Alternate function on pin 3)
-	GPDR_SF &= 0xfe0fffff;	
+	GEDR_SF |= 0x01f00000;
+	
+	SER3_UTCR0 &= 0xf7;
+	//GAFR_SF &= 0xfe0fffff;			// GAFR.3 = 0 (disable Alternate function on pin 3)
+	
 
+	printf("??????????????????????");
 
 	char keybline =0;
 	char keypress =0;
@@ -58,12 +62,14 @@ char ReadFromKeyboard (void)
 	char y = 0;
 	char columb = -1;
 	int antirebonCount = -1;
+	int iii;
 
 	do {
 		antirebonCount = 0;						/* Delay task execution for 500 ms                     */
 		
 		while (antirebonCount < 4)
 		{	
+			
 			oldkeybline = 0;
 			keybline = 0;
 			columb = 0;
@@ -117,12 +123,14 @@ char ReadFromKeyboard (void)
 		case CAPSCTRL: curmap = uperCase;
 						break;	
 		default:	printf("%c \n\r",key);
+					for(iii=0;iii<1000;iii++);
 					curmap = lowerCase;
 					break;
 		
 		}
 	} while((key == CAPSCTRL) || (key == SHIFT));
 
+	
 	//GPCR = 0xffffffff;
 	return key;
 }
@@ -214,7 +222,7 @@ char getkeyNumber(int key)
 char scanColumn(int columb)
 {	
 	int	 ii;
-	char masque = 1;
+	char masque;
 	char tst;
 
 	masque = 1;
@@ -226,7 +234,7 @@ char scanColumn(int columb)
 	
 	CERF_PDA_CPLD_KEYB_SCNHIGH = ((masque&0xf0)>>4);
 	
-	//for(ii = 0; ii < 8000; ii++);
+	for(ii = 0; ii < 100; ii++);
 
 	//printf("Low  : %x \n",CERF_PDA_CPLD_KEYB_SCNLOW);
 	//printf("High : %x \n",CERF_PDA_CPLD_KEYB_SCNHIGH);

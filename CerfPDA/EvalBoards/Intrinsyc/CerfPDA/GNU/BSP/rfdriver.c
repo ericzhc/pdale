@@ -46,6 +46,7 @@ void RFDriverInit(void* args)
 
 	printf("RF driver init...done\n\r");
 
+	RFFlag = 1;
 	while(1) {
 		OSTimeDlyHMSM(0,1,0,0);
 		//printf("oh yeah\n\r");

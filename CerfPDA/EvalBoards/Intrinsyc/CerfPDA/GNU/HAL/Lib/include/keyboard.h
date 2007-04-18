@@ -22,7 +22,7 @@
 #define CERF_PDA_CPLD_BASE_ADD          0x40000000
 #define CERF_PDA_CPLD_KEYB_SCNLOW       *(char*)(CERF_PDA_CPLD_BASE_ADD + 0x06)    /* Keyboard scan out low nibble         */
 #define CERF_PDA_CPLD_KEYB_SCNHIGH      *(char*)(CERF_PDA_CPLD_BASE_ADD + 0x0a)    /* Keyboard scan out high nibble        */
-#define KEYBLINE						*(int*)(0x90040000)    /* Sound left-righ reset (sync)         */
+#define KEYBLINE						*(volatile int*)(0x90040000)    /* Sound left-righ reset (sync)         */
 
 #define GPLR_SF *(volatile unsigned char*) (0x90040000)
 #define GPDR_SF *(volatile unsigned char*) (0x90040000 + 0x04)
@@ -31,6 +31,8 @@
 #define GRER_SF *(volatile unsigned char*) (0x90040000 + 0x10)
 #define GEDR_SF *(volatile unsigned char*) (0x90040000 + 0x18)
 #define GPCR_SF *(volatile unsigned char*) (0x90040000 + 0x0C)
+
+#define SER3_UTCR0     (*(volatile int *)  0x80010000) 
 /*
 *********************************************************************************************************
 *                                               VARIABLES
