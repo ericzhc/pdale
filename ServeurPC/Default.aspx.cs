@@ -648,8 +648,8 @@ public partial class _Default : System.Web.UI.Page
         //Envoi du message par socket TCP
         Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-        //IPAddress remoteIP = (System.Net.IPAddress)Dns.GetHostAddresses("skaber.mine.nu").GetValue(0);
-        IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
+        IPAddress remoteIP = (System.Net.IPAddress)Dns.GetHostAddresses("skaber.mine.nu").GetValue(0);
+        //IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
         
         const int remotePort = 2160;
         IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
@@ -710,6 +710,7 @@ public partial class _Default : System.Web.UI.Page
         {
             Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
+            //IPAddress remoteIP = IPAddress.Parse("69.159.170.109");
             const int remotePort = 2160;
             IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
 
@@ -1317,7 +1318,7 @@ public partial class _Default : System.Web.UI.Page
                 arr_ColisToReturn.Add(arr_Colis);
             }
             MyReader.Close();
-
+            
             str_Sql = "SELECT col_gpslongdest, col_gpslatdest, col_noident FROM colis WHERE col_etat='" + NewCueiletteFlag + "'";
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
@@ -1628,7 +1629,6 @@ public partial class _Default : System.Web.UI.Page
             {
                 ordre = Convert.ToInt16(str_Ordre);
                 ordre += (j + 1);
-                //str_Sql = "UPDATE colis SET col_ordre = '" + str_Ordre + j + 1 + "' WHERE col_noident = '" + Colis[j] + "'";
                 str_Sql = "UPDATE colis SET col_ordre = '" + ordre.ToString() + "' WHERE col_noident = '" + Colis[j] + "'";
                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
                 MyCommand.ExecuteNonQuery();

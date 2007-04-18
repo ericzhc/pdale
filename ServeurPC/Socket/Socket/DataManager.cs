@@ -116,7 +116,7 @@ public class DataManager
 
     /*
     *********************************************************************************************************
-    *                                              GetColisCoordonnes()
+    *                                              GetColisCoord()
     *
     * Description : Cette fonction retourne les champs d'un colis séparés par un ";" dans un string
     *
@@ -161,7 +161,7 @@ public class DataManager
 
     /*
     *********************************************************************************************************
-    *                                              GetCamionList()
+    *                                              GetTruckList()
     *
     * Description : Cette fonction retourne la liste des camions
     *
@@ -295,13 +295,49 @@ public class DataManager
         try
         {
             string str_Sql = "";
+            string str_PrevState = "";
+            string str_NewOrder = "";
+            ArrayList arr_AllOrder = new ArrayList();
             MySqlConnection MyConnection = GetConnection();
             MySqlCommand MyCommand = null;
+            MySqlDataReader MyReader = null;
+
+            str_Sql = "SELECT col_etat FROM colis WHERE col_noident='" + str_IdColis + "'";
+
+            MyCommand = new MySqlCommand(str_Sql, MyConnection);
+            MyReader = MyCommand.ExecuteReader();
+
+            while (MyReader.Read())
+            {
+                str_PrevState = MyReader[0].ToString();   
+            }
 
             str_Sql = "UPDATE colis SET col_etat = '" + str_EtatColis + "' WHERE str_IdColis = '" + str_IdColis + "'";
 
             MyCommand = new MySqlCommand(str_Sql, MyConnection);
             MyCommand.ExecuteNonQuery();
+
+            if ((str_PrevState == "0" && str_EtatColis == "1") || (str_PrevState == "2" && str_EtatColis == "3"))
+            {
+                str_Sql = "SELECT col_ordre FROM colis";
+
+                MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                MyReader = MyCommand.ExecuteReader();
+
+                while (MyReader.Read())
+                {
+                    arr_AllOrder.Add(MyReader[0].ToString());
+                }
+                MyReader.Close();
+
+                for (int i = 0; i < arr_AllOrder.Count; i++)
+                {
+                    str_NewOrder = (Int32.Parse(arr_AllOrder[i]) - 1).ToString();
+                    str_Sql = "UPDATE colis SET col_ordre = '" + str_NewOrder + "' WHERE col_order = '" + arr_AllOrder[i] + "'";
+                    MyCommand = new MySqlCommand(str_Sql, MyConnection);
+                    MyCommand.ExecuteNonQuery();
+                }
+            }
         }
         catch (MySqlException myEx)
         {
