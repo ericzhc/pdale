@@ -1,0 +1,7 @@
+AT
+AT+CGDCONT=1,"IP","internet.fido.ca","0.0.0.0",0,0
+AT#USERID="fido"
+AT#PASSW="fido"
+AT#SKTSAV
+AT#GPRS=1
+AT#SKTD=0,2166,"skaber.mine.nu"
