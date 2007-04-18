@@ -150,9 +150,10 @@ namespace Socket.TCPServerReceiver
             Thread WebThread = new Thread(new ThreadStart(TCPWeb));
             WebThread.Start();
 
+            Console.WriteLine("Waiting for a PDA connexion on port 2166");
             client = newsock.Accept();
             IPEndPoint newclient = (IPEndPoint)client.RemoteEndPoint;
-            Console.WriteLine("Connected with {0} at port {1}", newclient.Address, newclient.Port);
+            Console.WriteLine("PDA Connected with {0} at port {1}", newclient.Address, newclient.Port);
 
             Thread ReceiverPdaThread = new Thread(new ThreadStart(TCPReceiverPDA));
             ReceiverPdaThread.Start();
@@ -173,16 +174,19 @@ namespace Socket.TCPServerReceiver
             while (true)
             {
                 try {
-                    receivedData = new byte[1024];
+                    receivedData = new byte[100];
                     client.Receive(receivedData);
+                    Console.WriteLine("Client sent data");
+                    Console.WriteLine("ASCII Data: " + Encoding.ASCII.GetString(receivedData));
 
                     if (receivedData[0] == COMMAND_MSGFROMPDA) {
+                        Console.WriteLine("Received send message from pda command");
                         msgReceivedSem.Wait();
                         if (msgReceivedData[0] != COMMAND_DELIMITER) {
                             string messageCat = "";
                             string[] message = Encoding.ASCII.GetString(msgReceivedData).Split(delimiter, 10);
 
-                            for (int i = 0; i < message.GetLength(0); i++) {
+                            for (int i = 0; i < message.Length; i++) {
                                 if (message[i][0] != '\0') {
                                     messageCat += message[i] + ";";
                                     Console.WriteLine(message[i]);
@@ -200,20 +204,25 @@ namespace Socket.TCPServerReceiver
                     } 
                     else if (receivedData[0] == COMMAND_GETMSGS) 
                     {
+                        Console.WriteLine("Received get messages");
                         msgSendSem.Wait();
-
-                        Console.WriteLine("I am here");
 
                         string messageCat = "";
                         string[] message = Encoding.ASCII.GetString(msgSendData).Split(delimiter, 5);
-
-                        for (int i = 0; i < message.GetLength(0); i++) {
-                            if (message[i][0] != '\0') {
-                                messageCat += message[i] + ";";
-                                Console.WriteLine(message[i]);
+                        Console.WriteLine("Message encoded in ascii bytes");
+                        if (msgSendData[0] != COMMAND_DELIMITER) {
+                            for (int i = 0; i < message.Length; i++) {
+                                if (message[i][0] != '\0') {
+                                    messageCat += message[i];
+                                    Console.WriteLine("Adding message: " + message[i]);
+                                }
                             }
                         }
-
+                        
+                        if (messageCat == string.Empty || messageCat == null) {
+                            messageCat = "Hey dudes there is \n\r No messages, now get naked\0";
+                        }
+                        Console.WriteLine("MessageCat built: " + messageCat);
                         byte[] tempBuffer = new byte[messageCat.Length];
                         tempBuffer = Encoding.ASCII.GetBytes(messageCat);
 
@@ -222,6 +231,7 @@ namespace Socket.TCPServerReceiver
                     }
                     else if (receivedData[0] == COMMAND_TRUCKNAMES)
                     {
+                        Console.WriteLine("Received get truck names command");
                         string listeCamions = DataManager.GetTruckList();
                        
                         toSendData = new byte[listeCamions.Length];
@@ -230,6 +240,7 @@ namespace Socket.TCPServerReceiver
                     } 
                     else if (receivedData[0] == COMMAND_VALIDPACKAGE) 
                     {
+                        Console.WriteLine("Received isvalid package command");
                         string command = Encoding.ASCII.GetString(receivedData);
                         string package = DataManager.GetColis(command.Substring(1, COMMAND_CODEBARLENGTH));
                         toSendData = new byte[3];
@@ -247,6 +258,7 @@ namespace Socket.TCPServerReceiver
                     } 
                     else if (receivedData[0] == COMMAND_SETPACKETSTATE) 
                     {
+                        Console.WriteLine("Received set package state command");
                         string command = Encoding.ASCII.GetString(receivedData);
                         DataManager.SaveEtatColis(command.Substring(1, COMMAND_CODEBARLENGTH), command.Substring(COMMAND_CODEBARLENGTH + 1, 1));
                         Console.WriteLine("The package {0} had its state set to {1}", command.Substring(1, COMMAND_CODEBARLENGTH), command.Substring(COMMAND_CODEBARLENGTH + 1, 1));
@@ -254,6 +266,7 @@ namespace Socket.TCPServerReceiver
                     } 
                     else if (receivedData[0] == COMMAND_GETPACKAGES) 
                     {
+                        Console.WriteLine("Received get packages command");
                         string command = Encoding.ASCII.GetString(receivedData);
                         string packages = DataManager.GetColisList(command.Substring(1, 1));
 
@@ -263,6 +276,7 @@ namespace Socket.TCPServerReceiver
                     } 
                     else if (receivedData[0] == COMMAND_PACKETINFOS) 
                     {
+                        Console.WriteLine("Received Packet infos command");
                         string command = Encoding.ASCII.GetString(receivedData);
                         string package = DataManager.GetColis(command.Substring(1, COMMAND_CODEBARLENGTH));
                         toSendData = new byte[package.Length];
@@ -270,22 +284,49 @@ namespace Socket.TCPServerReceiver
                         client.Send(toSendData);
                     } 
                     else if (receivedData[0] == COMMAND_GPSCOORD) {
-                        if (receivedData.Length == 11) {
-                            int camion = (int)receivedData[1]; // could be used to substitue 
-                            byte[] tempvalue = new byte[4];
-                            tempvalue[0] = receivedData[2];
-                            tempvalue[1] = receivedData[3];
-                            tempvalue[2] = receivedData[4];
-                            tempvalue[3] = receivedData[5];
-
-                            m_DataManager.GpsData[0].Latitude = BitConverter.ToSingle(tempvalue, 0);
-
-                            tempvalue[0] = receivedData[6];
-                            tempvalue[1] = receivedData[7];
-                            tempvalue[2] = receivedData[8];
-                            tempvalue[3] = receivedData[9];
-                            m_DataManager.GpsData[0].Longitude = BitConverter.ToSingle(tempvalue, 0);
+                        Console.WriteLine("Received GPS update command");
+                        string command = Encoding.ASCII.GetString(receivedData);
+                        string[] coord = command.Substring(2).Split(';');
+                        if (coord.Length >= 2) {
+                            m_DataManager.GpsData[0].Longitude = double.Parse(coord[0]);
+                            m_DataManager.GpsData[0].Latitude = double.Parse(coord[1]);
+                            Console.WriteLine("Latitude updated: " + m_DataManager.GpsData[0].Latitude);
+                            Console.WriteLine("Longitude updated: " + m_DataManager.GpsData[0].Longitude);
+                        } else {
+                            Console.WriteLine("incomplete data informations");
                         }
+
+                        //if (receivedData.Length >= 10) {
+                            //Console.WriteLine("Values: " + receivedData[0] + "-" + receivedData[1] + "-" + receivedData[2] + "-" + receivedData[3] + "-" + receivedData[4] + "-" + receivedData[5] + "-" + receivedData[6] + "-" + receivedData[7] + "-" + receivedData[8] + "-" + receivedData[9] + "-");
+                            //int camion = (int)receivedData[1]; // could be used to substitue 
+                            //byte[] tempvalue = new byte[4];
+                            //tempvalue[0] = receivedData[2];
+                            //tempvalue[1] = receivedData[3];
+                            //tempvalue[2] = receivedData[4];
+                            //tempvalue[3] = receivedData[5];
+
+                            //if (BitConverter.ToSingle(tempvalue, 0) != 0) {
+                            //    m_DataManager.GpsData[0].Latitude = BitConverter.ToSingle(tempvalue, 0);
+                            //    Console.WriteLine("Latitude: " + m_DataManager.GpsData[0].Latitude);
+                            //} else {
+                            //    Console.WriteLine("Latitude not updated: " + m_DataManager.GpsData[0].Latitude);
+                            //}
+                            
+                            //tempvalue[0] = receivedData[6];
+                            //tempvalue[1] = receivedData[7];
+                            //tempvalue[2] = receivedData[8];
+                            //tempvalue[3] = receivedData[9];
+
+                            //if (BitConverter.ToSingle(tempvalue, 0) != 0) {
+                            //    m_DataManager.GpsData[0].Longitude = BitConverter.ToSingle(tempvalue, 0);
+                            //    Console.WriteLine("Longitude: " + m_DataManager.GpsData[0].Longitude);
+                            //} else {
+                            //    Console.WriteLine("Longitude not updated: " + m_DataManager.GpsData[0].Longitude);
+                            //}
+                            
+                        //} else {
+                        //    Console.WriteLine("Not enough chars to build gps infos");
+                        //}
                     } else if (receivedData[0] == COMMAND_GETMAP) {
                         MemoryStream stream = m_DataManager.GetCurrentMap();
                         if (stream != null) {
@@ -314,7 +355,7 @@ namespace Socket.TCPServerReceiver
             newsock.Bind(ipep);
             newsock.Listen(10);
 
-            Console.WriteLine("Waiting for a connexion on port 2160");
+            Console.WriteLine("Waiting for a WEB connexion on port 2160");
 
             System.Net.Sockets.Socket client;
             IPEndPoint newclient;
@@ -325,7 +366,7 @@ namespace Socket.TCPServerReceiver
             while (true)
             {
                 client = newsock.Accept();
-                
+                Console.WriteLine("WEB Connected with {0} at port {1}", ((IPEndPoint)client.RemoteEndPoint).Address, ((IPEndPoint)client.RemoteEndPoint).Port);
                 webReceivedData = new byte[1024];                
 
                 if (client != null)
@@ -335,6 +376,7 @@ namespace Socket.TCPServerReceiver
                     
                     if (webReceivedData[0] == COMMAND_GETMSGS)
                     {
+                        Console.WriteLine("Received command get messages from WEB GUI");
                         msgReceivedSem.Wait();
 
                         if (msgReceivedData[0] != COMMAND_DELIMITER)
@@ -356,6 +398,7 @@ namespace Socket.TCPServerReceiver
                     }
                     else if (webReceivedData[0] == COMMAND_MSGTOPDA)
                     {
+                        Console.WriteLine("Received command send messages to PDA from WEB GUI");
                         msgSendSem.Wait();
 
                         if (msgSendData[0] != COMMAND_DELIMITER)
@@ -367,17 +410,19 @@ namespace Socket.TCPServerReceiver
                             {
                                 if (message[i][0] != '\0')
                                 {
-                                    messageCat = message[i] + ";" + messageCat;
+                                    messageCat = message[i] + "\n\r" + messageCat;
                                 }
-                            }   
-                            
-                            messageCat += Encoding.ASCII.GetString(webReceivedData);
+                            }
+
+                            string newMessage = Encoding.ASCII.GetString(webReceivedData);
+                            messageCat += newMessage.Substring(1, newMessage.Length - 1);
+                            //messageCat += Encoding.ASCII.GetString(webReceivedData);
                             msgSendData = Encoding.ASCII.GetBytes(messageCat);
                         }
                         else
                         {
                             string message = Encoding.ASCII.GetString(webReceivedData);
-                            msgSendData = Encoding.ASCII.GetBytes(message);
+                            msgSendData = Encoding.ASCII.GetBytes(message.Substring(1, message.Length - 1));
                         }
 
                         msgSendSem.Release();

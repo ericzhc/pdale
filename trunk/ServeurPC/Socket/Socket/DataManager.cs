@@ -14,8 +14,8 @@ using System.Collections;
 namespace Socket.Data
 {
 public class GPSCoord {
-    public float Latitude = 45.3821264306392F;
-    public float Longitude = -71.9287836211068F;
+    public double Latitude = 45.37796;
+    public double Longitude = -71.9243;
 }
 
 public class DataManager
@@ -384,28 +384,38 @@ public class DataManager
     public void GenerateMaps()
     {
         while (true) {
-            m_SqlConnection = GetConnection();
-            
-            //for(int i=0; i<TrucksMapping.Count; i++) {
+            try {
+                m_SqlConnection = GetConnection();
+
+                //for(int i=0; i<TrucksMapping.Count; i++) {
                 string colis = GetColisList((string)TrucksMapping[0]);
                 if (colis != null) {
                     string colisinfo = GetColisCoord(colis.Split(';')[0]);
-                    double colislong = double.Parse(colisinfo.Replace(',', '.').Split(';')[0]);
-                    double colislat = double.Parse(colisinfo.Replace(',', '.').Split(';')[1]);
-                    MemoryStream tempstream = GetRouteFromGps(GpsData[0].Latitude, GpsData[0].Longitude, colislat, colislong);
-                    Console.WriteLine("New map loaded");
-                    if (m_GPSMaps[0] != null) {
-                        m_GPSMaps[0].Close();
+                    if (colisinfo != null) {
+                        double colislong = double.Parse(colisinfo.Replace(',', '.').Split(';')[0]);
+                        double colislat = double.Parse(colisinfo.Replace(',', '.').Split(';')[1]);
+                        MemoryStream tempstream = GetRouteFromGps(GpsData[0].Latitude, GpsData[0].Longitude, colislat, colislong);
+
+                        if (m_GPSMaps[0] != null) {
+                            m_GPSMaps[0].Close();
+                        }
+                        Bitmap bmp = new Bitmap(tempstream);
+                        tempstream.Position = 0;
+                        StreamWriter filestream = new StreamWriter("c:\\map0.jpg", false);
+                        bmp.Save(filestream.BaseStream, System.Drawing.Imaging.ImageFormat.Jpeg);
+                        filestream.Close();
+                        m_GPSMaps[0] = tempstream;
+                    } else {
+                        Console.WriteLine("Les itinéraires des camions n'ont pas été fait: aucun colis n'est associé au camion courant, les maps ne seront donc pas générées");
                     }
-                    Bitmap bmp = new Bitmap(tempstream);
-                    tempstream.Position = 0;
-                    StreamWriter filestream = new StreamWriter("c:\\map0.jpg", false);
-                    bmp.Save(filestream.BaseStream, System.Drawing.Imaging.ImageFormat.Jpeg);
-                    filestream.Close();
-                    m_GPSMaps[0] = tempstream;
                 }
-            //}
-            Thread.Sleep(5000);
+                //}
+                Thread.Sleep(5000);
+            } catch (MySqlException) {
+                Console.WriteLine("GenerateMaps(): Could not connect to database");
+            } catch (Exception exp) {
+                Console.WriteLine("Coordonates are not valid: " +exp.Message);
+            }
         }
     }
 
