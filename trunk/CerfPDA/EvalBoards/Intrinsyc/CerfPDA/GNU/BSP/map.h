@@ -10,6 +10,6 @@
 char CurrentMap[MAX_MAP_SIZE];
 
 void MapUpdateTask();
-void ReceiveMap(char, char*);
+//void ReceiveMap(char, char*);
 
 #endif

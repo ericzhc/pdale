@@ -25,7 +25,7 @@
 *********************************************************************************************************
 */
 
-#define  TASK_STK_SIZE        4096
+#define  TASK_STK_SIZE        1024
 
 /*
 *********************************************************************************************************
@@ -124,28 +124,33 @@ static void  AppStartTask (void *p_arg)
    // OSStatInit();                               /* Start stats task                                    */
 //#endif
                                                 /* Give a name to tasks                                */
-//#if OS_TASK_NAME_SIZE > 10
-//    OSTaskNameSet(TASK_GUI_PRIO,        "GUI task",  &err);
-//#endif
+#if OS_TASK_NAME_SIZE > 10
+    OSTaskNameSet(TASK_GUI_PRIO,        "GUI task",  &err);
+#endif
 
 	RFDriverInit();
 	GPS_Init();
 
-	MainTask();
+	PdaleInterface();
+	
+	// Montre le dialog d'initialisation
+	ShowInitDialog();
 
 	while (1) 
 	{
-		OSTimeDly(500);
-    }
+		CheckButtonState(); // Regarde l'état des boutons constamment
+	}
 }
 
 static void  GuiTask (void *p_arg)
 {
+	// Initialisation d'un GUI
+	GUI_Init();
     p_arg = p_arg;                              /* Prevent compiler warning                            */
     while (1)
     {
-		//printf("GUI GUI \n\r");
         GUI_TOUCH_Exec();
         GUI_Exec();
+		OSTimeDly(50);
     }
 }
