@@ -183,7 +183,7 @@ void BufferTransmissionTask()
 
 		while (ptrTxBuffCurr != ptrTxBuffEnd) {
 			ptrTxBuffCurr = (ptrTxBuffCurr+1) % (int)SERIAL_BUFF_SIZE;
-			output_byte_serial_front((char)TxSerialBuffer[ptrTxBuffCurr]);
+			output_byte_serial_front(TxSerialBuffer[ptrTxBuffCurr]);
 		}
 
 		OSFlagPost( comFlag, 

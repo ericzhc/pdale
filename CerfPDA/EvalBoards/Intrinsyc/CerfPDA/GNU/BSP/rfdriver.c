@@ -4,20 +4,11 @@
 #include  <includes.h>
 #include  <serial_RF.h>
 
-/******************************************************
-    Local variables
-*******************************************************/
-
-// Variable to keep track of first init to start buffer task
-int firstRfStart = 1;
-// Required variables
-
-
 /*******************************************************
  Needs to be called once from the application integrating this
  driver to initialize the required components
 *******************************************************/
-void RFDriverInit() 
+void RFDriverInit(void* args) 
 {
 	INT8U err;
 #if DEBUG
@@ -28,21 +19,7 @@ void RFDriverInit()
 	TransmitRfFctSem = OSSemCreate(1);
 
 	RfFlag = OSFlagCreate(0x00, &err);
-	
 	// Task that watches the transmit buffer
-	if (firstRfStart) {
-		OSTaskCreateExt(BufferRfTransmissionTask,
-					NULL,
-					(OS_STK *)&BufferRfTransmissionTaskStk[TASK_RFSERIAL_SIZE-1],
-					TASK_RFSERIAL_PRIO,
-					TASK_RFSERIAL_PRIO,
-					(OS_STK *)&BufferRfTransmissionTaskStk[0],
-					TASK_RFSERIAL_SIZE,
-					NULL,
-					OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR
-		);
-		firstRfStart = 0;
-	}
 	ptrRfRxBuffCurr = 0;
 	ptrRfRxBuffEnd = 0;
 	ptrRfTxBuffCurr = 0;
@@ -52,14 +29,28 @@ void RFDriverInit()
 	setInterruptHandle_rf(ISR_Serial_RF);
 	init_serial_rf(SERIAL_BAUD_115200);
 	
+	OSTaskCreateExt(BufferRfTransmissionTask,
+		NULL,
+		(OS_STK *)&BufferRfTransmissionTaskStk[TASK_RFSERIAL_SIZE-1],
+		TASK_RFSERIAL_PRIO,
+		TASK_RFSERIAL_PRIO,
+		(OS_STK *)&BufferRfTransmissionTaskStk[0],
+		TASK_RFSERIAL_SIZE,
+		NULL,
+		OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
+
 	checkNetwork();
 	while(cell_init()==0);
 	while(open_socket("2166","skaber.mine.nu")==0);
 	//while(open_socket("2166","24.202.172.91")==0);
 
 	printf("RF driver init...done\n\r");
-}
 
+	while(1) {
+		OSTimeDlyHMSM(0,1,0,0);
+		//printf("oh yeah\n\r");
+	}
+}
 
 int cell_init()
 {
@@ -78,7 +69,8 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-		OSTimeDlyHMSM(0,0,2,0);
+		printf("1\n\r");
+		OSTimeDlyHMSM(0,0,0,500);
 		TransmitRfBuffer("AT+CGDCONT=1,\"IP\",\"internet.fido.ca\",\"0.0.0.0\",0,0\n\r\0"); 
 			do{
 			err = DonneeRecue(buffer,8000);
@@ -89,7 +81,8 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-		OSTimeDlyHMSM(0,0,2,0);
+		printf("2\n\r");
+		OSTimeDlyHMSM(0,0,0,500);
 		TransmitRfBuffer("AT#USERID=\"fido\"\n\r\0");
 		do{
 			err = DonneeRecue(buffer,8000);
@@ -100,7 +93,8 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-		OSTimeDlyHMSM(0,0,2,0);
+		printf("3\n\r");
+		OSTimeDlyHMSM(0,0,0,500);
 		TransmitRfBuffer("AT#PASSW=\"fido\"\n\r\0");
 		do{
 			err = DonneeRecue(buffer,8000);
@@ -111,17 +105,19 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
-		OSTimeDlyHMSM(0,0,2,0);
+		printf("4\n\r");
+		OSTimeDlyHMSM(0,0,0,500);
 		TransmitRfBuffer("AT#SKTSAV\n\r\0");
 		do{
 			err = DonneeRecue(buffer,8000);
-			printf("--------------------------  SKTSAV: %s ",buffer);
+			//printf("--------------------------  SKTSAV: %s ",buffer);
 			if((strstr(buffer,"ERROR") != NULL) || err == 0)
 			{
 				printf("ERROR -----------------------------------------------");
 				return 0;			
 			}
 		}while(strstr(buffer,"OK")==NULL);	
+		printf("5\n\r");
 		OSTimeDlyHMSM(0,0,5,0);
 		TransmitRfBuffer("AT#GPRS=1\n\r\0");						// Activate GPRS connection (wait for connect)
 		do{
@@ -133,7 +129,8 @@ int cell_init()
 				return 0;			
 			}
 		}while(strstr(buffer,"+IP")==NULL);	
-		OSTimeDlyHMSM(0,0,2,0);
+		printf("6\n\r");
+		OSTimeDlyHMSM(0,0,0,500);
 
 		return 1;
 }
@@ -149,17 +146,18 @@ int open_socket(char* port,char* ipaddress)
 	TransmitRfBuffer(command);
 	//TransmitRfBuffer("AT#SKTD=0,2166,\"24.202.172.91\",0,0\n\r\0");
 	do{
+		printf("7\n\r");
 		DonneeRecue(buffer,8000);
-		printf("--------------------- AT#SKTD %s \n\r",	buffer);	
+		//printf("--------------------- AT#SKTD %s \n\r",	buffer);	
 
 		if((strstr(buffer,"ERROR") != NULL) || err == 0)
 		{
 			printf("ERROR -----------------------------------------------");
 			return 0;			
 		}
-	}while(strstr(buffer,"CONNECT")==NULL);	
+	}while(strstr(buffer,"C")==NULL);	
 
-	printf("--------------------------------------- Connected \n\r");
+	printf("- Connected -\n\r");
 
 	return 1;
 }
@@ -172,11 +170,8 @@ void close_socket()
 int DonneeRecue(char* buffer, INT16U timeout)
 {
 	INT8U err;
-
 	
 	memset(buffer,0x00,50);
-	// Wait for the data to be received
-	
 	OSFlagPend(RfFlag, TCP_TRANSFER_RECEIVED, OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, timeout,&err);
 	if(err == OS_NO_ERR)
 	{
@@ -239,7 +234,7 @@ void ISR_Serial_RF()
 	   //erD_sndValHWrdLbl("Hey un interrrupt!",ucSource);
 	   // erD_snd_cr();
 		ucSource = SERIAL_RF_UTSR0;
-		printf("Int source: %x  \n\r",ucSource);
+		//printf("Int: %x  \n\r",ucSource);
 	
 
 															/* Rx is set                                      */
@@ -251,14 +246,18 @@ void ISR_Serial_RF()
 			do {
 				ucData = SERIAL_RF_UTDR;		              /* Read a char                                  */
 				//erD_sndchr(ucData); 
-				printf("%c",ucData);
+				//printf("%c",ucData);
 				ptrRfRxBuffEnd = (ptrRfRxBuffEnd + 1) % (int) SERIAL_BUFF_SIZE;
+				//ptrRfRxBuffEnd++;
+				//if (ptrRfRxBuffEnd == SERIAL_BUFF_SIZE) {
+					//ptrRfRxBuffEnd = 0;
+				//}
 				RxRfSerialBuffer[ptrRfRxBuffEnd] = ucData;	  /* move char into Rx_FIFO                       */
 				//printf("%c",RxRfSerialBuffer[ptrRfRxBuffEnd]);
 			} while (SERIAL_RF_UTSR1 & 0x00000002);           /* While buffer is not empty                      */
-
+			
 			//OSFlagPost(RfFlag, TCP_TRANSFER_RECEIVED, 0, &err); /* Announce we have received a message          */
-			//printf("  \n\r Flag post \n\r");
+			//printf(" \n\r Flag post \n\r");
 			OSFlagPost( RfFlag, 
 				TCP_TRANSFER_RECEIVED, 
 				OS_FLAG_SET, 
@@ -352,7 +351,7 @@ void BufferRfTransmissionTask()
 			OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 
 			0,
 			&err);
-		printf("Transmission\n\r\0");
+		//printf("Transmission\n\r\0");
 		while (ptrRfTxBuffCurr != ptrRfTxBuffEnd) {
 			ptrRfTxBuffCurr = (ptrRfTxBuffCurr+1) % (int)RFSERIAL_BUFF_SIZE;
 			output_byte_serial_rf((char)TxRfSerialBuffer[ptrRfTxBuffCurr]);
@@ -365,21 +364,6 @@ void BufferRfTransmissionTask()
 	}
 }
 
-void boucle()
-{
-		TransmitRfBuffer("AYE BEGIN TES LACETS SONT DETACHES\n\r\0");
-		//printf("Lat: %f - Long: %f - Alt: %f\n\r", GPSPosition.Latitude, GPSPosition.Longitude, GPSPosition.Altitude);
-		//printf("Time : %d:%d:%d\n\r", GPSTimeValue.Hours, GPSTimeValue.Minutes, GPSTimeValue.Seconds);
-		//TransmitBuffer("testing 123\n\r\0"); 
-		//output_byte_serial('a');
-		//output_byte_serial('t');
-		//output_byte_serial('a');
-
-
-		OSTimeDly(1000);
-
-
-}
 COM_BUFF_INFO GetTaskRxRfBuff() 
 {
 	COM_BUFF_INFO buffprot;
