@@ -1,4 +1,4 @@
-/*
+ /*
 *********************************************************************************************************
 *                                    APPLICATION SPECIFIC RTOS SETUP
 *
@@ -38,17 +38,16 @@
 */
 
 #define TASK_START_APP_PRIO						   5
-#define TASK_RFSERIAL_PRIO						   7
-#define TASK_RFTASK_PRIO						   8
+#define TASK_RFSERIAL_PRIO						   6
+#define TASK_RFTASK_PRIO						   7
 
-#define TASK_SERIAL_PRIO						   9
+#define TASK_SERIAL_PRIO						   8
 
-#define TASK_GUI_PRIO							  10 
-#define TASK_GPS_PRIO							  11
-#define TASK_GPS_SEND_PRIO						  12
-#define TASK_BCR_PRIO							  13
+#define TASK_GPS_PRIO							   10
+#define TASK_GPS_SEND_PRIO						  11
+#define TASK_BCR_PRIO							  12
 #define TASK_MAP_PRIO							  15
-
+#define TASK_GUI_PRIO							   19 
 
 //#define  MSTREAMRX_TASK_PRIO                      11
 //#define  SIPEVNT_PIP                              12
