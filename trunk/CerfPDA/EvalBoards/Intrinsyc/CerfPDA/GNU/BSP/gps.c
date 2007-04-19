@@ -38,7 +38,7 @@ void GPSSendDataTask()
 	erD_sndstr("GPSSendDataTask started...\n\r");
 	while (1) {
 
-		OSTimeDlyHMSM(0,GPSDELAY,0,0);
+		OSTimeDlyHMSM(0,1,41,0);
 
 		char data[24];
 		memset(data, 'q', 24);
@@ -204,8 +204,8 @@ void GPS_Enable()
 {
 	erD_sndstr("Enabling GPS\n\r");
 	// Send TSIP packet to start automatic transmission of GPS data
-	char trame[] = {0x35, 0x02, 0x01, COMMAND_EOL}; // page 89
-	SendTSIP(trame);
+	//char trame[] = {0x10, 0x35, 0x02, 0x01, 0x10, 0x03, COMMAND_EOL}; // page 89
+	//SendTSIP(trame);
 	OSTaskCreateExt(GPSUpdateTask,
 					NULL,
 					(OS_STK *)&GPSUpdateTaskStk[TASK_GPS_SIZE-1],
@@ -221,7 +221,7 @@ void GPS_Disable()
 {
 	erD_sndstr("Disabling GPS\n\r");
 	// Send TSIP packet to stop automatic transmission of GPS data
-	char trame[] = {0x35, 0x00, 0x00, COMMAND_EOL}; // page 89
+	char trame[] = {0x10, 0x35, 0x00, 0x00, 0x10, 0x03, COMMAND_EOL}; // page 89
 	SendTSIP(trame);
 	OSTaskDel(TASK_GPS_PRIO);
 }

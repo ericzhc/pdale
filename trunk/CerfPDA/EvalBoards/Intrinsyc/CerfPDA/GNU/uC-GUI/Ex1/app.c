@@ -113,6 +113,7 @@ int  main (void)
 
 static void  AppStartTask (void *p_arg)
 {
+	OSTimeDlyHMSM(0,0,10,0);					// Give Some time to cellular connect
     INT8U err;
     p_arg = p_arg;                              /* Prevent compiler warning                            */
 
