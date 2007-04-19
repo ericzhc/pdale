@@ -6,7 +6,7 @@ MAKECMD=make
 #    Debug
 # If no configuration is specified, "Debug" will be used
 ifndef "CFG"
-CFG=Debug
+CFG=Release
 endif
 
 
@@ -99,6 +99,15 @@ VPATH = $(APP_DIR):$(BSP_DIR):$(uCOS-II_DIR):$(uCOS-II_SRC_DIR)
         
 vpath %.o $(OBJ_DIR)
 
+COMMON_OBJ= $(OBJ_DIR)/_start_sa.o \
+		$(OBJ_DIR)/bsp.o \
+		$(OBJ_DIR)/bsp_a.o \
+		$(OBJ_DIR)/syscalls.o \
+		$(OBJ_DIR)/audioDrv.o \
+		$(OBJ_DIR)/erG711.o \
+		$(OBJ_DIR)/audioApp.o \
+		
+
 all:$(PRJ_FILES) $(CERFPDA_FILES)
 	$(CC) -nostartfiles -o $(OUTDIR)/$(OUTFILE) \
 		-Xlinker -Map -Xlinker $(OUTDIR)/ss.map \
@@ -112,7 +121,7 @@ all:$(PRJ_FILES) $(CERFPDA_FILES)
 		$(OBJ_DIR)/audioApp.o \
 		$(CFG_LIB)
 	$(OBJCOPY) --strip-all "$(OUTDIR)/$(OUTFILE)" "$(OUTDIR)/ssS.elf"
-	$(OBJCOPY) -O binary "$(OUTDIR)/$(OUTFILE)" "$(OUTDIR)/ss.bin"
+	arm-elf-ar -rs "$(OUTDIR)/Project.a" $(COMMON_OBJ)
 
 endif       # end CerfPDA Release
 
