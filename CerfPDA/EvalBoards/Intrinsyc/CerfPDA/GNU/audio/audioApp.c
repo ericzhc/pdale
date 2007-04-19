@@ -161,6 +161,8 @@ void startRec(void)
 
 void startPlay(void)
 {
+	delay = 1;
+    memset (&_bss, 0, &_ebss-&_bss);
 
     erD_sndstr("\n\rPlay Setup\n\r");
     erD_sndstr("Format: PCM A\n\r");
@@ -272,7 +274,7 @@ void startTask(void *pData)
         
     erD_sndstr("\r\n\CerfPDA audio driver demo\r\n");
     erD_sndstr("Press H for help\r\n");
-    delay = 1;
+   
     
 	
 	while (1) {
@@ -285,8 +287,7 @@ void startTask(void *pData)
 
 int main(void)
 {
-
-    memset (&_bss, 0, &_ebss-&_bss);                                        /* Clear bss                                           */
+	                                        /* Clear bss                                           */
     BSP_Init();
 
     erD_sndstr("\r\n\r\nInitializing: uC/OS-II");

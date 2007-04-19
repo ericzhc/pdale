@@ -76,7 +76,6 @@ INT16U       audioMode = A_STOP;
 /* //////////////////////////////////////////////////////////////////////////// */
 
 
-INT8U       audioBuffer[AUDIOBUFFSIZE] ;
 
 
 										

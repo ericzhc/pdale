@@ -10,11 +10,14 @@
 *******************************************************/
 void RFDriverInit() 
 {
+
 	INT8U err;
 	erD_sndstr("RF driver init\n\r");
 
 	// Semaphore to protect multiple entry in transmission
 	TransmitRfFctSem = OSSemCreate(1);
+	// Semaphore to protect multiple entry in reception
+	ReceiveDataSem = OSSemCreate(1);
 
 	RfFlag = OSFlagCreate(0x00, &err);
 	// Task that watches the transmit buffer
@@ -112,7 +115,7 @@ int cell_init()
 			}
 		}while(strstr(buffer,"OK")==NULL);	
 		erD_sndstr("5\n\r");
-		OSTimeDlyHMSM(0,0,5,0);
+		OSTimeDlyHMSM(0,0,3,0);
 		TransmitRfBuffer("AT#GPRS=1\n\r\0");						// Activate GPRS connection (wait for connect)
 		do{
 			err = DonneeRecue(buffer,8000);
@@ -282,6 +285,7 @@ void TransmitRfBuffer(char *databuff)
 {
 	INT8U err;
 	OSSemPend(TransmitRfFctSem, 0, &err); // protects dual entry in this fct
+	//OSSemPend(ReceiveDataSem, 0, &err); // protects dual entry in this fct
 	
 	int i;
 	for (i=0; databuff[i] != COMMAND_EOL; i++) {
