@@ -4,7 +4,7 @@
 #define TASK_MAP_SIZE 1024
 #define MAX_MAP_SIZE 30720 // 30 Ko for map
 OS_STK MapUpdateTaskStk[TASK_MAP_SIZE];
-#define MAPDELAY 1 // Time to update the map in minutes
+#define MAPDELAY 83 // Time to update the map in minutes
 
 // The Map
 char CurrentMap[MAX_MAP_SIZE];

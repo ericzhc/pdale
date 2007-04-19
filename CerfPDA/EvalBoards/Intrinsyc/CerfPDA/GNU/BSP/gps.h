@@ -12,7 +12,7 @@ OS_STK GPSSendDataTaskTsk[TASK_GPS_SIZE];
 #define GPS_TIME 0x41
 #define	GPS_ETX 0x03
 
-#define GPSDELAY 2 // Time to update the GPS position on the remote server in minutes
+#define GPSDELAY 101 // Time to update the GPS position on the remote server in minutes
 #define SECONDS_IN_ONE_DAY 60*60*24
 
 typedef struct {

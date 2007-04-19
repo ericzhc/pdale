@@ -18,6 +18,8 @@ void ReceiveData(char cmd, char* buffer)
 	int i = 0;
 	int timeout = 0;
 	//erD_sndstr("Wait for the data to be received");
+	OSTimeDlyHMSM(0,0,2,0);
+	ptrRfRxBuffCurr = ptrRfRxBuffEnd = 0;
 	while (err != OS_TIMEOUT) {
 		OSFlagPend(RfFlag, TCP_TRANSFER_RECEIVED, OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, timeout,&err);
 		timeout = 1000;

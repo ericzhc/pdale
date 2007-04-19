@@ -20,7 +20,7 @@ void MapUpdateTask()
 	INT8U err = OS_NO_ERR;
 	erD_sndstr("Starting MAP update task\n\r");
 	while (1) {
-		OSTimeDlyHMSM(0,MAPDELAY,0,0);
+		OSTimeDlyHMSM(0,1,23,0);
 		char data[] = {COMMAND_GETMAP, ';',COMMAND_EOL};
 
 		
