@@ -30,7 +30,7 @@ CFG_LIB=../../uC-GUI/Lib/Release/Project.a \
 	-lm -lstdc++ 
 CFG_OBJ=
 COMMON_OBJ=$(OUTDIR)/_start_sa.o $(OUTDIR)/app.o $(OUTDIR)/PDAL_GUI.o $(OUTDIR)/comdriver.o $(OUTDIR)/tasks.o $(OUTDIR)/gps.o $(OUTDIR)/COMM.o $(OUTDIR)/bcr.o $(OUTDIR)/rfdriver.o \
-	 $(OUTDIR)/bsp.o $(OUTDIR)/bsp_a.o $(OUTDIR)/map.o \
+	 $(OUTDIR)/bsp.o $(OUTDIR)/bsp_a.o $(OUTDIR)/map.o $(OUTDIR)/audioDrv.o $(OUTDIR)/audioApp.o $(OUTDIR)/erG711.o \
 	$(OUTDIR)/syscalls.o 
 OBJ=$(COMMON_OBJ) $(CFG_OBJ)
 
