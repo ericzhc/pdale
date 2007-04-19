@@ -25,8 +25,8 @@
 *********************************************************************************************************
 */
 
-#define  TASK_STK_SIZE        1024
-
+#define  TASK_STK_SIZE        4096
+void initimage();
 /*
 *********************************************************************************************************
 *                                               VARIABLES
@@ -116,9 +116,9 @@ static void  AppStartTask (void *p_arg)
     INT8U err;
     p_arg = p_arg;                              /* Prevent compiler warning                            */
 
+	Tmr_TickInit();                             /* Start timer tick                                    */
     erD_sndstr("\r\nStart timer tick...");
-    Tmr_TickInit();                             /* Start timer tick                                    */
-
+   
 //#if OS_TASK_STAT_EN > 0
   //  printf("\r\nStart statistics...");
    // OSStatInit();                               /* Start stats task                                    */
@@ -130,6 +130,9 @@ static void  AppStartTask (void *p_arg)
 
 	RFDriverInit();
 	GPS_Init();
+
+	//Tmr_Init();
+	//iniAudioDvce();
 
 	PdaleInterface();
 	

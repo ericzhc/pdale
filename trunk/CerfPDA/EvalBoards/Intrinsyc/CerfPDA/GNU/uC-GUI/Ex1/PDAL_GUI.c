@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <includes.h>
+#include <tempmap.h>
 //#include "COMM.h" SERVER
 #include "GUI.h"
 #include "FRAMEWIN.h"
@@ -179,7 +180,7 @@ int		CAMIONCOURANT = 0;
 char    MessagesRecus[300];
 
 // Table pour listView
-char TABLECOLIS[50][2][11];
+char TABLECOLIS[50][2][20];
 
 // Construction de Initialisation Dialog
 static const GUI_WIDGET_CREATE_INFO InitialisationDialogCreate[] = 
@@ -377,14 +378,6 @@ static void CodeBarreWaitCallback(WM_MESSAGE * pMsg)
 							GUI_EndDialog(hWin, 0);
 							ShowModifColis();
 						} 
-						else
-						{
-							// Si le numero nest pas valide il y aura une erreur
-							WM_HWIN MBox = GUI_MessageBox(CODEBARRE_MSG5, "ERREUR", GUI_MESSAGEBOX_CF_MOVEABLE);
-							OSTimeDly(3000);
-							GUI_Clear();
-							PdaleInterface();
-						}
 					}
 					else if (Id == PB_CODEBARRE_LECTEUR_ID)
 					{
@@ -978,9 +971,10 @@ void ShowModifColis(void)
 void ShowMap(void)
 {
 	//ToDO : Requête map, besoin adresse de l'image ( pour buffer) et de son size
-	
-	
-	//GUI_JPEG_Draw(BUFFER, sizeof(char)*IMAGESIZE, 0, 72);
+	char* BUFFER;
+	int length = getMap(BUFFER);
+	GUI_JPEG_Draw(&CurrentMap[6], length, 0, 72);
+	//GUI_JPEG_Draw(BUFFER, length, 0, 72);
 }
 
 /*
@@ -1051,55 +1045,76 @@ WM_HWIN ShowLoadingDialog(void)
 void BuildList(WM_HWIN opListView, int ipCamion)
 {
     char String[200];
-	char StringLu[11] = "0";
+	char StringLu[20];
+	char StringState[15];
 	int i = 0; 
 	int j = 0;
 	int Row = 0;
 	memset(String, 0x00, 200);
+	memset(StringLu, 0x00, 20);
+	memset(StringState, 0x00, 15);
 
-	GetAllPackages(0, String);  // SERVER REQUEST
+	GetAllPackages(0, String);  //SERVER REQUEST
 	
 	//Boucle jusqu'à la fin du string reçu
 	while(String[i] != '\0')
 	{
 		//Copie dans le string temporaire jusqu'à un délimiteur de string
+		j = 0;
 		while( String[i] != ';')
 		{
 			StringLu[j] = String[i];
 			i++;
 			j++;
 		}
+		// dépasser le ; dans String
 		i++;
-		j++;
+
 		//Copie de l'identificateur dans TABLECOLIS
 		StringCopy(TABLECOLIS[Row][0], StringLu);
 		//Nettoyage du string temporaire
-		for(j = 0; StringLu[j] != '\0'; j++)
-		{
-			StringLu[j] = ' ';
-		}
-		j = 0;
+		memset(StringLu, 0x00, 20);
+		
 		//Copie dans le string temporaire jusqu'à un délimiteur de string
+		j = 0;
 		while(String[i] != ';' && String[i] != '\0')
 		{
 			StringLu[j] = String[i];
 			i++;
 			j++;
 		}
+
 		//Vérification si on est sur le dernier caractère du string
+		//Sinon on depasse le prochain ;
 		if (String[i] != '\0')
 		{
 			i++;
 		}
-		j++;
-		//Copie du status dans TABLECOLIS
-		StringCopy(TABLECOLIS[Row][1], StringLu);
-		//Nettoyage du string temporaire
-		for(j = 0; StringLu[j] != '\0'; j++)
+
+		if (StringLu[0] == '0')
 		{
-			StringLu[j] = ' ';
+			StringCopy(StringState, "Non Cueilli");
 		}
-		j = 0;
+		else if (StringLu[0] == '1')
+		{
+			StringCopy(StringState, "Cueilli");
+		}
+		else if (StringLu[0] == '2')
+		{
+			StringCopy(StringState, "En Livraison");
+		}
+		else if (StringLu[0] == '3')
+		{
+			StringCopy(StringState, "Livre");
+		}
+
+		//Copie du status dans TABLECOLIS
+
+		StringCopy(TABLECOLIS[Row][1], StringState);
+		//Nettoyage du string temporaire
+		memset(StringLu, 0x00, 20);
+		memset(StringState, 0x00, 15);
+		
 		Row++;
 	}
 	//Création du ListView à partir de TABLECOLIS
@@ -1282,19 +1297,4 @@ void PdaleInterface(void)
 *********************************************************************************************************
 */
 
-void MainTask (void *p_arg)
-{
-	// Initialisation d'un GUI
-	GUI_Init();
 
-	PdaleInterface();
-	
-	// Montre le dialog d'initialisation
-	ShowInitDialog();
-	/*printf("show init\n\r");*/
-	while (1) 
-	{
-		CheckButtonState(); // Regarde l'état des boutons constamment
-		OSTimeDly(500);
-	}
-}

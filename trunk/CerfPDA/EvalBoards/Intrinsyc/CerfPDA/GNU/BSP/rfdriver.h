@@ -27,6 +27,7 @@ int cell_init();
 COM_BUFF_INFO GetTaskRxRfBuff();
 //OS_EVENT* TxRfSerialSem;
 OS_EVENT* TransmitRfFctSem;
+OS_EVENT* ReceiveDataSem;
 OS_EVENT* SemRxPROTECT;
 OS_STK BufferRfTransmissionTaskStk[TASK_RFSERIAL_SIZE];
 

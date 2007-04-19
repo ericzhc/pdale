@@ -7,7 +7,7 @@
     Local variables
 *******************************************************/
 // Required
-OS_STK MapUpdateTaskStk[TASK_MAP_SIZE];
+
 
 void MAP_Init(void) 
 {
@@ -17,32 +17,67 @@ void MAP_Init(void)
 
 void MapUpdateTask() 
 {
+	INT8U err = OS_NO_ERR;
+	erD_sndstr("Starting MAP update task\n\r");
 	while (1) {
-		char data[] = {COMMAND_GETMAP, COMMAND_EOL};
-
 		OSTimeDlyHMSM(0,MAPDELAY,0,0);
+		char data[] = {COMMAND_GETMAP, ';',COMMAND_EOL};
 
+		
+
+		memset(CurrentMap, 0x0, MAX_MAP_SIZE);
+		OSSemPend(ReceiveDataSem, 0, &err);
+		erD_sndstr("Requesting map");
+		erD_snd_cr();
 		// Send command
 		TransmitRfBuffer(data);
 		// Wait for response
-		memset(CurrentMap, 0x0, MAX_MAP_SIZE);
+
 		ReceiveData(COMMAND_GETMAP, CurrentMap);
+		OSSemPost(ReceiveDataSem);
+		erD_sndstr("Map Received");
+		erD_snd_cr();
 	}
 }
-//
-//void ReceiveMap(char cmd, char* buffer)
-//{
-//	INT8U err;
-//	// Wait for the data to be received
-//	OSFlagPend(RfFlag, TCP_TRANSFER_RECEIVED, OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, 0,&err);
-//
-//	int i = 0;
-//	while((RxRfSerialBuffer[ptrRfRxBuffCurr] != COMMAND_EOL)) {
-//		ptrRfRxBuffCurr = (ptrRfRxBuffCurr + 1) % (int) SERIAL_BUFF_SIZE;
-//		buffer[i] = RxRfSerialBuffer[ptrRfRxBuffCurr];
-//		if ((ptrRfRxBuffCurr == ptrRfRxBuffEnd)) {
-//			OSFlagPend(RfFlag, TCP_TRANSFER_RECEIVED, OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, OS_TICKS_PER_SEC,&err); // wait one second for a next input
-//		}
-//		i++;
-//	}
-//}
+int getMap(char* buffer) {
+	int i =0;
+	char mapLength[10];
+	while (CurrentMap[i] != ';') {
+		mapLength[i] = CurrentMap[i];
+		i++;
+	}
+	i++;
+	buffer = &(CurrentMap[i]);
+	mapLength[i] = '\0';
+	int length = atoi(mapLength);
+	//printf("Map lenght %d", length);
+	return length;
+}
+
+/*void ReceiveMap(char* buffer)
+{
+	INT8U err = OS_NO_ERR;
+	// Wait for the data to be received
+	int i = 0;
+	int timeout = 0;
+	//erD_sndstr("Wait for the data to be received");
+	while (err != OS_TIMEOUT) {
+		OSFlagPend(RfFlag, TCP_TRANSFER_RECEIVED, OS_FLAG_WAIT_SET_ALL + OS_FLAG_CONSUME, timeout,&err);
+		timeout = 5000;
+
+		if(err == OS_NO_ERR)
+		{
+			while(ptrRfRxBuffCurr != ptrRfRxBuffEnd) {
+				ptrRfRxBuffCurr = (ptrRfRxBuffCurr + 1) % (int) SERIAL_BUFF_SIZE;
+				buffer[i] = RxRfSerialBuffer[ptrRfRxBuffCurr];
+				//erD_sndstr("char recu: %c\n\r", RxRfSerialBuffer[ptrRfRxBuffCurr]);
+				i++;
+			}
+		}
+	}
+
+	buffer[i] = '\0';
+	erD_sndstr("Messages recus : ");
+	erD_sndstr(buffer);
+}
+*/
