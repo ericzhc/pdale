@@ -113,7 +113,6 @@ int  main (void)
 
 static void  AppStartTask (void *p_arg)
 {
-	OSTimeDlyHMSM(0,0,10,0);					// Give Some time to cellular connect
     INT8U err;
     p_arg = p_arg;                              /* Prevent compiler warning                            */
 
@@ -129,6 +128,7 @@ static void  AppStartTask (void *p_arg)
     OSTaskNameSet(TASK_GUI_PRIO,        "GUI task",  &err);
 #endif
 
+	OSTimeDlyHMSM(0,0,10,0);					// Give Some time to cellular connect
 	RFDriverInit();
 	GPS_Init();
 
