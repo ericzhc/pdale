@@ -53,12 +53,7 @@ namespace Socket.TCPServerReceiver
         //Semaphores
         static TestSemaphore.Semaphore msgSendSem;
         static TestSemaphore.Semaphore msgReceivedSem;
-        //static TestSemaphore.Semaphore sendSem;
-        //static TestSemaphore.Semaphore recvSem;
-
-        //static string[] messagesReceived = new string[5];
-        //static string[] messagesToSend = new string[100];
-
+        
         //Buffer partages entre les threads
         static byte[] msgSendData = new byte[1024];
         static byte[] msgReceivedData = new byte[1024];
@@ -129,16 +124,30 @@ namespace Socket.TCPServerReceiver
             return data;
         }
 
+		/*
+        *********************************************************************************************************
+        *                                              Main()
+        *
+        * Description : Fonction principale qui initialise plusieurs variables
+        *
+        * Argument(s) : aucun
+        *
+        * Return(s)   : aucun
+        *********************************************************************************************************
+        */
         public static void Main()
         {
+        	// Semaphores qui vont synchroniser 2 taches chacune
             msgSendSem = new TestSemaphore.Semaphore(2);
             msgReceivedSem = new TestSemaphore.Semaphore(2);
 
+			// Les buffers partages sont initialises au caractere de delimitation pour indiquer qu'ils sont vides
             msgSendData[0] = (byte) COMMAND_DELIMITER;
             msgReceivedData[0] = (byte) COMMAND_DELIMITER;
 
             m_DataManager = new DataManager();
 
+			// Creation d'un socket TCP
             ipep = new IPEndPoint(IPAddress.Any, 2166);
 
             newsock = new System.Net.Sockets.Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -146,7 +155,7 @@ namespace Socket.TCPServerReceiver
             newsock.Bind(ipep);
             newsock.Listen(10);
 
-            // Start the web thread that handles a connection with the web GUI
+            // Creation et demarrage de la tache qui interagit avec le serveur PC
             Thread WebThread = new Thread(new ThreadStart(TCPWeb));
             WebThread.Start();
 
@@ -155,34 +164,46 @@ namespace Socket.TCPServerReceiver
             IPEndPoint newclient = (IPEndPoint)client.RemoteEndPoint;
             Console.WriteLine("PDA Connected with {0} at port {1}", newclient.Address, newclient.Port);
 
+			// Creation et demarrage de la tache qui interagit avec le PDA
             Thread ReceiverPdaThread = new Thread(new ThreadStart(TCPReceiverPDA));
             ReceiverPdaThread.Start();
-            
-            // Centrale default addreseses ?
-            //string OrigAddress = "1408 RUE DE L'EGLISE;SAINT-LAURENT;QC;H4L2H3";
-            //string DestAddress = "8105 BOULEVARD DECARIE;MONTREAL;QC;H4P2H5";
-
-            //GetDirectionsFromAdress(OrigAddress, DestAddress);
-            //GetRouteFromGps(45.40391131, -71.88929146, 46.34018682, -72.54498962);
         }
 
+		/*
+        *********************************************************************************************************
+        *                                              TCPReceiverPDA()
+        *
+        * Description : Tache qui permet de communiquer avec le PDA. Elle recoit des numeros de commandes et envoit
+        *				les informations appropriees au PDA. 
+        *
+        * Argument(s) : aucun
+        *
+        * Return(s)   : aucun
+        *********************************************************************************************************
+        */
         static private void TCPReceiverPDA()
         {
+        	// On place le caractere de delimitation dans un tableau de caracteres
             char[] delimiter = new char[1];
             delimiter[0] = (char)COMMAND_DELIMITER;
             
             while (true)
             {
                 try {
+                	// Reception de la commande
                     receivedData = new byte[100];
                     client.Receive(receivedData);
                     Console.WriteLine("Client sent data");
                     Console.WriteLine("ASCII Data: " + Encoding.ASCII.GetString(receivedData));
 
-                    if (receivedData[0] == COMMAND_MSGFROMPDA) {
+					// Si c'est un message a acheminer au serveur PC
+					if (receivedData[0] == COMMAND_MSGFROMPDA) {
                         Console.WriteLine("Received send message from pda command");
                         msgReceivedSem.Wait();
+                        
+                        // Si le buffer des messages recus n'est pas vide
                         if (msgReceivedData[0] != COMMAND_DELIMITER) {
+                            // Separation des messages deja presents
                             string messageCat = "";
                             string[] message = Encoding.ASCII.GetString(msgReceivedData).Split(delimiter, 10);
 
@@ -193,15 +214,19 @@ namespace Socket.TCPServerReceiver
                                 }
                             }
 
+							// Ajout du nouveau message dans le buffer des messages recus
                             messageCat += Encoding.ASCII.GetString(receivedData);
                             msgReceivedData = Encoding.ASCII.GetBytes(messageCat);
-                        } else {
+                        } 
+                        //Si le buffer des messages recus est vide, on ajoute simplement le message
+                        else {
                             string message = Encoding.ASCII.GetString(receivedData).Split(delimiter)[0] + ";";
                             Console.WriteLine("Message: " + message);
                             msgReceivedData = Encoding.ASCII.GetBytes(message);
                         }
                         msgReceivedSem.Release();
                     } 
+                    // Si le PDA desire mettre a jour sa liste de messges recus du serveur
                     else if (receivedData[0] == COMMAND_GETMSGS) 
                     {
                         Console.WriteLine("Received get messages");
@@ -210,6 +235,8 @@ namespace Socket.TCPServerReceiver
                         string messageCat = "";
                         string[] message = Encoding.ASCII.GetString(msgSendData).Split(delimiter, 5);
                         Console.WriteLine("Message encoded in ascii bytes");
+                        
+                        // Si le buffer n'est pas vide, on ajoute les messages dans messageCat
                         if (msgSendData[0] != COMMAND_DELIMITER) {
                             for (int i = 0; i < message.Length; i++) {
                                 if (message[i][0] != '\0') {
@@ -219,9 +246,12 @@ namespace Socket.TCPServerReceiver
                             }
                         }
                         
+                        // Si le buffer est vide, on le signale a l'utilisateur
                         if (messageCat == string.Empty || messageCat == null) {
-                            messageCat = "Hey dudes there is \n\r No messages, now get naked\0";
+                            messageCat = "No messages\0";
                         }
+                        
+                        // Envoi au PDA de la string messageCat, qui contient soit les 5 messages les plus recents ou la strin "No messages"
                         Console.WriteLine("MessageCat built: " + messageCat);
                         byte[] tempBuffer = new byte[messageCat.Length];
                         tempBuffer = Encoding.ASCII.GetBytes(messageCat);
@@ -229,6 +259,7 @@ namespace Socket.TCPServerReceiver
                         client.Send(tempBuffer);
                         msgSendSem.Release();
                     }
+                    // Si le PDa desire avoir les noms des camions
                     else if (receivedData[0] == COMMAND_TRUCKNAMES)
                     {
                         Console.WriteLine("Received get truck names command");
@@ -238,6 +269,7 @@ namespace Socket.TCPServerReceiver
                         toSendData = Encoding.ASCII.GetBytes(listeCamions);
                         client.Send(toSendData);
                     } 
+                    // Si le PDA veut valider l'existence d'un colis dans la base de donnees
                     else if (receivedData[0] == COMMAND_VALIDPACKAGE) 
                     {
                         Console.WriteLine("Received isvalid package command");
@@ -256,6 +288,7 @@ namespace Socket.TCPServerReceiver
                         toSendData[2] = (byte) COMMAND_DELIMITER;
                         client.Send(toSendData);
                     } 
+                    // Si le PDA veut changer l'etat d'un colis
                     else if (receivedData[0] == COMMAND_SETPACKETSTATE) 
                     {
                         Console.WriteLine("Received set package state command");
@@ -264,6 +297,7 @@ namespace Socket.TCPServerReceiver
                         Console.WriteLine("The package {0} had its state set to {1}", command.Substring(1, COMMAND_CODEBARLENGTH), command.Substring(COMMAND_CODEBARLENGTH + 1, 1));
 
                     } 
+                    // Si le PDA veut avoir la liste des colis qui lui sont attribues
                     else if (receivedData[0] == COMMAND_GETPACKAGES) 
                     {
                         Console.WriteLine("Received get packages command");
@@ -273,7 +307,8 @@ namespace Socket.TCPServerReceiver
                         toSendData = new byte[packages.Length];
                         toSendData = Encoding.ASCII.GetBytes(packages);
                         client.Send(toSendData);
-                    } 
+                    }
+                    // Si le PDA veut lire les informations d'un colis en particulier
                     else if (receivedData[0] == COMMAND_PACKETINFOS) 
                     {
                         Console.WriteLine("Received Packet infos command");
@@ -283,6 +318,7 @@ namespace Socket.TCPServerReceiver
                         toSendData = Encoding.ASCII.GetBytes(package);
                         client.Send(toSendData);
                     } 
+                    // Si le PDA veut envoyer ses coordonnees GPS mises a jour
                     else if (receivedData[0] == COMMAND_GPSCOORD) {
                         Console.WriteLine("Received GPS update command");
                         string command = Encoding.ASCII.GetString(receivedData);
@@ -296,38 +332,9 @@ namespace Socket.TCPServerReceiver
                             Console.WriteLine("incomplete data informations");
                         }
 
-                        //if (receivedData.Length >= 10) {
-                            //Console.WriteLine("Values: " + receivedData[0] + "-" + receivedData[1] + "-" + receivedData[2] + "-" + receivedData[3] + "-" + receivedData[4] + "-" + receivedData[5] + "-" + receivedData[6] + "-" + receivedData[7] + "-" + receivedData[8] + "-" + receivedData[9] + "-");
-                            //int camion = (int)receivedData[1]; // could be used to substitue 
-                            //byte[] tempvalue = new byte[4];
-                            //tempvalue[0] = receivedData[2];
-                            //tempvalue[1] = receivedData[3];
-                            //tempvalue[2] = receivedData[4];
-                            //tempvalue[3] = receivedData[5];
-
-                            //if (BitConverter.ToSingle(tempvalue, 0) != 0) {
-                            //    m_DataManager.GpsData[0].Latitude = BitConverter.ToSingle(tempvalue, 0);
-                            //    Console.WriteLine("Latitude: " + m_DataManager.GpsData[0].Latitude);
-                            //} else {
-                            //    Console.WriteLine("Latitude not updated: " + m_DataManager.GpsData[0].Latitude);
-                            //}
-                            
-                            //tempvalue[0] = receivedData[6];
-                            //tempvalue[1] = receivedData[7];
-                            //tempvalue[2] = receivedData[8];
-                            //tempvalue[3] = receivedData[9];
-
-                            //if (BitConverter.ToSingle(tempvalue, 0) != 0) {
-                            //    m_DataManager.GpsData[0].Longitude = BitConverter.ToSingle(tempvalue, 0);
-                            //    Console.WriteLine("Longitude: " + m_DataManager.GpsData[0].Longitude);
-                            //} else {
-                            //    Console.WriteLine("Longitude not updated: " + m_DataManager.GpsData[0].Longitude);
-                            //}
-                            
-                        //} else {
-                        //    Console.WriteLine("Not enough chars to build gps infos");
-                        //}
-                    } else if (receivedData[0] == COMMAND_GETMAP) {
+                    }
+                    // Si le PDA veut obtenir une nouvelle carte
+                    else if (receivedData[0] == COMMAND_GETMAP) {
                         MemoryStream stream = m_DataManager.GetCurrentMap();
                         if (stream != null) {
                             byte[] maparray = new byte[stream.Length+1];
@@ -345,9 +352,22 @@ namespace Socket.TCPServerReceiver
             }
         }
 
+		/*
+        *********************************************************************************************************
+        *                                              TCPWeb()
+        *
+        * Description : Tache qui permet de communiquer avec l'interface du serveur PC. Elle peut recevoir un
+        *               message en provenance du serveur afin qu'il soit envoye au PDA, ou bien recevoir une demande
+        *				pour mettre a jour les messages affiches sur l'interface      
+        *  
+        * Argument(s) : aucun
+        *
+        * Return(s)   : aucun
+        *********************************************************************************************************
+        */
         static private void TCPWeb()
         {
-
+        	// Creation d'un socket TCP pour ecouter les requetes en provenance du serveur PC
             IPEndPoint ipep = new IPEndPoint(IPAddress.Any, 2160);
 
             System.Net.Sockets.Socket newsock = new System.Net.Sockets.Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -360,11 +380,13 @@ namespace Socket.TCPServerReceiver
             System.Net.Sockets.Socket client;
             IPEndPoint newclient;
 
+			// On place le caractere de delimitation dans un tableau de caracteres
             char[] delimiter = new char[1];
             delimiter[0] = (char)COMMAND_DELIMITER;
 
             while (true)
             {
+            	// On accepte un connexion venant du serveur
                 client = newsock.Accept();
                 Console.WriteLine("WEB Connected with {0} at port {1}", ((IPEndPoint)client.RemoteEndPoint).Address, ((IPEndPoint)client.RemoteEndPoint).Port);
                 webReceivedData = new byte[1024];                
@@ -374,13 +396,16 @@ namespace Socket.TCPServerReceiver
                     newclient = (IPEndPoint)client.RemoteEndPoint;
                     client.Receive(webReceivedData);
                     
+                    // Si le serveur veut mettre a jour les messages qu'il affiche dans son interface
                     if (webReceivedData[0] == COMMAND_GETMSGS)
                     {
                         Console.WriteLine("Received command get messages from WEB GUI");
                         msgReceivedSem.Wait();
 
+						// Si le buffer des messages recus n'est pas vide
                         if (msgReceivedData[0] != COMMAND_DELIMITER)
                         {
+                        	// On verifie que le buffer contient bien un/des messages venant du PDA. Si oui, on envoit le buffer au serveur
                             if (msgReceivedData[0] == COMMAND_MSGFROMPDA)
                             {
                                 Console.WriteLine(Encoding.ASCII.GetString(msgReceivedData));
@@ -396,13 +421,16 @@ namespace Socket.TCPServerReceiver
 
                         msgReceivedSem.Release();                            
                     }
+                    // Si le serveur veut envoyer un message au PDA
                     else if (webReceivedData[0] == COMMAND_MSGTOPDA)
                     {
                         Console.WriteLine("Received command send messages to PDA from WEB GUI");
                         msgSendSem.Wait();
 
+						// Si le buffer des messages a envoyer n'est pas vide
                         if (msgSendData[0] != COMMAND_DELIMITER)
                         {
+                        	// On separe les messages deja presents et on ajoute le nouveau au debut du buffer
                             string messageCat = "";
                             string[] message = Encoding.ASCII.GetString(msgSendData).Split(delimiter, 5);
 
@@ -414,11 +442,12 @@ namespace Socket.TCPServerReceiver
                                 }
                             }
 
+							// On ajoute le nouveau message dans le buffer d'envoi
                             string newMessage = Encoding.ASCII.GetString(webReceivedData);
                             messageCat += newMessage.Substring(1, newMessage.Length - 1);
-                            //messageCat += Encoding.ASCII.GetString(webReceivedData);
                             msgSendData = Encoding.ASCII.GetBytes(messageCat);
                         }
+                        // Si le buffer est vide, on ajoute simplement le message dans le buffer d'envoi
                         else
                         {
                             string message = Encoding.ASCII.GetString(webReceivedData);
