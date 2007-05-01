@@ -1,45 +1,55 @@
 #include <keyboard.h>
-
-
-/*$PAGE*/
-/* 
+/*
 *********************************************************************************************************
-*                                              STARTUP TASK
+*                                                uC/OS-II
+*                                          The Real-Time Kernel
 *
-* Description : This is an example of a startup task.  As mentioned in the 
-book's text, you MUST
-*               initialize the ticker only once multitasking has started.
-* Arguments   : p_arg is the argument passed to 'AppStartTask()' by 
-'OSTaskCreate()'.
-* Notes       : 1) The first line of code is used to prevent a compiler 
-warning because 'p_arg' is not
-*                  used.  The compiler should not generate any code for this 
-statement.
-*               2) Interrupts are enabled once the task start because the 
-I-bit of the CCR register was
-*                  set to 0 by 'OSTaskCreate()'.
+*                            (c) Copyright 2003, 2004, Micrium, Inc., 
+Weston, FL
+*                                           All Rights Reserved
+*
+*                                              LogicPD Zoom
+*                                               Sample code
+*
+* File    : keyboard.c
+* By      : Jean J. Labrosse
+* Modif by: P2
+*
 *********************************************************************************************************
 */
 
+// Defines the lower Case
 char lowerCase[51] = {F1,F2,'a','b','c','d',POWER,0,0,0,
 					'e','f','g','h','i','j','k',0,0,0,
 					'l','m','n','o','p','q','r',0,0,0,
 					's','t','u','v','w','x','y',0,0,0,
 					'z',SHIFT,CAPSCTRL,BACKSPACE,NUMCUR,'\\',ENTER,0,0,0};
 
+// Defines the upper Case
 char uperCase[51] = {F1,F2,'A','B','C','D',POWER,0,0,0,
 					'E','F','G','H','I','J','K',0,0,0,
 					'L','M','N','O','P','Q','R',0,0,0,
 					'X','Y','S','T','U','V','W',0,0,0,
 					'Z',SHIFT,CAPSCTRL,BACKSPACE,NUMCUR,'\\',ENTER,0,0,0};
 
+// Defines the shift Case
 char shift[51] = {F1,F2,'1','2','3','4',POWER,0,0,0,
 					'5','6','7','8','9','0','@',0,0,0,
 					'+','-','*','/','=',UP,'\"',0,0,0,
 					ESCAPE,',','.','?',LEFT,':',RIGHT,0,0,0,
 					TAB,SHIFT,CAPSCTRL,SPACE,NUMCUR,'\\',ENTER,0,0,0};
 
-
+/*
+*********************************************************************************************************
+* ReadFromKeyboard()
+*
+* Description : Cette fonction lit un charactère sur le keyboard du PDA
+*
+* Argument(s) : 
+*
+* Return(s) : Le caractère lu
+*********************************************************************************************************
+*/
 char ReadFromKeyboard (void)
 {
     char err;
@@ -135,6 +145,17 @@ char ReadFromKeyboard (void)
 	return key;
 }
 
+/*
+*********************************************************************************************************
+* ReadLine()
+*
+* Description : Cette fonction lit une série de caractère sur le clavier pour produire une ligne
+*
+* Argument(s) : line		  : La ligne de caractèree qui sera retournée.
+*				Max_Line_Size : La longueur maximale que peut prendre la chaîne de caractères.
+* Return(s) :
+*********************************************************************************************************
+*/
 void ReadLine(char * line, int Max_Line_Size) {
 
 	char buffer[Max_Line_Size];
@@ -190,12 +211,34 @@ void ReadLine(char * line, int Max_Line_Size) {
 	strcpy(line, buffer);
 }
 
+/*
+*********************************************************************************************************
+* getKey()
+*
+* Description : Trouve la clé appuyée sur le keyboard sur la mapping courant du keyboard (upper, lower, shift)
+*
+* Argument(s) : key		      : La rangée du keyboard
+*				columb		  : La colonne du keyboard
+*
+* Return(s) :	La clé appuyé sur le keyboard
+*********************************************************************************************************
+*/
 char getKey(int key, int columb)
 {
 	return curmap[(key-1)*10 + (columb)];
 }
 
-
+/*
+*********************************************************************************************************
+* getkeyNumber()
+*
+* Description : Retourne en char la rangée de la clé appuyé 
+*
+* Argument(s) : key		      : La clé appuyé
+*				
+* Return(s) : La rangée de la clé
+*********************************************************************************************************
+*/
 char getkeyNumber(int key)
 {
 	char newkey = 0;
@@ -217,8 +260,17 @@ char getkeyNumber(int key)
 	return newkey;
 }
 
-
-
+/*
+*********************************************************************************************************
+* scanColumn()
+*
+* Description : Retourne en char la colonne de la clé qui a été appuyé
+*
+* Argument(s) : columb		      : La colonne de la clé qui a été appuyé en int.
+*				
+* Return(s) : Le char correspondant à la colonne.
+*********************************************************************************************************
+*/
 char scanColumn(int columb)
 {	
 	int	 ii;
@@ -227,8 +279,6 @@ char scanColumn(int columb)
 
 	masque = 1;
 	masque <<=columb;
-
-
 	
 	CERF_PDA_CPLD_KEYB_SCNLOW = (masque&0x0f);
 	
