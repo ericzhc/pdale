@@ -12,7 +12,9 @@ char GPSBuffer[TSIP_BUFF_SIZE];
 int ptrGPSBuffCurr = 0, ptrGPSBuffEnd = 0;
 // Required
 int firstGPSstart = 1;
-
+/*******************************************************
+ Initialize GPS interface
+*******************************************************/
 void GPS_Init(void) 
 {
 	INT8U err;
@@ -30,6 +32,9 @@ void GPS_Init(void)
 	OSFlagPost(InitFlag, GPS_INIT_DONE2, OS_FLAG_SET, &err);
 }
 
+/*******************************************************
+ Sends last read GPS coordonates to remote server
+*******************************************************/
 void GPSSendDataTask() 
 {
 	INT8U err;
@@ -56,7 +61,9 @@ void GPSSendDataTask()
 		TransmitRfBuffer(data);
 	}
 }
-
+/*******************************************************
+ Read GPS coordonate at a given rate
+*******************************************************/
 void GPSUpdateTask() 
 {
 	INT8U err;
@@ -83,7 +90,9 @@ void GPSUpdateTask()
 			&err);
 	}
 }
-
+/*******************************************************
+ Get TSIP received for GPS
+*******************************************************/
 void ReceivedTSIP()
 {
 	//int condition = (ptrGPSBuffCurr+13) % (int)TSIP_BUFF_SIZE;
@@ -120,13 +129,16 @@ void ReceivedTSIP()
 		//printf("Current: %d - End: %d - Condition: %d\n\r", ptrGPSBuffCurr, ptrGPSBuffEnd, condition);
 	}
 }
-
-// Sends the TSIP packets for GPS configuration
+/*******************************************************
+ Sends the TSIP packets for GPS configuration
+*******************************************************/ 
 void SendTSIP(char *data) 
 {
 	TransmitBuffer(data);
 }
-
+/*******************************************************
+ Extract GPS coordinates for last received TSIP
+*******************************************************/ 
 void ReadPosition() 
 {
 /* Each value is of type: Single — Float, or 4 byte REAL has a precision of 
@@ -173,7 +185,9 @@ void ReadPosition()
 	mySecondFloat = (float*)GPSData;
 	GPSPosition.Altitude = ((float)*mySecondFloat);
 }
-
+/*******************************************************
+ Extract time for last received TSIP
+*******************************************************/
 void ReadTime() 
 {
 	erD_sndstr("Reading time...\n\r");
@@ -199,7 +213,9 @@ void ReadTime()
 	GPSTimeValue.Minutes = (seconds / (24*60)) - (GPSTimeValue.Hours*60);
 	GPSTimeValue.Seconds = (seconds / (24*60*60)) - (GPSTimeValue.Hours*60*60) - (GPSTimeValue.Minutes*60);
 }
-
+/*******************************************************
+ Enable and initialize GPS interface
+*******************************************************/
 void GPS_Enable()
 {
 	erD_sndstr("Enabling GPS\n\r");
@@ -216,7 +232,9 @@ void GPS_Enable()
 					NULL,
 					OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
 }
-
+/*******************************************************
+ Disable GPS interface
+*******************************************************/
 void GPS_Disable()
 {
 	erD_sndstr("Disabling GPS\n\r");

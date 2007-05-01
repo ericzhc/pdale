@@ -192,7 +192,9 @@ void BufferTransmissionTask()
 					&err);
 	}
 }
-
+/*******************************************************
+ Used to get informations about the serial Buffer
+*******************************************************/
 COM_BUFF_INFO GetTaskRxComBuff() 
 {
 	COM_BUFF_INFO buffprot;

@@ -48,7 +48,9 @@ void RFDriverInit()
 	
 	erD_sndstr("RF Init done\n\r", 0);
 }
-
+/*******************************************************
+ Initializes cellular interface and connect to remote server
+*******************************************************/
 int cell_init()
 {
 		char buffer[50];
@@ -131,7 +133,9 @@ int cell_init()
 
 		return 1;
 }
-
+/*******************************************************
+ Open socket with remote server
+*******************************************************/
 int open_socket(char* port,char* ipaddress)
 {
 	char command[100];
@@ -157,12 +161,16 @@ int open_socket(char* port,char* ipaddress)
 	DonneeRecue(buffer,8000);
 	return 1;
 }
-	
+/*******************************************************
+ Close socket with remote server
+*******************************************************/
 void close_socket()
 {
 	TransmitRfBuffer("+++\n\r\0");
 }
-
+/*******************************************************
+ Put received data in reception buffer
+*******************************************************/
 int DonneeRecue(char* buffer, INT16U timeout)
 {
 	INT8U err;
@@ -353,7 +361,9 @@ void BufferRfTransmissionTask()
 					&err);
 	}
 }
-
+/*******************************************************
+ Gives informations about the Rf Communication Buffer
+*******************************************************/
 COM_BUFF_INFO GetTaskRxRfBuff() 
 {
 	COM_BUFF_INFO buffprot;
