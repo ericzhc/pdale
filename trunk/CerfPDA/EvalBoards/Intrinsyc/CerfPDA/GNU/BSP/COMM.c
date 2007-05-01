@@ -6,7 +6,9 @@
 /******************************************************
     Methods
 *******************************************************/
-
+/*******************************************************
+ Used to put received data into reception buffer
+*******************************************************/
 void ReceiveData(char cmd, char* buffer)
 {
 	INT8U err = OS_NO_ERR;
@@ -40,7 +42,9 @@ void ReceiveData(char cmd, char* buffer)
 	//OSSemPost(ReceiveDataSem);
 	//OSSemPost(TransmitRfFctSem);
 }
-
+/*******************************************************
+ Asks remote server for trucks names
+*******************************************************/
 void GetTruckNames(char* buffer)
 {
 	INT8U err = OS_NO_ERR;
@@ -53,7 +57,9 @@ void GetTruckNames(char* buffer)
 	ReceiveData(COMMAND_TRUCKNAMES, buffer);
 	OSSemPost(ReceiveDataSem);
 }
-
+/*******************************************************
+ Verify with remote server if package is valid
+*******************************************************/
 char IsValidPackage(char* packetid)
 {
 	int i;
@@ -80,7 +86,9 @@ char IsValidPackage(char* packetid)
 	OSSemPost(ReceiveDataSem);
 	return tempbuff[0];
 }
-
+/*******************************************************
+ Asks remote server for a given package informations
+*******************************************************/
 void GetPacketInfos(char* packetid, char* buffer)
 {
 	int i;
@@ -103,7 +111,9 @@ void GetPacketInfos(char* packetid, char* buffer)
 	ReceiveData(COMMAND_PACKETINFOS, buffer);
 	OSSemPost(ReceiveDataSem);
 }
-
+/*******************************************************
+ Tells the remote server to change a given package status
+*******************************************************/
 void SetPacketState(char* packetid, char value)
 {
 	int i;
@@ -123,7 +133,9 @@ void SetPacketState(char* packetid, char value)
 	TransmitRfBuffer(data);
 	OSSemPost(ReceiveDataSem);
 }
-
+/*******************************************************
+ Asks remote server for all packages currently in DB
+*******************************************************/
 void GetAllPackages(int truckid, char* buffer)
 {
 	INT8U err = OS_NO_ERR;
@@ -136,7 +148,9 @@ void GetAllPackages(int truckid, char* buffer)
 	ReceiveData(COMMAND_GETPACKAGES, buffer);
 	OSSemPost(ReceiveDataSem);
 }
-
+/*******************************************************
+ Asks remote server for all messages
+*******************************************************/
 void GetMessages(int truckid, char* buffer)
 {
 	INT8U err = OS_NO_ERR;
@@ -149,7 +163,9 @@ void GetMessages(int truckid, char* buffer)
 	ReceiveData(COMMAND_GETMSGS, buffer);
 	OSSemPost(ReceiveDataSem);
 }
-
+/*******************************************************
+ Sends message to the remote server
+*******************************************************/
 void SendMessage(int truckid, char* msg)
 {
 	INT8U err = OS_NO_ERR;
@@ -172,12 +188,16 @@ void SendMessage(int truckid, char* msg)
 	OSSemPost(ReceiveDataSem);
 
 }
-
+/*******************************************************
+ Initialize and enable code bar reader
+*******************************************************/
 void CodeBarreInit()
 {
 	BCR_Enable();
 }
-
+/*******************************************************
+ Wait for a bar code to be read and copy its value
+*******************************************************/
 void CodeBarreRead(char* code)
 {
 	INT8U err;
@@ -193,7 +213,9 @@ void CodeBarreRead(char* code)
 		OS_FLAG_SET, 
 		&err);
 }
-
+/*******************************************************
+ Disables bar code reader
+*******************************************************/
 void CodeBarreDisable()
 {
 	BCR_Disable();

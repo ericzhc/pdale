@@ -11,7 +11,9 @@
 // Required
 OS_STK BCRUpdateTaskStk[TASK_BCR_SIZE];
 static INT8U enable = 0;
-
+/******************************************************
+  Enable and initalize bar code reader
+*******************************************************/
 void BCR_Init(void) 
 {
 	enable = 1;
@@ -34,7 +36,9 @@ void BCR_Init(void)
 
 	erD_sndstr("Init done...BCR\n\r");
 }
-
+/******************************************************
+  Read serial for bcr data
+*******************************************************/
 void BCRUpdateTask() 
 {
 	INT8U err;
@@ -86,7 +90,9 @@ void BCRUpdateTask()
 		#endif
 	}
 }
-
+/******************************************************
+  Enable bar code reader
+*******************************************************/
 void BCR_Enable()
 {
 	COM_BUFF_INFO RxBuff = GetTaskRxComBuff();
@@ -105,7 +111,9 @@ void BCR_Enable()
 
 	*(RxBuff.ptrCurrent) = *(RxBuff.ptrEnd);
 }
-
+/******************************************************
+  Disable bar code reader
+*******************************************************/
 void BCR_Disable()
 {
 	COM_BUFF_INFO RxBuff = GetTaskRxComBuff();

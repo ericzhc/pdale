@@ -8,13 +8,17 @@
 *******************************************************/
 // Required
 
-
+/*******************************************************
+ Initializes Map interface
+*******************************************************/
 void MAP_Init(void) 
 {
 	erD_sndstr("Starting MAP update task\n\r");
 	erD_sndstr("Init done...Map\n\r");
 }
-
+/*******************************************************
+ Asks remote server for last generated map
+*******************************************************/
 void MapUpdateTask() 
 {
 	INT8U err = OS_NO_ERR;
@@ -39,6 +43,9 @@ void MapUpdateTask()
 		erD_snd_cr();
 	}
 }
+/*******************************************************
+ Extract map from received buffer
+*******************************************************/
 int getMap(char* buffer) {
 	int i =0;
 	char mapLength[10];
