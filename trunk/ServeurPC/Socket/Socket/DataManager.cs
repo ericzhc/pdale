@@ -332,7 +332,7 @@ public class DataManager
 
                 for (int i = 0; i < arr_AllOrder.Count; i++)
                 {
-                    str_NewOrder = (Int32.Parse(arr_AllOrder[i]) - 1).ToString();
+                    str_NewOrder = (Int32.Parse(arr_AllOrder[i].ToString()) - 1).ToString();
                     str_Sql = "UPDATE colis SET col_ordre = '" + str_NewOrder + "' WHERE col_order = '" + arr_AllOrder[i] + "'";
                     MyCommand = new MySqlCommand(str_Sql, MyConnection);
                     MyCommand.ExecuteNonQuery();

@@ -39,12 +39,12 @@ public partial class _Default : System.Web.UI.Page
     double CentralCoordLat = -71.9287836211068;
     double CentralCoordLong = 45.3821264306392;
 
+    // Constantes qui servent pour les numeros de commandes
     const char COMMAND_DELIMITER = ';';
     const byte COMMAND_GETMSGS = 53;
     const byte COMMAND_MSGFROMPDA = 54;
     const byte COMMAND_MSGTOPDA = 55;
 
-    //static TestSemaphore.Semaphore usingSocket = new TestSemaphore.Semaphore(2);
     #endregion
 
     #region PAGE LOAD/UNLOAD
@@ -61,6 +61,7 @@ public partial class _Default : System.Web.UI.Page
     */
     protected void Page_Load(object sender, EventArgs e)
     {
+    	// On met toutes les divisions invisibles sauf celle pour ajouter les colis
         divMsg.Visible = false;
         divCamion.Visible = false;
         divListe.Visible = false;
@@ -85,7 +86,7 @@ public partial class _Default : System.Web.UI.Page
                 MyCommand = new MySqlCommand(str_Sql, MyConnection);
                 MyReader = MyCommand.ExecuteReader();
 
-                // Emplissage des menus déroulant des camions
+                // Remplissage des menus déroulant des camions
                 while (MyReader.Read())
                 {
                     dropCamion.Items.Add(MyReader[0].ToString());
@@ -130,12 +131,14 @@ public partial class _Default : System.Web.UI.Page
     */
     protected void cmd_Ajout_Click(object sender, EventArgs e)
     {
+    	// Couleurs pour les boutons du menu
         cmd_Ajout.BackColor = Color.DarkOrange;
         cmd_Carte.BackColor = Color.Yellow;
         cmd_ListeColis.BackColor = Color.Yellow;
         cmd_Msg.BackColor = Color.Yellow;
         cmd_Camion.BackColor = Color.Yellow;
         
+        // On rend visible la division de l'ajout de colis
         divAjout.Visible = true;
         divMsg.Visible = false;
         divListe.Visible = false;
@@ -160,12 +163,14 @@ public partial class _Default : System.Web.UI.Page
     {
         Timer3_Tick(null, null);
 
+		// Couleurs pour les boutons du menu
         cmd_Ajout.BackColor = Color.Yellow;
         cmd_Carte.BackColor = Color.DarkOrange;
         cmd_ListeColis.BackColor = Color.Yellow;
         cmd_Msg.BackColor = Color.Yellow;
         cmd_Camion.BackColor = Color.Yellow;
 
+		// On rend visible la division de la carte
         divAjout.Visible = false;
         divCarte.Visible = true;
         divCamion.Visible = false;
@@ -188,12 +193,14 @@ public partial class _Default : System.Web.UI.Page
     */
     protected void cmd_ListeColis_Click(object sender, EventArgs e)
     {
+    	// Couleurs pour les boutons du menu
         cmd_Ajout.BackColor = Color.Yellow;
         cmd_Carte.BackColor = Color.Yellow;
         cmd_ListeColis.BackColor = Color.DarkOrange;
         cmd_Msg.BackColor = Color.Yellow;
         cmd_Camion.BackColor = Color.Yellow;
 
+		// On rend visible la division de la liste de colis
         divAjout.Visible = false;
         divListe.Visible = true;
         divCamion.Visible = false;
@@ -218,12 +225,14 @@ public partial class _Default : System.Web.UI.Page
     {
         Timer1_Tick(null, null);
 
+		// Couleurs pour les boutons du menu
         cmd_Ajout.BackColor = Color.Yellow;
         cmd_Carte.BackColor = Color.Yellow;
         cmd_ListeColis.BackColor = Color.Yellow;
         cmd_Msg.BackColor = Color.DarkOrange;
         cmd_Camion.BackColor = Color.Yellow;
 
+		// On rend visible la division des messages
         divAjout.Visible = false;
         divMsg.Visible = true;
         divCamion.Visible = false;
@@ -246,12 +255,14 @@ public partial class _Default : System.Web.UI.Page
     */
     protected void cmd_Camion_Click(object sender, EventArgs e)
     {
+    	// Couleurs pour les boutons du menu
         cmd_Ajout.BackColor = Color.Yellow;
         cmd_Carte.BackColor = Color.Yellow;
         cmd_ListeColis.BackColor = Color.Yellow;
         cmd_Msg.BackColor = Color.Yellow;
         cmd_Camion.BackColor = Color.DarkOrange;
 
+		// On rend visible la division de gestion des camions
         divAjout.Visible = false;
         divMsg.Visible = false;
         divCamion.Visible = true;
@@ -636,6 +647,7 @@ public partial class _Default : System.Web.UI.Page
     */
     protected void cmdEnvoyerMsg_Click(object sender, EventArgs e)
     {
+    	// Retourne l'heure du systeme
         int hour = DateTime.Now.Hour;
         int min = DateTime.Now.Minute;
         string minStr;
@@ -645,16 +657,17 @@ public partial class _Default : System.Web.UI.Page
         else
             minStr = min.ToString();
         
-        //Envoi du message par socket TCP
+        // Creation d'un socket TCP
         Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
+        // Adresse du serveur distant qui roule le programme de sockets
         IPAddress remoteIP = (System.Net.IPAddress)Dns.GetHostAddresses("skaber.mine.nu").GetValue(0);
         //IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
         
         const int remotePort = 2160;
         IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
         
-        //usingSocket.Wait();
+        // Envoi du message dans la boite de texte par socket TCP
         sendSocket.Connect(connectTo);
         byte[] buf = new byte[200];
         buf[0] = (byte) COMMAND_MSGTOPDA;
@@ -667,8 +680,8 @@ public partial class _Default : System.Web.UI.Page
         int bufferUsed = buf.Length;
         sendSocket.Send(buf);
         sendSocket.Close();
-        //usingSocket.Release();
-
+        
+        // Remise a zero de la boite de texte
         TextEnvoiMsg.Text = "";
         divMsg.Visible = true;
     }
@@ -708,27 +721,26 @@ public partial class _Default : System.Web.UI.Page
 
         try
         {
+        	// Creation d'un socket TCP
             Socket sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            
+            // Adresse du serveur roulant le programme de sockets (local pour le projet)
             IPAddress remoteIP = IPAddress.Parse("127.0.0.1");
             //IPAddress remoteIP = IPAddress.Parse("69.159.170.109");
             const int remotePort = 2160;
             IPEndPoint connectTo = new IPEndPoint(remoteIP, remotePort); ;
 
-            //usingSocket.Wait();
+            // Envoi d'une commande au programme de socket pour obtenir les plus recents messages du PDA 
             sendSocket.Connect(connectTo);
             byte[] bufSignal = new byte[7];
             bufSignal[0] = (byte)COMMAND_GETMSGS;
             bufSignal[1] = (byte)COMMAND_DELIMITER;
             sendSocket.Send(bufSignal);
-            //usingSocket.Release();
-
-            //string myCurrentStr = "";
-
-            //while (bufMsgLength > 0) {
-
+            
+            // Reception des messages
             bufMsgLength = sendSocket.Receive(bufMsg);
 
-            //usingSocket.Wait();
+            // Separation du buffer en messages distincts
             if (bufMsgLength > 0)
             {
                 string[] strReceivedData = Encoding.ASCII.GetString(bufMsg).Split(delimiter, 10);
@@ -743,31 +755,9 @@ public partial class _Default : System.Web.UI.Page
 
             }
 
-            //    if (bufMsgLength > 0)
-            //        myCurrentStr += System.Text.Encoding.ASCII.GetString(bufMsg, 0, bufMsgLength + 1);
-            //}
-
-            //int i = 0;
-
-            //while (myCurrentStr != "") {
-            //    if (myCurrentStr.IndexOf(';') != -1) {
-            //        receivedMsg[i] = myCurrentStr.Substring(0, myCurrentStr.IndexOf(';'));
-
-            //        try {
-            //            myCurrentStr = myCurrentStr.Substring(myCurrentStr.IndexOf(';') + 2, ((int)myCurrentStr.Length - (myCurrentStr.IndexOf(';') + 2)));
-            //        } catch {
-            //            break;
-            //        }
-            //    } else {
-            //        myCurrentStr = "";
-            //    }
-            //    i++;
-
-
-
             sendSocket.Close();
-            //usingSocket.Release();
-
+            
+            // Si on est sur la division des messages
             if (onMsgDiv)
             {
                 divMsg.Visible = true;
