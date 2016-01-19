@@ -1,0 +1,5 @@
+### Clarification des concepts de l'idée de projet choisie ###
+
+Le projet consistera en un système de gestion pour une entreprise de livraison et de cueillette de colis telle que UPS ou Fedex. Le CerfPDA sera l'outil de travail du conducteur du camion de livraison. Grâce au CerfPDA, le livreur pourra consulter la liste des colis qu'il doit livrer ou ramasser, voir l'information relative à un colis dans la base de données, regarder une carte lui indiquant l'itinéraire à suivre et communiquer avec la centrale grâce à un système de messages texte.
+
+La centrale sera l'endroit où les gens appellent pour indiquer à la compagnie qu'ils désirent faire ramasser un colis. La personne qui travaille à la centrale utilisera une interface lui permettant de communiquer avec les livreurs, d'ajouter ou de modifier des colis dans une base de données, faire des recherches de colis, voir la liste complète des colis et consulter une carte de la ville indiquant la position actuelle de chacun des camions.
